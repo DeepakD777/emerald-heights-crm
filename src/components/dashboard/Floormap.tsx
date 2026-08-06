@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBooking } from "../../context/BookingContext";
 import { topFlats, bottomFlats } from "../../data/floorData";
 import FlatModal from "./FlatModal";
 
@@ -23,13 +24,71 @@ function FloorMap() {
   const [bottomFlatsData, setBottomFlatsData] = useState(bottomFlats);
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
+  // const [bookings, setBookings] = useState<any[]>([]);
+ const { addBooking } = useBooking();
 
   const openFlat = (flat: any) => {
     setSelectedFlat(flat);
     setIsOpen(true);
   };
   const handleSaveFlat = (updatedFlat: any) => {
-    console.log("Updated Flat:", updatedFlat);
+
+    setTopFlatsData((prev) =>
+      prev.map((flat) =>
+        flat.id === updatedFlat.id ? updatedFlat : flat
+      )
+    );
+
+    setBottomFlatsData((prev) =>
+      prev.map((item) => {
+        if ("id" in item && item.id === updatedFlat.id) {
+          return updatedFlat;
+        }
+
+        return item;
+      })
+    );
+
+    setSelectedFlat(updatedFlat);
+    setIsOpen(false);
+
+  };
+  const handleBooking = (bookingData: any) => {
+   addBooking(bookingData);
+
+    // Update Top Flats
+    setTopFlatsData((prev) =>
+      prev.map((flat) =>
+        flat.number === bookingData.flatNumber
+          ? {
+            ...flat,
+            status: "booked",
+          }
+          : flat
+      )
+    );
+
+    // Update Bottom Flats
+    setBottomFlatsData((prev: any[]) =>
+      prev.map((item: any) => {
+        if (item.number === bookingData.flatNumber) {
+          return {
+            ...item,
+            status: "booked",
+          };
+        }
+
+        return item;
+      })
+    );
+
+    // Update Selected Flat
+    if (selectedFlat?.number === bookingData.flatNumber) {
+      setSelectedFlat({
+        ...selectedFlat,
+        status: "booked",
+      });
+    }
 
     setIsOpen(false);
   };
@@ -213,6 +272,7 @@ function FloorMap() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         onSave={handleSaveFlat}
+        onBooking={handleBooking}
         flat={selectedFlat}
       />
 

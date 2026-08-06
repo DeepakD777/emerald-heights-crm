@@ -5,12 +5,6 @@ Project : Emerald Heights CRM
 
 File : Sidebar.tsx
 
-Purpose :
-
-Website ka Left Sidebar
-
-Isme Menu, Logo aur Navigation rahega.
-
 ========================================================
 */
 
@@ -29,8 +23,15 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-// Sidebar ke saare Menu Items
-const menuItems = [
+interface MenuItem {
+  title: string;
+  icon: any;
+  active?: boolean;
+  hasArrow?: boolean;
+  badge?: string;
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
@@ -51,7 +52,6 @@ const menuItems = [
     icon: Bell,
     badge: "12",
   },
-
   {
     title: "Sales Team",
     icon: UsersRound,
@@ -80,19 +80,9 @@ const menuItems = [
 
 function Sidebar() {
   return (
-    <aside
-      className="
-      w-72
-      min-h-screen
-      bg-[#0B5D3B]
-      text-white
-      flex
-      flex-col
-      "
-    >
-      {/* =========================
-            Logo Section
-      ========================== */}
+    <aside className="w-72 min-h-screen bg-[#0B5D3B] text-white flex flex-col">
+
+      {/* Logo */}
 
       <div className="border-b border-green-700 p-6">
 
@@ -106,9 +96,7 @@ function Sidebar() {
 
       </div>
 
-      {/* =========================
-              Menu
-      ========================== */}
+      {/* Menu */}
 
       <nav className="flex-1 p-4">
 
@@ -121,46 +109,45 @@ function Sidebar() {
             <button
               key={item.title}
               className={`
-    flex
-    items-center
-    gap-3
-    w-full
-    rounded-lg
-    px-4
-    py-3
-    mb-2
-    transition
-    justify-between
-    ${item.active
-                  ? "bg-green-700 text-white"
-                  : "hover:bg-green-700 text-green-100"
+                flex
+                items-center
+                justify-between
+                w-full
+                rounded-lg
+                px-4
+                py-3
+                mb-2
+                transition
+                ${
+                  item.active
+                    ? "bg-green-700 text-white"
+                    : "hover:bg-green-700 text-green-100"
                 }
-  `}
+              `}
             >
 
-              {/* <Icon size={20} />
+              <div className="flex items-center gap-3">
 
-              <span>
+                <Icon size={20} />
 
-                {item.title}
+                <span>{item.title}</span>
 
-              </span> */}
-              <button className="flex items-center justify-between w-full px-4 py-3 mb-2 rounded-lg ...">
-                <div className="flex items-center gap-3">
-                  <Icon size={20} />
-                  <span>{item.title}</span>
-                </div>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  {item.hasArrow && <ChevronDown size={16} />}
+              <div className="flex items-center gap-2">
 
-                  {item.badge && (
-                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              </button>
+                {item.hasArrow && (
+                  <ChevronDown size={16} />
+                )}
+
+                {item.badge && (
+                  <span className="rounded-full bg-green-500 px-2 py-1 text-xs text-white">
+                    {item.badge}
+                  </span>
+                )}
+
+              </div>
+
             </button>
 
           );
@@ -169,25 +156,11 @@ function Sidebar() {
 
       </nav>
 
-      {/* =========================
-            Logout
-      ========================== */}
+      {/* Logout */}
 
       <div className="border-t border-green-700 p-4">
 
-        <button
-          className="
-          flex
-          items-center
-          gap-3
-          w-full
-          rounded-lg
-          px-4
-          py-3
-          hover:bg-red-600
-          transition
-          "
-        >
+        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 transition hover:bg-red-600">
 
           <LogOut size={20} />
 
