@@ -19,13 +19,19 @@ function getColor(status: string) {
 }
 
 function FloorMap() {
-
+  const [topFlatsData, setTopFlatsData] = useState(topFlats);
+  const [bottomFlatsData, setBottomFlatsData] = useState(bottomFlats);
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const openFlat = (flat: any) => {
     setSelectedFlat(flat);
     setIsOpen(true);
+  };
+  const handleSaveFlat = (updatedFlat: any) => {
+    console.log("Updated Flat:", updatedFlat);
+
+    setIsOpen(false);
   };
 
   return (
@@ -80,7 +86,7 @@ function FloorMap() {
 
         <div className="grid grid-cols-5 gap-4">
 
-          {topFlats.map((flat) => (
+          {topFlatsData.map((flat) => (
 
             <div
               key={flat.id}
@@ -106,7 +112,7 @@ function FloorMap() {
 
         <div className="grid grid-cols-9 gap-3">
 
-          {bottomFlats.map((item) => {
+          {bottomFlatsData.map((item) => {
 
             if (item.type === "stair") {
               return (
@@ -206,6 +212,7 @@ function FloorMap() {
       <FlatModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        onSave={handleSaveFlat}
         flat={selectedFlat}
       />
 
