@@ -1,0 +1,218 @@
+import { useState } from "react";
+import { topFlats, bottomFlats } from "../../data/floorData";
+import FlatModal from "./FlatModal";
+
+function getColor(status: string) {
+  switch (status) {
+    case "available":
+      return "bg-green-100 border-green-400";
+
+    case "booked":
+      return "bg-red-100 border-red-400";
+
+    case "hold":
+      return "bg-yellow-100 border-yellow-400";
+
+    default:
+      return "bg-gray-100 border-gray-300";
+  }
+}
+
+function FloorMap() {
+
+  const [selectedFlat, setSelectedFlat] = useState<any>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openFlat = (flat: any) => {
+    setSelectedFlat(flat);
+    setIsOpen(true);
+  };
+
+  return (
+
+    <div className="bg-white rounded-2xl shadow p-6">
+
+      {/* Heading */}
+      <h2 className="text-2xl font-bold">
+        Residential Floor Overview
+      </h2>
+
+      <p className="text-gray-500 mt-1">
+        Tower A - Floor Layout
+      </p>
+
+      {/* Controls */}
+      <div className="flex items-center justify-between mt-6">
+
+        <div className="flex gap-2">
+
+          <button className="px-4 py-2 rounded-lg bg-green-600 text-white">
+            All
+          </button>
+
+          {[1, 2, 3, 4, 5].map((floor) => (
+
+            <button
+              key={floor}
+              className="px-4 py-2 rounded-lg border hover:bg-gray-100"
+            >
+              {floor}
+            </button>
+
+          ))}
+
+        </div>
+
+        <select className="border rounded-lg px-4 py-2">
+
+          <option>Tower A</option>
+          <option>Tower B</option>
+
+        </select>
+
+      </div>
+
+      {/* Layout */}
+
+      <div className="mt-8 space-y-6">
+
+        {/* Top Flats */}
+
+        <div className="grid grid-cols-5 gap-4">
+
+          {topFlats.map((flat) => (
+
+            <div
+              key={flat.id}
+              onClick={() => openFlat(flat)}
+              className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(flat.status)}`}
+            >
+
+              <h3 className="font-bold text-lg">
+                {flat.number}
+              </h3>
+
+              <p className="text-gray-600">
+                {flat.area}
+              </p>
+
+            </div>
+
+          ))}
+
+        </div>
+
+        {/* Bottom Row */}
+
+        <div className="grid grid-cols-9 gap-3">
+
+          {bottomFlats.map((item) => {
+
+            if (item.type === "stair") {
+              return (
+
+                <div
+                  key={item.id}
+                  className="bg-gray-100 border rounded-lg flex items-center justify-center h-24 font-semibold"
+                >
+                  STAIR
+                </div>
+
+              );
+            }
+
+            if (item.type === "lobby") {
+              return (
+
+                <div
+                  key={item.id}
+                  className="bg-gray-200 border rounded-lg flex items-center justify-center h-24 font-semibold"
+                >
+                  LOBBY
+                </div>
+
+              );
+            }
+
+            if (item.type === "lift") {
+              return (
+
+                <div
+                  key={item.id}
+                  className="bg-gray-100 border rounded-lg flex items-center justify-center h-24 font-semibold"
+                >
+                  LIFT
+                </div>
+
+              );
+            }
+
+            return (
+
+              <div
+                key={item.id}
+                onClick={() => openFlat(item)}
+                className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(item.status!)}`}
+              >
+
+                <h3 className="font-bold">
+                  {item.number}
+                </h3>
+
+                <p className="text-gray-600">
+                  {item.area}
+                </p>
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
+
+      </div>
+
+      {/* Legend */}
+
+      <div className="flex gap-8 mt-8 text-sm">
+
+        <div className="flex items-center gap-2">
+
+          <div className="w-4 h-4 rounded bg-green-500"></div>
+
+          Available
+
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          <div className="w-4 h-4 rounded bg-yellow-400"></div>
+
+          Hold
+
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          <div className="w-4 h-4 rounded bg-red-500"></div>
+
+          Booked
+
+        </div>
+
+      </div>
+
+      <FlatModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        flat={selectedFlat}
+      />
+
+    </div>
+
+  );
+
+}
+
+export default FloorMap;

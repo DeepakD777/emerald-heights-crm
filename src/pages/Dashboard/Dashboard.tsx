@@ -7,7 +7,7 @@
 // ======================================================
 
 // Dashboard Header
-import DashboardHeader from "../../components/dashboard/DashboardHeader";
+// import DashboardHeader from "../../components/dashboard/DashboardHeader";
 
 // Stats Card
 import StatsCard from "../../components/dashboard/StatsCard";
@@ -22,6 +22,9 @@ import QuickActions from "../../components/dashboard/QuickActions";
 
 import RecentBookings from "../../components/dashboard/RecentBookings";
 
+import FloorMap from "../../components/dashboard/Floormap";
+
+
 // Lucide Icons
 import {
   Building2,
@@ -35,7 +38,7 @@ function Dashboard() {
     <div className="space-y-6">
 
       {/* ================= Dashboard Header ================= */}
-      <DashboardHeader />
+      {/* <DashboardHeader /> */}
 
       {/* ================= Statistics Cards ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -96,6 +99,9 @@ function Dashboard() {
       {/* Recent Bookings */}
 
       <RecentBookings />
+      {/* Floor Map */}
+
+      <FloorMap />
 
     </div>
   );

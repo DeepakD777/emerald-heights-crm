@@ -21,9 +21,12 @@ import {
   Map,
   BookOpen,
   Users,
+  UsersRound,
   BarChart3,
+  Bell,
   Settings,
   LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 // Sidebar ke saare Menu Items
@@ -31,14 +34,27 @@ const menuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
+    active: true,
   },
   {
     title: "Residential",
     icon: Building2,
+    hasArrow: true,
   },
   {
     title: "Commercial",
     icon: Store,
+    hasArrow: true,
+  },
+  {
+    title: "Notifications",
+    icon: Bell,
+    badge: "12",
+  },
+
+  {
+    title: "Sales Team",
+    icon: UsersRound,
   },
   {
     title: "Floor Map",
@@ -104,28 +120,47 @@ function Sidebar() {
 
             <button
               key={item.title}
-              className="
-              flex
-              items-center
-              gap-3
-              w-full
-              rounded-lg
-              px-4
-              py-3
-              mb-2
-              hover:bg-green-700
-              transition
-              "
+              className={`
+    flex
+    items-center
+    gap-3
+    w-full
+    rounded-lg
+    px-4
+    py-3
+    mb-2
+    transition
+    justify-between
+    ${item.active
+                  ? "bg-green-700 text-white"
+                  : "hover:bg-green-700 text-green-100"
+                }
+  `}
             >
 
-              <Icon size={20} />
+              {/* <Icon size={20} />
 
               <span>
 
                 {item.title}
 
-              </span>
+              </span> */}
+              <button className="flex items-center justify-between w-full px-4 py-3 mb-2 rounded-lg ...">
+                <div className="flex items-center gap-3">
+                  <Icon size={20} />
+                  <span>{item.title}</span>
+                </div>
 
+                <div className="flex items-center gap-2">
+                  {item.hasArrow && <ChevronDown size={16} />}
+
+                  {item.badge && (
+                    <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              </button>
             </button>
 
           );
