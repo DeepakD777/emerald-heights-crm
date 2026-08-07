@@ -24,6 +24,9 @@ import RecentBookings from "../../components/dashboard/RecentBookings";
 
 import FloorMap from "../../components/dashboard/Floormap";
 
+import { useBooking } from "../../context/BookingContext";
+
+
 
 // Lucide Icons
 import {
@@ -34,6 +37,19 @@ import {
 } from "lucide-react";
 
 function Dashboard() {
+  const { bookings } = useBooking();
+
+  const totalUnits = 240;
+
+  const bookedUnits = bookings.length;
+
+  const availableUnits = totalUnits - bookedUnits;
+
+  const revenue = bookings.reduce(
+    (total, booking) =>
+      total + Number(booking.bookingAmount || 0),
+    0
+  );
   return (
     <div className="space-y-6">
 
@@ -46,7 +62,7 @@ function Dashboard() {
         {/* Total Units */}
         <StatsCard
           title="Total Units"
-          value="240"
+          value={totalUnits}
           subtitle="Residential + Commercial"
           icon={<Building2 size={28} />}
           color="bg-green-600"
@@ -55,7 +71,7 @@ function Dashboard() {
         {/* Available Units */}
         <StatsCard
           title="Available Units"
-          value="68"
+          value={availableUnits}
           subtitle="Ready for Booking"
           icon={<Home size={28} />}
           color="bg-blue-600"
@@ -64,7 +80,7 @@ function Dashboard() {
         {/* Total Bookings */}
         <StatsCard
           title="Bookings"
-          value="172"
+          value={bookedUnits}
           subtitle="Completed Bookings"
           icon={<CalendarDays size={28} />}
           color="bg-orange-500"
@@ -73,7 +89,7 @@ function Dashboard() {
         {/* Revenue */}
         <StatsCard
           title="Revenue"
-          value="₹8.5 Cr"
+          value={`₹${revenue.toLocaleString("en-IN")}`}
           subtitle="Total Sales"
           icon={<IndianRupee size={28} />}
           color="bg-purple-600"
