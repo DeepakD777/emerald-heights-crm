@@ -1,12 +1,5 @@
-/*
-========================================================
 
-Project : Emerald Heights CRM
-
-File : Sidebar.tsx
-
-========================================================
-*/
+import { NavLink } from "react-router-dom";
 
 import {
   LayoutDashboard,
@@ -22,11 +15,10 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-
 interface MenuItem {
   title: string;
+  path: string;
   icon: any;
-  active?: boolean;
   hasArrow?: boolean;
   badge?: string;
 }
@@ -34,46 +26,55 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
+    path: "/",
     icon: LayoutDashboard,
-    active: true,
   },
   {
     title: "Residential",
+    path: "/residential",
     icon: Building2,
     hasArrow: true,
   },
   {
     title: "Commercial",
+    path: "/commercial",
     icon: Store,
     hasArrow: true,
   },
   {
     title: "Notifications",
+    path: "/notifications",
     icon: Bell,
     badge: "12",
   },
   {
     title: "Sales Team",
+    path: "/sales-team",
     icon: UsersRound,
   },
   {
     title: "Floor Map",
+    path: "/floor-map",
     icon: Map,
   },
   {
     title: "Bookings",
+    path: "/bookings",
     icon: BookOpen,
   },
   {
     title: "Customers",
+    path: "/customers",
     icon: Users,
   },
   {
     title: "Reports",
+    path: "/reports",
     icon: BarChart3,
   },
   {
     title: "Settings",
+    path: "/settings",
     icon: Settings,
   },
 ];
@@ -106,26 +107,28 @@ function Sidebar() {
 
           return (
 
-            <button
+            <NavLink
               key={item.title}
-              className={`
-                flex
-                items-center
-                justify-between
-                w-full
-                rounded-lg
-                px-4
-                py-3
-                mb-2
-                transition
-                ${
-                  item.active
-                    ? "bg-green-700 text-white"
-                    : "hover:bg-green-700 text-green-100"
+              to={item.path}
+              end={item.path === "/"}
+              className={({ isActive }) =>
+                `
+    flex
+    items-center
+    justify-between
+    w-full
+    rounded-lg
+    px-4
+    py-3
+    mb-2
+    transition
+    ${isActive
+                  ? "bg-green-700 text-white"
+                  : "hover:bg-green-700 text-green-100"
                 }
-              `}
+    `
+              }
             >
-
               <div className="flex items-center gap-3">
 
                 <Icon size={20} />
@@ -148,7 +151,7 @@ function Sidebar() {
 
               </div>
 
-            </button>
+            </NavLink>
 
           );
 
