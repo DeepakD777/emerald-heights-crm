@@ -234,8 +234,15 @@ function BookingModal({
                             }
 
                             onConfirm({
-                                ...formData,
+                                id: crypto.randomUUID(),
+
                                 flatNumber: flat.number,
+                                tower: flat.tower,
+                                floor: flat.floor,
+
+                                ...formData,
+
+                                status: "Booked",
                             });
 
                             onClose();

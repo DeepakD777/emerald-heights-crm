@@ -1,23 +1,34 @@
 import {
-    createContext,
-    useContext,
-    useState,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
 import type { ReactNode } from "react";
 
 interface Booking {
-    flatNumber: string;
-    customerName: string;
-    mobile: string;
-    email: string;
-    address: string;
-    aadhar: string;
-    pan: string;
-    bookingAmount: string;
-    paymentMode: string;
-    bookingDate: string;
-    remarks: string;
+  id: string;
+
+  flatNumber: string;
+  tower: string;
+  floor: number;
+
+  customerName: string;
+  mobile: string;
+  email: string;
+  address: string;
+
+  aadhar: string;
+  pan: string;
+
+  bookingAmount: string;
+  paymentMode: string;
+  bookingDate: string;
+
+  remarks: string;
+
+  status: "Booked";
 }
 
 interface BookingContextType {
@@ -33,11 +44,23 @@ export function BookingProvider({
     children: ReactNode;
 }) {
 
-    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>(() => {
+  const savedBookings = localStorage.getItem("bookings");
+
+  return savedBookings
+    ? JSON.parse(savedBookings)
+    : [];
+});
 
     const addBooking = (booking: Booking) => {
         setBookings((prev) => [...prev, booking]);
     };
+    useEffect(() => {
+  localStorage.setItem(
+    "bookings",
+    JSON.stringify(bookings)
+  );
+}, [bookings]);
 
     return (
         <BookingContext.Provider
