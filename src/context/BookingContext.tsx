@@ -28,7 +28,7 @@ interface Booking {
 
   remarks: string;
 
-  status: "Booked";
+  status: string;
 }
 
 interface BookingContextType {
