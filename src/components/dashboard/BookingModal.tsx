@@ -262,12 +262,12 @@ function BookingModal({
                             }
 
                             onConfirm({
-                                id: booking?.id,
+                                id: booking?.id ?? crypto.randomUUID(),
                                 ...formData,
                                 flatNumber: flat.number,
                                 tower: flat.tower,
                                 floor: flat.floor,
-                                status: "Booked",
+                                status: "booked",
                             });
 
                             onClose();

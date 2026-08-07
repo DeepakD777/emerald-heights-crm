@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import BookingModal from "./BookingModal";
+import { useFlat } from "../../context/FlatContext";
 
 interface FlatModalProps {
     isOpen: boolean;
@@ -28,10 +29,18 @@ function FlatModal({
 }: FlatModalProps) {
 
     if (!flat) return null;
+    const { flatStatuses } = useFlat();
+
+    const savedStatus = flatStatuses.find(
+        (item) => item.number === flat.number
+    );
+
+    const currentStatus =
+        savedStatus?.status ?? flat.status;
 
     const [isEditing, setIsEditing] = useState(false);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
-    const [status, setStatus] = useState(flat.status);
+    const [status, setStatus] = useState(currentStatus);
 
     return (
         <>
@@ -103,14 +112,14 @@ function FlatModal({
                         {!isEditing ? (
 
                             <span
-                                className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${flat.status === "available"
+                                className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${currentStatus === "available"
                                     ? "bg-green-100 text-green-700"
-                                    : flat.status === "booked"
+                                    : currentStatus === "booked"
                                         ? "bg-red-100 text-red-700"
                                         : "bg-yellow-100 text-yellow-700"
                                     }`}
                             >
-                                {flat.status}
+                                {currentStatus}
                             </span>
 
                         ) : (

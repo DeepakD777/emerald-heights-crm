@@ -7,6 +7,7 @@ function Bookings() {
     const {
         bookings,
         updateBooking,
+        deleteBooking,
     } = useBooking();
     const [selectedBooking, setSelectedBooking] = useState<any>(null);
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -26,6 +27,17 @@ function Bookings() {
 
         setSelectedBooking(updatedBooking);
         setIsBookingModalOpen(false);
+    };
+    const handleDeleteBooking = (id: string) => {
+
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this booking?"
+        );
+
+        if (!confirmDelete) return;
+
+        deleteBooking(id);
+
     };
 
 
@@ -107,7 +119,10 @@ function Bookings() {
                                                     Edit
                                                 </button>
 
-                                                <button className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600">
+                                                <button
+                                                    onClick={() => handleDeleteBooking(booking.id)}
+                                                    className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                                                >
                                                     Delete
                                                 </button>
 

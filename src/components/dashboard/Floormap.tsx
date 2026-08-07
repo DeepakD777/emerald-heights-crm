@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useFlat } from "../../context/FlatContext";
 import { useBooking } from "../../context/BookingContext";
 import { topFlats, bottomFlats } from "../../data/floorData";
 import FlatModal from "./FlatModal";
@@ -18,6 +19,30 @@ function getColor(status: string) {
       return "bg-gray-100 border-gray-300";
   }
 }
+function getFlatStatus(
+  flat: any,
+  bookings: any[],
+  flatStatuses: any[]
+) {
+
+  const booking = bookings.find(
+    (b) => b.flatNumber === flat.number
+  );
+
+  if (booking) {
+    return "booked";
+  }
+
+  const savedStatus = flatStatuses.find(
+    (item) => item.number === flat.number
+  );
+
+  if (savedStatus) {
+    return savedStatus.status;
+  }
+
+  return flat.status;
+}
 
 function FloorMap() {
   const [topFlatsData, setTopFlatsData] = useState(topFlats);
@@ -25,9 +50,21 @@ function FloorMap() {
   const [selectedFlat, setSelectedFlat] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
   // const [bookings, setBookings] = useState<any[]>([]);
- const { addBooking } = useBooking();
+
+
+  const {
+    addBooking,
+    bookings,
+  } = useBooking();
+
+  const {
+    flatStatuses,
+    updateFlatStatus,
+  } = useFlat();
+
 
   const openFlat = (flat: any) => {
+
     setSelectedFlat(flat);
     setIsOpen(true);
   };
@@ -48,13 +85,20 @@ function FloorMap() {
         return item;
       })
     );
-
+    updateFlatStatus(
+      updatedFlat.number,
+      updatedFlat.status
+    );
     setSelectedFlat(updatedFlat);
     setIsOpen(false);
 
   };
   const handleBooking = (bookingData: any) => {
-   addBooking(bookingData);
+    addBooking(bookingData);
+    updateFlatStatus(
+    bookingData.flatNumber,
+    "booked"
+);
 
     // Update Top Flats
     setTopFlatsData((prev) =>
@@ -150,7 +194,13 @@ function FloorMap() {
             <div
               key={flat.id}
               onClick={() => openFlat(flat)}
-              className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(flat.status)}`}
+              className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(
+                getFlatStatus(
+                  flat,
+                  bookings,
+                  flatStatuses
+                )
+              )}`}
             >
 
               <h3 className="font-bold text-lg">
@@ -217,7 +267,13 @@ function FloorMap() {
               <div
                 key={item.id}
                 onClick={() => openFlat(item)}
-                className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(item.status!)}`}
+                className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(
+                  getFlatStatus(
+                    item,
+                    bookings,
+                    flatStatuses
+                  )
+                )}`}
               >
 
                 <h3 className="font-bold">

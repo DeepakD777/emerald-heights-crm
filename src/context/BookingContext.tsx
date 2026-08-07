@@ -35,6 +35,7 @@ interface BookingContextType {
     bookings: Booking[];
     addBooking: (booking: Booking) => void;
     updateBooking: (booking: Booking) => void;
+    deleteBooking: (id: string) => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -68,6 +69,13 @@ export function BookingProvider({
         );
 
     };
+    const deleteBooking = (id: string) => {
+
+        setBookings((prev) =>
+            prev.filter((booking) => booking.id !== id)
+        );
+
+    };
 
     useEffect(() => {
         localStorage.setItem(
@@ -82,6 +90,7 @@ export function BookingProvider({
                 bookings,
                 addBooking,
                 updateBooking,
+                deleteBooking,
             }}
         >
             {children}
