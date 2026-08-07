@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modal";
 
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (bookingData: any) => void;
+    booking?: any;
+    mode?: "create" | "edit";
 
     flat: {
         number: string;
@@ -19,6 +21,8 @@ function BookingModal({
     onClose,
     onConfirm,
     flat,
+    booking,
+    mode = "create",
 }: BookingModalProps) {
     if (!flat) return null;
 
@@ -34,6 +38,26 @@ function BookingModal({
         bookingDate: "",
         remarks: "",
     });
+    useEffect(() => {
+
+        if (mode === "edit" && booking) {
+
+            setFormData({
+                customerName: booking.customerName,
+                mobile: booking.mobile,
+                email: booking.email,
+                address: booking.address,
+                aadhar: booking.aadhar,
+                pan: booking.pan,
+                bookingAmount: booking.bookingAmount,
+                paymentMode: booking.paymentMode,
+                bookingDate: booking.bookingDate,
+                remarks: booking.remarks,
+            });
+
+        }
+
+    }, [booking, mode]);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -48,7 +72,11 @@ function BookingModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Booking - ${flat.number}`}
+            title={
+                mode === "edit"
+                    ? `Edit Booking - ${flat.number}`
+                    : `Booking - ${flat.number}`
+            }
         >
             <div className="space-y-5">
 
@@ -234,6 +262,7 @@ function BookingModal({
                             }
 
                             onConfirm({
+                                id: booking?.id,
                                 ...formData,
                                 flatNumber: flat.number,
                                 tower: flat.tower,
@@ -246,7 +275,9 @@ function BookingModal({
                         }}
                         className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
                     >
-                        Confirm Booking
+                        {mode === "edit"
+                            ? "Update Booking"
+                            : "Confirm Booking"}
                     </button>
 
                 </div>

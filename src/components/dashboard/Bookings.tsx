@@ -1,21 +1,34 @@
 import { useBooking } from "../../context/BookingContext";
 import { useState } from "react";
 import BookingDetailsModal from "./BookingDetailsModal";
+import BookingModal from "./BookingModal";
 
 function Bookings() {
-    const { bookings } = useBooking();
-   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const {
+        bookings,
+        updateBooking,
+    } = useBooking();
+    const [selectedBooking, setSelectedBooking] = useState<any>(null);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [search, setSearch] = useState("");
     const filteredBookings = bookings.filter((booking) => {
         const searchText = search.toLowerCase();
+
 
         return (
             booking.flatNumber.toLowerCase().includes(searchText) ||
             booking.customerName.toLowerCase().includes(searchText) ||
             booking.mobile.includes(search)
         );
-    });
+    }); const handleUpdateBooking = (updatedBooking: any) => {
+        updateBooking(updatedBooking);
+
+        setSelectedBooking(updatedBooking);
+        setIsBookingModalOpen(false);
+    };
+
+
 
     return (
         <>
@@ -84,7 +97,13 @@ function Bookings() {
                                                     View
                                                 </button>
 
-                                                <button className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedBooking(booking);
+                                                        setIsBookingModalOpen(true);
+                                                    }}
+                                                    className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
+                                                >
                                                     Edit
                                                 </button>
 
@@ -104,6 +123,23 @@ function Bookings() {
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
                 booking={selectedBooking}
+            />
+            <BookingModal
+                isOpen={isBookingModalOpen}
+                onClose={() => setIsBookingModalOpen(false)}
+                onConfirm={handleUpdateBooking}
+                flat={
+                    selectedBooking
+                        ? {
+                            number: selectedBooking.flatNumber,
+                            tower: selectedBooking.tower,
+                            floor: selectedBooking.floor,
+                            status: selectedBooking.status,
+                        }
+                        : null
+                }
+                booking={selectedBooking}
+                mode="edit"
             />
         </>
 

@@ -1,39 +1,40 @@
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 
 import type { ReactNode } from "react";
 
 interface Booking {
-  id: string;
+    id: string;
 
-  flatNumber: string;
-  tower: string;
-  floor: number;
+    flatNumber: string;
+    tower: string;
+    floor: number;
 
-  customerName: string;
-  mobile: string;
-  email: string;
-  address: string;
+    customerName: string;
+    mobile: string;
+    email: string;
+    address: string;
 
-  aadhar: string;
-  pan: string;
+    aadhar: string;
+    pan: string;
 
-  bookingAmount: string;
-  paymentMode: string;
-  bookingDate: string;
+    bookingAmount: string;
+    paymentMode: string;
+    bookingDate: string;
 
-  remarks: string;
+    remarks: string;
 
-  status: string;
+    status: string;
 }
 
 interface BookingContextType {
     bookings: Booking[];
     addBooking: (booking: Booking) => void;
+    updateBooking: (booking: Booking) => void;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -45,28 +46,42 @@ export function BookingProvider({
 }) {
 
     const [bookings, setBookings] = useState<Booking[]>(() => {
-  const savedBookings = localStorage.getItem("bookings");
+        const savedBookings = localStorage.getItem("bookings");
 
-  return savedBookings
-    ? JSON.parse(savedBookings)
-    : [];
-});
+        return savedBookings
+            ? JSON.parse(savedBookings)
+            : [];
+    });
 
     const addBooking = (booking: Booking) => {
         setBookings((prev) => [...prev, booking]);
     };
+
+    const updateBooking = (updatedBooking: Booking) => {
+
+        setBookings((prev) =>
+            prev.map((booking) =>
+                booking.id === updatedBooking.id
+                    ? updatedBooking
+                    : booking
+            )
+        );
+
+    };
+
     useEffect(() => {
-  localStorage.setItem(
-    "bookings",
-    JSON.stringify(bookings)
-  );
-}, [bookings]);
+        localStorage.setItem(
+            "bookings",
+            JSON.stringify(bookings)
+        );
+    }, [bookings]);
 
     return (
         <BookingContext.Provider
             value={{
                 bookings,
                 addBooking,
+                updateBooking,
             }}
         >
             {children}
