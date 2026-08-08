@@ -1,54 +1,37 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Search, RotateCcw } from "lucide-react";
+
 import { residentialFlats } from "../../data/floorData";
-import FlatModal from "../../components/dashboard/FlatModal";
 import { useFlat } from "../../context/FlatContext";
 import { useBooking } from "../../context/BookingContext";
 
+type Tower = "all" | "A" | "B" | "C";
+type Status = "all" | "available" | "hold" | "booked";
+
 function Residential() {
-    const { flatStatuses, updateFlatStatus } = useFlat();
-    const { addBooking } = useBooking();
-
-    const [selectedTower, setSelectedTower] = useState<
-        "all" | "A" | "B" | "C"
-    >("all");
-
-    const [selectedFlat, setSelectedFlat] =
-        useState<(typeof residentialFlats)[number] | null>(null);
-
-    const [isFlatModalOpen, setIsFlatModalOpen] =
-        useState(false);
+    const { flatStatuses } = useFlat();
+    const { bookings } = useBooking();
 
     // ======================================================
-    // Get Actual Flat Status
+    // Filters
     // ======================================================
 
-    const getFlatStatus = (flat: (typeof residentialFlats)[number]) => {
-        const savedStatus = flatStatuses.find(
-            (item) => item.number === flat.number
-        );
+    const [search, setSearch] = useState("");
 
-        return savedStatus?.status ?? flat.status;
-    };
+    const [selectedTower, setSelectedTower] =
+        useState<Tower>("all");
 
-    // ======================================================
-    // Flats with Saved Status
-    // ======================================================
+    const [selectedFloor, setSelectedFloor] =
+        useState("all");
 
-    const flatsWithStatus = residentialFlats.map((flat) => ({
-        ...flat,
-        status: getFlatStatus(flat),
-    }));
+    const [selectedType, setSelectedType] =
+        useState("all");
 
-    // ======================================================
-    // Tower Filter
-    // ======================================================
+    const [selectedFacing, setSelectedFacing] =
+        useState("all");
 
-    const filteredFlats =
-        selectedTower === "all"
-            ? flatsWithStatus
-            : flatsWithStatus.filter(
-                  (flat) => flat.tower === selectedTower
-              );
+    const [selectedStatus, setSelectedStatus] =
+        useState<Status>("all");
 
     // ======================================================
     // Tower Name
@@ -71,6 +54,32 @@ function Residential() {
     };
 
     // ======================================================
+    // Actual Flat Status
+    // ======================================================
+
+    const getFlatStatus = (flat: any) => {
+        const booking = bookings.find(
+            (booking: any) =>
+                booking.flatNumber === flat.number
+        );
+
+        if (booking) {
+            return "booked";
+        }
+
+        const savedStatus = flatStatuses.find(
+            (item) =>
+                item.number === flat.number
+        );
+
+        if (savedStatus) {
+            return savedStatus.status;
+        }
+
+        return flat.status;
+    };
+
+    // ======================================================
     // Status Color
     // ======================================================
 
@@ -88,79 +97,148 @@ function Residential() {
     };
 
     // ======================================================
+    // Dynamic Filter Options
+    // ======================================================
+
+    const floors = useMemo(() => {
+        return Array.from(
+            new Set(
+                residentialFlats.map(
+                    (flat: any) => flat.floor
+                )
+            )
+        ).sort((a, b) => Number(a) - Number(b));
+    }, []);
+
+    const unitTypes = useMemo(() => {
+        return Array.from(
+            new Set(
+                residentialFlats.map(
+                    (flat: any) => flat.type
+                )
+            )
+        ).filter(Boolean);
+    }, []);
+
+    const facings = useMemo(() => {
+        return Array.from(
+            new Set(
+                residentialFlats.map(
+                    (flat: any) => flat.facing
+                )
+            )
+        ).filter(Boolean);
+    }, []);
+
+    // ======================================================
+    // Filter Flats
+    // ======================================================
+
+    const filteredFlats = useMemo(() => {
+        const searchText =
+            search.trim().toLowerCase();
+
+        return residentialFlats.filter(
+            (flat: any) => {
+
+                const status =
+                    getFlatStatus(flat);
+
+                const matchesSearch =
+                    !searchText ||
+                    String(flat.number)
+                        .toLowerCase()
+                        .includes(searchText) ||
+                    String(flat.tower)
+                        .toLowerCase()
+                        .includes(searchText) ||
+                    String(flat.floor)
+                        .toLowerCase()
+                        .includes(searchText) ||
+                    String(flat.type || "")
+                        .toLowerCase()
+                        .includes(searchText) ||
+                    String(flat.facing || "")
+                        .toLowerCase()
+                        .includes(searchText);
+
+                const matchesTower =
+                    selectedTower === "all" ||
+                    flat.tower === selectedTower;
+
+                const matchesFloor =
+                    selectedFloor === "all" ||
+                    String(flat.floor) === selectedFloor;
+
+                const matchesType =
+                    selectedType === "all" ||
+                    flat.type === selectedType;
+
+                const matchesFacing =
+                    selectedFacing === "all" ||
+                    flat.facing === selectedFacing;
+
+                const matchesStatus =
+                    selectedStatus === "all" ||
+                    status === selectedStatus;
+
+                return (
+                    matchesSearch &&
+                    matchesTower &&
+                    matchesFloor &&
+                    matchesType &&
+                    matchesFacing &&
+                    matchesStatus
+                );
+            }
+        );
+    }, [
+        search,
+        selectedTower,
+        selectedFloor,
+        selectedType,
+        selectedFacing,
+        selectedStatus,
+        flatStatuses,
+        bookings,
+    ]);
+
+    // ======================================================
     // Statistics
     // ======================================================
 
-    const totalFlats = flatsWithStatus.length;
+    const totalFlats =
+        filteredFlats.length;
 
-    const availableFlats = flatsWithStatus.filter(
-        (flat) => flat.status === "available"
-    ).length;
+    const availableFlats =
+        filteredFlats.filter(
+            (flat: any) =>
+                getFlatStatus(flat) === "available"
+        ).length;
 
-    const bookedFlats = flatsWithStatus.filter(
-        (flat) => flat.status === "booked"
-    ).length;
+    const bookedFlats =
+        filteredFlats.filter(
+            (flat: any) =>
+                getFlatStatus(flat) === "booked"
+        ).length;
 
-    const holdFlats = flatsWithStatus.filter(
-        (flat) => flat.status === "hold"
-    ).length;
-
-    // ======================================================
-    // Open Flat Modal
-    // ======================================================
-
-    const handleFlatClick = (
-        flat: (typeof flatsWithStatus)[number]
-    ) => {
-        setSelectedFlat(flat);
-        setIsFlatModalOpen(true);
-    };
+    const holdFlats =
+        filteredFlats.filter(
+            (flat: any) =>
+                getFlatStatus(flat) === "hold"
+        ).length;
 
     // ======================================================
-    // Close Flat Modal
+    // Reset Filters
     // ======================================================
 
-    const handleCloseFlatModal = () => {
-        setIsFlatModalOpen(false);
-        setSelectedFlat(null);
-    };
-
-    // ======================================================
-    // Save Flat Status
-    // ======================================================
-
-    const handleSaveFlat = (
-    updatedFlat: (typeof flatsWithStatus)[number]
-) => {
-    const newStatus = updatedFlat.status as
-        | "available"
-        | "hold"
-        | "booked";
-
-    updateFlatStatus(
-        updatedFlat.number,
-        newStatus
-    );
-
-    setSelectedFlat({
-        ...updatedFlat,
-        status: newStatus,
-    });
-};
-
-    // ======================================================
-    // Booking
-    // ======================================================
-
-    const handleBooking = (bookingData: any) => {
-        // Add booking to BookingContext
-        addBooking(bookingData);
-
-        // Update flat status
-        updateFlatStatus(
-            bookingData.flatNumber,
-            "booked"
-        );
+    const resetFilters = () => {
+        setSearch("");
+        setSelectedTower("all");
+        setSelectedFloor("all");
+        setSelectedType("all");
+        setSelectedFacing("all");
+        setSelectedStatus("all");
     };
 
     return (
@@ -172,29 +250,36 @@ function Residential() {
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
                     <div>
-
                         <h1 className="text-3xl font-bold text-gray-800">
                             Residential
                         </h1>
 
                         <p className="mt-1 text-gray-500">
-                            Residential Flat Inventory
+                            Live inventory of all residential flats
                         </p>
-
                     </div>
 
-                    <div className="text-right">
+                    {/* Search */}
 
-                        <p className="text-sm text-gray-500">
-                            Total Flats
-                        </p>
+                    <div className="relative w-full lg:w-80">
 
-                        <p className="text-3xl font-bold text-gray-800">
-                            {totalFlats}
-                        </p>
+                        <Search
+                            size={18}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) =>
+                                setSearch(e.target.value)
+                            }
+                            placeholder="Search flat no, tower, floor..."
+                            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 outline-none focus:border-green-500"
+                        />
 
                     </div>
 
@@ -208,10 +293,7 @@ function Residential() {
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
 
-                {/* Total */}
-
                 <div className="rounded-2xl bg-white p-5 shadow">
-
                     <p className="text-sm text-gray-500">
                         Total Flats
                     </p>
@@ -219,13 +301,9 @@ function Residential() {
                     <p className="mt-2 text-2xl font-bold text-gray-800">
                         {totalFlats}
                     </p>
-
                 </div>
 
-                {/* Available */}
-
                 <div className="rounded-2xl bg-green-50 p-5 shadow">
-
                     <p className="text-sm text-green-700">
                         Available
                     </p>
@@ -233,27 +311,9 @@ function Residential() {
                     <p className="mt-2 text-2xl font-bold text-green-700">
                         {availableFlats}
                     </p>
-
                 </div>
-
-                {/* Booked */}
-
-                <div className="rounded-2xl bg-red-50 p-5 shadow">
-
-                    <p className="text-sm text-red-700">
-                        Booked
-                    </p>
-
-                    <p className="mt-2 text-2xl font-bold text-red-700">
-                        {bookedFlats}
-                    </p>
-
-                </div>
-
-                {/* Hold */}
 
                 <div className="rounded-2xl bg-yellow-50 p-5 shadow">
-
                     <p className="text-sm text-yellow-700">
                         Hold
                     </p>
@@ -261,56 +321,210 @@ function Residential() {
                     <p className="mt-2 text-2xl font-bold text-yellow-700">
                         {holdFlats}
                     </p>
+                </div>
 
+                <div className="rounded-2xl bg-red-50 p-5 shadow">
+                    <p className="text-sm text-red-700">
+                        Booked
+                    </p>
+
+                    <p className="mt-2 text-2xl font-bold text-red-700">
+                        {bookedFlats}
+                    </p>
                 </div>
 
             </div>
 
             {/* ==================================================
-                Tower Filters
+                Filters
             ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="flex flex-wrap gap-3">
+                <div className="mb-4 flex items-center justify-between">
 
-                    {/* All Towers */}
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">
+                            Filters
+                        </h2>
+
+                        <p className="text-sm text-gray-500">
+                            Filter residential inventory
+                        </p>
+                    </div>
 
                     <button
-                        onClick={() =>
-                            setSelectedTower("all")
-                        }
-                        className={`rounded-lg px-5 py-2 font-medium transition ${
-                            selectedTower === "all"
-                                ? "bg-green-600 text-white"
-                                : "border bg-white hover:bg-gray-100"
-                        }`}
+                        onClick={resetFilters}
+                        className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
                     >
-                        All Towers
+                        <RotateCcw size={16} />
+                        Reset
                     </button>
 
-                    {/* Towers */}
+                </div>
 
-                    {(["A", "B", "C"] as const).map(
-                        (tower) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
 
-                            <button
-                                key={tower}
-                                onClick={() =>
-                                    setSelectedTower(tower)
-                                }
-                                className={`rounded-lg px-5 py-2 font-medium transition ${
-                                    selectedTower === tower
-                                        ? "bg-green-600 text-white"
-                                        : "border bg-white hover:bg-gray-100"
-                                }`}
-                            >
-                                {tower} -{" "}
-                                {towerName(tower)}
-                            </button>
+                    {/* Tower */}
 
-                        )
-                    )}
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Tower
+                        </label>
+
+                        <select
+                            value={selectedTower}
+                            onChange={(e) =>
+                                setSelectedTower(
+                                    e.target.value as Tower
+                                )
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                        >
+                            <option value="all">
+                                All Towers
+                            </option>
+
+                            <option value="A">
+                                A - Amogh
+                            </option>
+
+                            <option value="B">
+                                B - Ekash
+                            </option>
+
+                            <option value="C">
+                                C - Ishan
+                            </option>
+                        </select>
+                    </div>
+
+                    {/* Floor */}
+
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Floor
+                        </label>
+
+                        <select
+                            value={selectedFloor}
+                            onChange={(e) =>
+                                setSelectedFloor(
+                                    e.target.value
+                                )
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                        >
+                            <option value="all">
+                                All Floors
+                            </option>
+
+                            {floors.map((floor) => (
+                                <option
+                                    key={String(floor)}
+                                    value={String(floor)}
+                                >
+                                    Floor {floor}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Unit Type */}
+
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Unit Type
+                        </label>
+
+                        <select
+                            value={selectedType}
+                            onChange={(e) =>
+                                setSelectedType(
+                                    e.target.value
+                                )
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                        >
+                            <option value="all">
+                                All Types
+                            </option>
+
+                            {unitTypes.map((type) => (
+                                <option
+                                    key={String(type)}
+                                    value={String(type)}
+                                >
+                                    {String(type)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Facing */}
+
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Facing
+                        </label>
+
+                        <select
+                            value={selectedFacing}
+                            onChange={(e) =>
+                                setSelectedFacing(
+                                    e.target.value
+                                )
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                        >
+                            <option value="all">
+                                All Facing
+                            </option>
+
+                            {facings.map((facing) => (
+                                <option
+                                    key={String(facing)}
+                                    value={String(facing)}
+                                >
+                                    {String(facing)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Status */}
+
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Status
+                        </label>
+
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) =>
+                                setSelectedStatus(
+                                    e.target.value as Status
+                                )
+                            }
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                        >
+                            <option value="all">
+                                All Status
+                            </option>
+
+                            <option value="available">
+                                Available
+                            </option>
+
+                            <option value="hold">
+                                Hold
+                            </option>
+
+                            <option value="booked">
+                                Booked
+                            </option>
+                        </select>
+                    </div>
 
                 </div>
 
@@ -322,62 +536,92 @@ function Residential() {
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="mb-6">
+                <div className="mb-6 flex items-center justify-between">
 
-                    <h2 className="text-xl font-bold text-gray-800">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800">
+                            Residential Flats
+                        </h2>
 
-                        {selectedTower === "all"
-                            ? "All Residential Flats"
-                            : `${towerName(
-                                  selectedTower
-                              )} - Tower ${selectedTower}`}
-
-                    </h2>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        {filteredFlats.length} flats
-                    </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Showing {filteredFlats.length} of{" "}
+                            {residentialFlats.length} flats
+                        </p>
+                    </div>
 
                 </div>
 
-                {/* Flats Grid */}
+                {filteredFlats.length === 0 ? (
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10">
+                    <div className="rounded-xl border border-dashed p-12 text-center">
 
-                    {filteredFlats.map((flat) => (
+                        <p className="text-lg font-semibold text-gray-700">
+                            No Flats Found
+                        </p>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                            Try changing your filters.
+                        </p>
 
                         <button
-                            key={flat.id}
-                            type="button"
-                            onClick={() =>
-                                handleFlatClick(flat)
-                            }
-                            className={`rounded-lg border p-3 text-center transition hover:scale-105 hover:shadow-md ${getStatusColor(
-                                flat.status
-                            )}`}
+                            onClick={resetFilters}
+                            className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700"
                         >
-
-                            <p className="font-bold">
-                                {flat.number}
-                            </p>
-
-                            <p className="mt-1 text-xs">
-                                Floor {flat.floor}
-                            </p>
-
-                            <p className="mt-1 text-xs">
-                                {flat.area}
-                            </p>
-
-                            <p className="mt-1 text-xs capitalize">
-                                {flat.status}
-                            </p>
-
+                            Reset Filters
                         </button>
 
-                    ))}
+                    </div>
 
-                </div>
+                ) : (
+
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10">
+
+                        {filteredFlats.map((flat: any) => {
+
+                            const status =
+                                getFlatStatus(flat);
+
+                            return (
+
+                                <div
+                                    key={flat.id}
+                                    className={`rounded-lg border p-3 text-center transition hover:scale-105 ${getStatusColor(
+                                        status
+                                    )}`}
+                                >
+
+                                    <p className="font-bold">
+                                        {flat.number}
+                                    </p>
+
+                                    <p className="mt-1 text-xs">
+                                        Floor {flat.floor}
+                                    </p>
+
+                                    <p className="mt-1 text-xs">
+                                        {flat.area}
+                                    </p>
+
+                                    <p className="mt-1 text-xs">
+                                        {flat.type}
+                                    </p>
+
+                                    <p className="mt-1 text-xs">
+                                        {flat.facing}
+                                    </p>
+
+                                    <p className="mt-1 text-xs font-semibold capitalize">
+                                        {status}
+                                    </p>
+
+                                </div>
+
+                            );
+                        })}
+
+                    </div>
+
+                )}
 
             </div>
 
@@ -407,18 +651,6 @@ function Residential() {
                 </div>
 
             </div>
-
-            {/* ==================================================
-                Flat Details Modal
-            ================================================== */}
-
-            <FlatModal
-                isOpen={isFlatModalOpen}
-                onClose={handleCloseFlatModal}
-                flat={selectedFlat}
-                onSave={handleSaveFlat}
-                onBooking={handleBooking}
-            />
 
         </div>
     );

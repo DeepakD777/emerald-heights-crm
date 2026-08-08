@@ -1,341 +1,449 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useFlat } from "../../context/FlatContext";
 import { useBooking } from "../../context/BookingContext";
-import { topFlats, bottomFlats } from "../../data/floorData";
+import { residentialFlats } from "../../data/floorData";
 import FlatModal from "./FlatModal";
 
+type Tower = "A" | "B" | "C";
+
 function getColor(status: string) {
-  switch (status) {
-    case "available":
-      return "bg-green-100 border-green-400";
+    switch (status) {
+        case "available":
+            return "bg-green-100 border-green-400 text-green-700";
 
-    case "booked":
-      return "bg-red-100 border-red-400";
+        case "booked":
+            return "bg-red-100 border-red-400 text-red-700";
 
-    case "hold":
-      return "bg-yellow-100 border-yellow-400";
+        case "hold":
+            return "bg-yellow-100 border-yellow-400 text-yellow-700";
 
-    default:
-      return "bg-gray-100 border-gray-300";
-  }
+        default:
+            return "bg-gray-100 border-gray-300 text-gray-700";
+    }
 }
-function getFlatStatus(
-  flat: any,
-  bookings: any[],
-  flatStatuses: any[]
-) {
 
-  const booking = bookings.find(
-    (b) => b.flatNumber === flat.number
-  );
+function getTowerName(tower: Tower) {
+    switch (tower) {
+        case "A":
+            return "Amogh";
 
-  if (booking) {
-    return "booked";
-  }
+        case "B":
+            return "Ekash";
 
-  const savedStatus = flatStatuses.find(
-    (item) => item.number === flat.number
-  );
+        case "C":
+            return "Ishan";
 
-  if (savedStatus) {
-    return savedStatus.status;
-  }
-
-  return flat.status;
+        default:
+            return "";
+    }
 }
 
 function FloorMap() {
-  const [topFlatsData, setTopFlatsData] = useState(topFlats);
-  const [bottomFlatsData, setBottomFlatsData] = useState(bottomFlats);
-  const [selectedFlat, setSelectedFlat] = useState<any>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  // const [bookings, setBookings] = useState<any[]>([]);
+    const [selectedTower, setSelectedTower] =
+        useState<Tower>("A");
 
+    const [selectedFloor, setSelectedFloor] =
+        useState<number>(1);
 
-  const {
-    addBooking,
-    bookings,
-  } = useBooking();
+    const [selectedFlat, setSelectedFlat] =
+        useState<any>(null);
 
-  const {
-    flatStatuses,
-    updateFlatStatus,
-  } = useFlat();
+    const [isOpen, setIsOpen] =
+        useState(false);
 
+    const {
+        addBooking,
+        bookings,
+    } = useBooking();
 
-  const openFlat = (flat: any) => {
+    const {
+        flatStatuses,
+        updateFlatStatus,
+    } = useFlat();
 
-    setSelectedFlat(flat);
-    setIsOpen(true);
-  };
-  const handleSaveFlat = (updatedFlat: any) => {
+    // ======================================================
+    // Actual Flat Status
+    // ======================================================
 
-    setTopFlatsData((prev) =>
-      prev.map((flat) =>
-        flat.id === updatedFlat.id ? updatedFlat : flat
-      )
-    );
+    const getFlatStatus = (flat: any) => {
+        const booking = bookings.find(
+            (booking: any) =>
+                booking.flatNumber === flat.number
+        );
 
-    setBottomFlatsData((prev) =>
-      prev.map((item) => {
-        if ("id" in item && item.id === updatedFlat.id) {
-          return updatedFlat;
+        if (booking) {
+            return "booked";
         }
 
-        return item;
-      })
-    );
-    updateFlatStatus(
-      updatedFlat.number,
-      updatedFlat.status
-    );
-    setSelectedFlat(updatedFlat);
-    setIsOpen(false);
+        const savedStatus = flatStatuses.find(
+            (item) =>
+                item.number === flat.number
+        );
 
-  };
-  const handleBooking = (bookingData: any) => {
-    addBooking(bookingData);
-    updateFlatStatus(
-    bookingData.flatNumber,
-    "booked"
-);
+        if (savedStatus) {
+            return savedStatus.status;
+        }
 
-    // Update Top Flats
-    setTopFlatsData((prev) =>
-      prev.map((flat) =>
-        flat.number === bookingData.flatNumber
-          ? {
+        return flat.status;
+    };
+
+    // ======================================================
+    // Selected Floor Flats
+    // ======================================================
+
+    const floorFlats = useMemo(() => {
+        return residentialFlats.filter(
+            (flat) =>
+                flat.tower === selectedTower &&
+                flat.floor === selectedFloor
+        );
+    }, [selectedTower, selectedFloor]);
+
+    // ======================================================
+    // Floor Statistics
+    // ======================================================
+
+    const availableCount = floorFlats.filter(
+        (flat) =>
+            getFlatStatus(flat) === "available"
+    ).length;
+
+    const bookedCount = floorFlats.filter(
+        (flat) =>
+            getFlatStatus(flat) === "booked"
+    ).length;
+
+    const holdCount = floorFlats.filter(
+        (flat) =>
+            getFlatStatus(flat) === "hold"
+    ).length;
+
+    // ======================================================
+    // Open Flat
+    // ======================================================
+
+    const openFlat = (flat: any) => {
+        setSelectedFlat({
             ...flat,
-            status: "booked",
-          }
-          : flat
-      )
-    );
+            status: getFlatStatus(flat),
+        });
 
-    // Update Bottom Flats
-    setBottomFlatsData((prev: any[]) =>
-      prev.map((item: any) => {
-        if (item.number === bookingData.flatNumber) {
-          return {
-            ...item,
-            status: "booked",
-          };
-        }
+        setIsOpen(true);
+    };
 
-        return item;
-      })
-    );
+    // ======================================================
+    // Save Flat
+    // ======================================================
 
-    // Update Selected Flat
-    if (selectedFlat?.number === bookingData.flatNumber) {
-      setSelectedFlat({
-        ...selectedFlat,
-        status: "booked",
-      });
-    }
+    const handleSaveFlat = (updatedFlat: any) => {
+        updateFlatStatus(
+            updatedFlat.number,
+            updatedFlat.status
+        );
 
-    setIsOpen(false);
-  };
+        setSelectedFlat({
+            ...updatedFlat,
+        });
 
-  return (
+        setIsOpen(false);
+    };
 
-    <div className="bg-white rounded-2xl shadow p-6">
+    // ======================================================
+    // Booking
+    // ======================================================
 
-      {/* Heading */}
-      <h2 className="text-2xl font-bold">
-        Residential Floor Overview
-      </h2>
+    const handleBooking = (bookingData: any) => {
+        addBooking(bookingData);
 
-      <p className="text-gray-500 mt-1">
-        Tower A - Floor Layout
-      </p>
+        updateFlatStatus(
+            bookingData.flatNumber,
+            "booked"
+        );
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mt-6">
+        setSelectedFlat((prev: any) => {
+            if (!prev) {
+                return prev;
+            }
 
-        <div className="flex gap-2">
+            return {
+                ...prev,
+                status: "booked",
+            };
+        });
 
-          <button className="px-4 py-2 rounded-lg bg-green-600 text-white">
-            All
-          </button>
+        setIsOpen(false);
+    };
 
-          {[1, 2, 3, 4, 5].map((floor) => (
+    return (
+        <div className="rounded-2xl bg-white p-6 shadow">
 
-            <button
-              key={floor}
-              className="px-4 py-2 rounded-lg border hover:bg-gray-100"
-            >
-              {floor}
-            </button>
+            {/* ==================================================
+                Header
+            ================================================== */}
 
-          ))}
+            <div className="mb-6">
 
-        </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                    Residential Floor Map
+                </h2>
 
-        <select className="border rounded-lg px-4 py-2">
-
-          <option>Tower A</option>
-          <option>Tower B</option>
-
-        </select>
-
-      </div>
-
-      {/* Layout */}
-
-      <div className="mt-8 space-y-6">
-
-        {/* Top Flats */}
-
-        <div className="grid grid-cols-5 gap-4">
-
-          {topFlatsData.map((flat) => (
-
-            <div
-              key={flat.id}
-              onClick={() => openFlat(flat)}
-              className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(
-                getFlatStatus(
-                  flat,
-                  bookings,
-                  flatStatuses
-                )
-              )}`}
-            >
-
-              <h3 className="font-bold text-lg">
-                {flat.number}
-              </h3>
-
-              <p className="text-gray-600">
-                {flat.area}
-              </p>
+                <p className="mt-1 text-gray-500">
+                    {getTowerName(selectedTower)}{" "}
+                    - Tower {selectedTower}
+                    {" • "}
+                    Floor {selectedFloor}
+                </p>
 
             </div>
 
-          ))}
+            {/* ==================================================
+                Tower Selector
+            ================================================== */}
 
-        </div>
+            <div className="mb-5">
 
-        {/* Bottom Row */}
-
-        <div className="grid grid-cols-9 gap-3">
-
-          {bottomFlatsData.map((item) => {
-
-            if (item.type === "stair") {
-              return (
-
-                <div
-                  key={item.id}
-                  className="bg-gray-100 border rounded-lg flex items-center justify-center h-24 font-semibold"
-                >
-                  STAIR
-                </div>
-
-              );
-            }
-
-            if (item.type === "lobby") {
-              return (
-
-                <div
-                  key={item.id}
-                  className="bg-gray-200 border rounded-lg flex items-center justify-center h-24 font-semibold"
-                >
-                  LOBBY
-                </div>
-
-              );
-            }
-
-            if (item.type === "lift") {
-              return (
-
-                <div
-                  key={item.id}
-                  className="bg-gray-100 border rounded-lg flex items-center justify-center h-24 font-semibold"
-                >
-                  LIFT
-                </div>
-
-              );
-            }
-
-            return (
-
-              <div
-                key={item.id}
-                onClick={() => openFlat(item)}
-                className={`cursor-pointer rounded-lg border p-4 text-center transition hover:scale-105 ${getColor(
-                  getFlatStatus(
-                    item,
-                    bookings,
-                    flatStatuses
-                  )
-                )}`}
-              >
-
-                <h3 className="font-bold">
-                  {item.number}
-                </h3>
-
-                <p className="text-gray-600">
-                  {item.area}
+                <p className="mb-2 text-sm font-medium text-gray-600">
+                    Select Tower
                 </p>
 
-              </div>
+                <div className="flex flex-wrap gap-3">
 
-            );
+                    {(["A", "B", "C"] as Tower[]).map(
+                        (tower) => (
 
-          })}
+                            <button
+                                key={tower}
+                                onClick={() => {
+                                    setSelectedTower(tower);
+                                    setSelectedFloor(1);
+                                }}
+                                className={`rounded-lg px-5 py-2 font-medium transition ${
+                                    selectedTower === tower
+                                        ? "bg-green-600 text-white"
+                                        : "border bg-white text-gray-700 hover:bg-gray-100"
+                                }`}
+                            >
+                                Tower {tower} -{" "}
+                                {getTowerName(tower)}
+                            </button>
+
+                        )
+                    )}
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Floor Selector
+            ================================================== */}
+
+            <div className="mb-6">
+
+                <p className="mb-2 text-sm font-medium text-gray-600">
+                    Select Floor
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+
+                    {Array.from(
+                        { length: 10 },
+                        (_, index) => index + 1
+                    ).map((floor) => (
+
+                        <button
+                            key={floor}
+                            onClick={() =>
+                                setSelectedFloor(floor)
+                            }
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                selectedFloor === floor
+                                    ? "bg-blue-600 text-white"
+                                    : "border bg-white text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                            Floor {floor}
+                        </button>
+
+                    ))}
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Floor Summary
+            ================================================== */}
+
+            <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-sm text-gray-500">
+                        Total Flats
+                    </p>
+
+                    <p className="mt-1 text-2xl font-bold text-gray-800">
+                        {floorFlats.length}
+                    </p>
+                </div>
+
+                <div className="rounded-xl bg-green-50 p-4">
+                    <p className="text-sm text-green-600">
+                        Available
+                    </p>
+
+                    <p className="mt-1 text-2xl font-bold text-green-700">
+                        {availableCount}
+                    </p>
+                </div>
+
+                <div className="rounded-xl bg-red-50 p-4">
+                    <p className="text-sm text-red-600">
+                        Booked
+                    </p>
+
+                    <p className="mt-1 text-2xl font-bold text-red-700">
+                        {bookedCount}
+                    </p>
+                </div>
+
+                <div className="rounded-xl bg-yellow-50 p-4">
+                    <p className="text-sm text-yellow-600">
+                        Hold
+                    </p>
+
+                    <p className="mt-1 text-2xl font-bold text-yellow-700">
+                        {holdCount}
+                    </p>
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Floor Layout
+            ================================================== */}
+
+            <div className="rounded-2xl border bg-gray-50 p-5">
+
+                <div className="mb-5 text-center">
+
+                    <h3 className="text-lg font-bold text-gray-800">
+                        Tower {selectedTower} -{" "}
+                        {getTowerName(selectedTower)}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                        Floor {selectedFloor}
+                    </p>
+
+                </div>
+
+                {/* Flats Grid */}
+
+                <div
+                    className={`grid gap-3 ${
+                        floorFlats.length >= 12
+                            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
+                            : floorFlats.length >= 10
+                                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-5"
+                                : "grid-cols-2 sm:grid-cols-4"
+                    }`}
+                >
+
+                    {floorFlats.map((flat) => {
+
+                        const status =
+                            getFlatStatus(flat);
+
+                        return (
+                            <button
+                                key={flat.id}
+                                onClick={() =>
+                                    openFlat(flat)
+                                }
+                                className={`min-h-[110px] rounded-xl border-2 p-4 text-center transition hover:scale-[1.03] hover:shadow-md ${getColor(
+                                    status
+                                )}`}
+                            >
+
+                                <p className="text-lg font-bold">
+                                    {flat.number}
+                                </p>
+
+                                <p className="mt-1 text-xs">
+                                    {flat.area}
+                                </p>
+
+                                <p className="mt-1 text-xs">
+                                    {flat.type}
+                                </p>
+
+                                <p className="mt-2 text-xs font-semibold uppercase">
+                                    {status}
+                                </p>
+
+                            </button>
+                        );
+                    })}
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Legend
+            ================================================== */}
+
+            <div className="mt-6 flex flex-wrap gap-6 text-sm">
+
+                <div className="flex items-center gap-2">
+
+                    <div className="h-4 w-4 rounded bg-green-500" />
+
+                    <span>
+                        Available
+                    </span>
+
+                </div>
+
+                <div className="flex items-center gap-2">
+
+                    <div className="h-4 w-4 rounded bg-yellow-400" />
+
+                    <span>
+                        Hold
+                    </span>
+
+                </div>
+
+                <div className="flex items-center gap-2">
+
+                    <div className="h-4 w-4 rounded bg-red-500" />
+
+                    <span>
+                        Booked
+                    </span>
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Flat Modal
+            ================================================== */}
+
+            <FlatModal
+                isOpen={isOpen}
+                onClose={() =>
+                    setIsOpen(false)
+                }
+                onSave={handleSaveFlat}
+                onBooking={handleBooking}
+                flat={selectedFlat}
+            />
 
         </div>
-
-      </div>
-
-      {/* Legend */}
-
-      <div className="flex gap-8 mt-8 text-sm">
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-4 h-4 rounded bg-green-500"></div>
-
-          Available
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-4 h-4 rounded bg-yellow-400"></div>
-
-          Hold
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-4 h-4 rounded bg-red-500"></div>
-
-          Booked
-
-        </div>
-
-      </div>
-
-      <FlatModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onSave={handleSaveFlat}
-        onBooking={handleBooking}
-        flat={selectedFlat}
-      />
-
-    </div>
-
-  );
-
+    );
 }
 
 export default FloorMap;
