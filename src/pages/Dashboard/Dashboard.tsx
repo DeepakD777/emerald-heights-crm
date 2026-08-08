@@ -1,126 +1,243 @@
 // ======================================================
 // Dashboard Page
 // ======================================================
-// यह Dashboard का Main Page है।
-//
-// यहाँ हम सारे Components जोड़ेंगे।
-// ======================================================
 
-// Dashboard Header
-// import DashboardHeader from "../../components/dashboard/DashboardHeader";
-
-// Stats Card
 import StatsCard from "../../components/dashboard/StatsCard";
-
-//InventroyChart
 import InventoryChart from "../../components/dashboard/InventoryChart";
-
-
 import FloorPreview from "../../components/dashboard/FloorPreview";
-
 import QuickActions from "../../components/dashboard/QuickActions";
-
 import RecentBookings from "../../components/dashboard/RecentBookings";
-
 import FloorMap from "../../components/dashboard/Floormap";
 
 import { useBooking } from "../../context/BookingContext";
+import { useFlat } from "../../context/FlatContext";
 
+import { residentialFlats } from "../../data/floorData";
+import { commercialShops } from "../../data/commercialData";
 
-
-// Lucide Icons
 import {
-  Building2,
-  Home,
-  CalendarDays,
-  IndianRupee,
+    Building2,
+    Home,
+    CalendarDays,
+    IndianRupee,
 } from "lucide-react";
 
 function Dashboard() {
-  const { bookings } = useBooking();
+    const { bookings } = useBooking();
+    const { flatStatuses } = useFlat();
 
-  const totalUnits = 240;
+    // ======================================================
+    // Residential Units
+    // ======================================================
 
-  const bookedUnits = bookings.length;
+    const residentialUnits =
+        residentialFlats.length;
 
-  const availableUnits = totalUnits - bookedUnits;
+    // ======================================================
+    // Commercial Units
+    // ======================================================
 
-  const revenue = bookings.reduce(
-    (total, booking) =>
-      total + Number(booking.bookingAmount || 0),
-    0
-  );
-  return (
-    <div className="space-y-6">
+    const commercialUnits =
+        commercialShops.length;
 
-      {/* ================= Dashboard Header ================= */}
-      {/* <DashboardHeader /> */}
+    // ======================================================
+    // Total Units
+    // ======================================================
 
-      {/* ================= Statistics Cards ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    const totalUnits =
+        residentialUnits + commercialUnits;
 
-        {/* Total Units */}
-        <StatsCard
-          title="Total Units"
-          value={totalUnits}
-          subtitle="Residential + Commercial"
-          icon={<Building2 size={28} />}
-          color="bg-green-600"
-        />
+    // ======================================================
+    // Residential Status
+    // ======================================================
 
-        {/* Available Units */}
-        <StatsCard
-          title="Available Units"
-          value={availableUnits}
-          subtitle="Ready for Booking"
-          icon={<Home size={28} />}
-          color="bg-blue-600"
-        />
+    const residentialWithStatus =
+        residentialFlats.map((flat) => {
 
-        {/* Total Bookings */}
-        <StatsCard
-          title="Bookings"
-          value={bookedUnits}
-          subtitle="Completed Bookings"
-          icon={<CalendarDays size={28} />}
-          color="bg-orange-500"
-        />
+            const savedStatus =
+                flatStatuses.find(
+                    (item) =>
+                        item.number === flat.number
+                );
 
-        {/* Revenue */}
-        <StatsCard
-          title="Revenue"
-          value={`₹${revenue.toLocaleString("en-IN")}`}
-          subtitle="Total Sales"
-          icon={<IndianRupee size={28} />}
-          color="bg-purple-600"
-        />
+            return {
+                ...flat,
+                status:
+                    savedStatus?.status ??
+                    flat.status,
+            };
+        });
 
-      </div>
-      {/* ================= Inventory Chart ================= */}
+    const residentialBooked =
+        residentialWithStatus.filter(
+            (flat) =>
+                flat.status === "booked"
+        ).length;
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+    const residentialHold =
+        residentialWithStatus.filter(
+            (flat) =>
+                flat.status === "hold"
+        ).length;
 
-        <div className="xl:col-span-2">
-          <InventoryChart />
+    // ======================================================
+    // Commercial Status
+    // ======================================================
+
+    const commercialBooked =
+        commercialShops.filter(
+            (shop) =>
+                shop.status === "booked"
+        ).length;
+
+    const commercialHold =
+        commercialShops.filter(
+            (shop) =>
+                shop.status === "hold"
+        ).length;
+
+    // ======================================================
+    // Total Booked / Hold
+    // ======================================================
+
+    const bookedUnits =
+        residentialBooked +
+        commercialBooked;
+
+    const holdUnits =
+        residentialHold +
+        commercialHold;
+
+    // ======================================================
+    // Available Units
+    // ======================================================
+
+    const availableUnits =
+        totalUnits -
+        bookedUnits -
+        holdUnits;
+
+    // ======================================================
+    // Revenue
+    // ======================================================
+
+    const revenue =
+        bookings.reduce(
+            (total, booking) =>
+                total +
+                (
+                    Number(
+                        booking.bookingAmount
+                    ) || 0
+                ),
+            0
+        );
+
+    return (
+        <div className="space-y-6">
+
+            {/* ==================================================
+                Statistics Cards
+            ================================================== */}
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+                {/* Total Units */}
+
+                <StatsCard
+                    title="Total Units"
+                    value={totalUnits}
+                    subtitle="Residential + Commercial"
+                    icon={
+                        <Building2 size={28} />
+                    }
+                    color="bg-green-600"
+                />
+
+                {/* Available Units */}
+
+                <StatsCard
+                    title="Available Units"
+                    value={availableUnits}
+                    subtitle="Ready for Booking"
+                    icon={
+                        <Home size={28} />
+                    }
+                    color="bg-blue-600"
+                />
+
+                {/* Total Bookings */}
+
+                <StatsCard
+                    title="Bookings"
+                    value={bookings.length}
+                    subtitle="Completed Bookings"
+                    icon={
+                        <CalendarDays
+                            size={28}
+                        />
+                    }
+                    color="bg-orange-500"
+                />
+
+                {/* Revenue */}
+
+                <StatsCard
+                    title="Revenue"
+                    value={`₹${revenue.toLocaleString(
+                        "en-IN"
+                    )}`}
+                    subtitle="Total Sales"
+                    icon={
+                        <IndianRupee
+                            size={28}
+                        />
+                    }
+                    color="bg-purple-600"
+                />
+
+            </div>
+
+            {/* ==================================================
+                Inventory + Floor Preview
+            ================================================== */}
+
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+                <div className="xl:col-span-2">
+
+                    <InventoryChart />
+
+                </div>
+
+                <div>
+
+                    <FloorPreview />
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                Quick Actions
+            ================================================== */}
+
+            <QuickActions />
+
+            {/* ==================================================
+                Recent Bookings
+            ================================================== */}
+
+            <RecentBookings />
+
+            {/* ==================================================
+                Floor Map
+            ================================================== */}
+
+            <FloorMap />
+
         </div>
-
-        <div>
-          <FloorPreview />
-        </div>
-
-
-      </div>
-      {/* Quick Actions */}
-      <QuickActions />
-      {/* Recent Bookings */}
-
-      <RecentBookings />
-      {/* Floor Map */}
-
-      <FloorMap />
-
-    </div>
-  );
+    );
 }
 
 export default Dashboard;

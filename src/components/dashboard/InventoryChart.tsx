@@ -1,114 +1,191 @@
 // =========================================================
 // Inventory Chart Component
 // =========================================================
-// यह Dashboard का Graph है।
-//
-// इसमें दिखेगा:
-// ✅ Available Units
-// ✅ Sold Units
-//
-// Library:
-// Recharts
-// =========================================================
 
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
 } from "recharts";
 
-// ===============================================
-// Dummy Data
-// बाद में यह Data Database (Supabase) से आएगा
-// ===============================================
-
-const data = [
-  {
-    floor: "A Wing",
-    available: 18,
-    sold: 12,
-  },
-  {
-    floor: "B Wing",
-    available: 15,
-    sold: 17,
-  },
-  {
-    floor: "C Wing",
-    available: 10,
-    sold: 20,
-  },
-  {
-    floor: "D Wing",
-    available: 25,
-    sold: 9,
-  },
-  {
-    floor: "E Wing",
-    available: 14,
-    sold: 16,
-  },
-];
+import { residentialFlats } from "../../data/floorData";
+import { useFlat } from "../../context/FlatContext";
 
 function InventoryChart() {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    const { flatStatuses } = useFlat();
 
-      {/* Heading */}
-      <div className="mb-6">
+    // =====================================================
+    // Residential Flats with Actual Saved Status
+    // =====================================================
 
-        <h2 className="text-xl font-bold text-gray-800">
-          Inventory Overview
-        </h2>
+    const flatsWithStatus = residentialFlats.map((flat) => {
 
-        <p className="text-gray-500 text-sm mt-1">
-          Available vs Sold Units
-        </p>
+        const savedStatus = flatStatuses.find(
+            (item) => item.number === flat.number
+        );
 
-      </div>
+        return {
+            ...flat,
+            status:
+                savedStatus?.status ??
+                flat.status,
+        };
+    });
 
-      {/* Chart */}
+    // =====================================================
+    // Tower Data
+    // =====================================================
 
-      <div className="h-80">
+    const towerData = [
+        {
+            tower: "Amogh",
+            towerCode: "A",
+            total: 100,
+        },
+        {
+            tower: "Ekash",
+            towerCode: "B",
+            total: 80,
+        },
+        {
+            tower: "Ishan",
+            towerCode: "C",
+            total: 120,
+        },
+    ];
 
-        <ResponsiveContainer width="100%" height="100%">
+    // =====================================================
+    // Chart Data
+    // =====================================================
 
-          <BarChart data={data}>
+    const data = towerData.map((tower) => {
 
-            <CartesianGrid strokeDasharray="3 3" />
+        const towerFlats = flatsWithStatus.filter(
+            (flat) =>
+                flat.tower === tower.towerCode
+        );
 
-            <XAxis dataKey="floor" />
+        const available = towerFlats.filter(
+            (flat) =>
+                flat.status === "available"
+        ).length;
 
-            <YAxis />
+        const sold = towerFlats.filter(
+            (flat) =>
+                flat.status === "booked"
+        ).length;
 
-            <Tooltip />
+        const hold = towerFlats.filter(
+            (flat) =>
+                flat.status === "hold"
+        ).length;
 
-            {/* Green Bars */}
-            <Bar
-              dataKey="available"
-              fill="#16a34a"
-              radius={[8, 8, 0, 0]}
-            />
+        return {
+            tower: tower.tower,
+            available,
+            sold,
+            hold,
+        };
+    });
 
-            {/* Blue Bars */}
-            <Bar
-              dataKey="sold"
-              fill="#2563eb"
-              radius={[8, 8, 0, 0]}
-            />
+    return (
+        <div className="rounded-2xl bg-white p-6 shadow">
 
-          </BarChart>
+            {/* =================================================
+                Heading
+            ================================================= */}
 
-        </ResponsiveContainer>
+            <div className="mb-6">
 
-      </div>
+                <h2 className="text-xl font-bold text-gray-800">
+                    Inventory Overview
+                </h2>
 
-    </div>
-  );
+                <p className="mt-1 text-sm text-gray-500">
+                    Available vs Sold vs Hold Units
+                </p>
+
+            </div>
+
+            {/* =================================================
+                Chart
+            ================================================= */}
+
+            <div className="h-80">
+
+                <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                >
+
+                    <BarChart data={data}>
+
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                        />
+
+                        <XAxis
+                            dataKey="tower"
+                        />
+
+                        <YAxis />
+
+                        <Tooltip />
+
+                        {/* Available */}
+
+                        <Bar
+                            dataKey="available"
+                            fill="#16a34a"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Available"
+                        />
+
+                        {/* Sold */}
+
+                        <Bar
+                            dataKey="sold"
+                            fill="#2563eb"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Sold"
+                        />
+
+                        {/* Hold */}
+
+                        <Bar
+                            dataKey="hold"
+                            fill="#f59e0b"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Hold"
+                        />
+
+                    </BarChart>
+
+                </ResponsiveContainer>
+
+            </div>
+
+        </div>
+    );
 }
 
 export default InventoryChart;

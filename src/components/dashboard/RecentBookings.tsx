@@ -1,93 +1,188 @@
-import { CheckCircle, Clock } from "lucide-react";
+import {
+    CheckCircle,
+    Clock,
+} from "lucide-react";
+
+import { useBooking } from "../../context/BookingContext";
 
 function RecentBookings() {
-  const bookings = [
-    {
-      customer: "Rahul Sharma",
-      unit: "A-101",
-      amount: "₹12,50,000",
-      status: "Paid",
-    },
-    {
-      customer: "Priya Patel",
-      unit: "C-204",
-      amount: "₹18,20,000",
-      status: "Pending",
-    },
-    {
-      customer: "Aman Verma",
-      unit: "B-305",
-      amount: "₹15,80,000",
-      status: "Paid",
-    },
-  ];
+    const { bookings } = useBooking();
 
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Recent Bookings
-      </h2>
+    // Latest bookings first
+    const recentBookings = [...bookings]
+        .sort((a, b) => {
+            const dateA = new Date(
+                a.bookingDate || ""
+            ).getTime();
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+            const dateB = new Date(
+                b.bookingDate || ""
+            ).getTime();
 
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3">Customer</th>
-              <th className="text-left py-3">Unit</th>
-              <th className="text-left py-3">Amount</th>
-              <th className="text-left py-3">Status</th>
-            </tr>
-          </thead>
+            return dateB - dateA;
+        })
+        .slice(0, 5);
 
-          <tbody>
+    return (
+        <div className="rounded-2xl bg-white p-6 shadow">
 
-            {bookings.map((booking, index) => (
+            {/* Header */}
 
-              <tr key={index} className="border-b">
+            <div className="mb-6">
 
-                <td className="py-4">
-                  {booking.customer}
-                </td>
+                <h2 className="text-xl font-bold text-gray-800">
+                    Recent Bookings
+                </h2>
 
-                <td className="py-4">
-                  {booking.unit}
-                </td>
+                <p className="mt-1 text-sm text-gray-500">
+                    Latest property bookings
+                </p>
 
-                <td className="py-4 font-semibold">
-                  {booking.amount}
-                </td>
+            </div>
 
-                <td className="py-4">
+            {/* Empty State */}
 
-                  {booking.status === "Paid" ? (
+            {recentBookings.length === 0 ? (
 
-                    <span className="flex items-center gap-2 text-green-600 font-medium">
-                      <CheckCircle size={18} />
-                      Paid
-                    </span>
+                <div className="py-10 text-center text-gray-500">
+                    No bookings found
+                </div>
 
-                  ) : (
+            ) : (
 
-                    <span className="flex items-center gap-2 text-orange-500 font-medium">
-                      <Clock size={18} />
-                      Pending
-                    </span>
+                <div className="overflow-x-auto">
 
-                  )}
+                    <table className="w-full">
 
-                </td>
+                        <thead>
 
-              </tr>
+                            <tr className="border-b">
 
-            ))}
+                                <th className="py-3 text-left">
+                                    Customer
+                                </th>
 
-          </tbody>
+                                <th className="py-3 text-left">
+                                    Unit
+                                </th>
 
-        </table>
-      </div>
-    </div>
-  );
+                                <th className="py-3 text-left">
+                                    Amount
+                                </th>
+
+                                <th className="py-3 text-left">
+                                    Payment
+                                </th>
+
+                                <th className="py-3 text-left">
+                                    Date
+                                </th>
+
+                                <th className="py-3 text-left">
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {recentBookings.map(
+                                (booking) => (
+
+                                    <tr
+                                        key={booking.id}
+                                        className="border-b hover:bg-gray-50"
+                                    >
+
+                                        {/* Customer */}
+
+                                        <td className="py-4 font-medium">
+                                            {booking.customerName}
+                                        </td>
+
+                                        {/* Unit */}
+
+                                        <td className="py-4">
+                                            {booking.flatNumber}
+                                        </td>
+
+                                        {/* Amount */}
+
+                                        <td className="py-4 font-semibold">
+                                            ₹
+                                            {Number(
+                                                booking.bookingAmount ||
+                                                    0
+                                            ).toLocaleString(
+                                                "en-IN"
+                                            )}
+                                        </td>
+
+                                        {/* Payment */}
+
+                                        <td className="py-4">
+                                            {booking.paymentMode ||
+                                                "-"}
+                                        </td>
+
+                                        {/* Date */}
+
+                                        <td className="py-4 text-sm text-gray-600">
+                                            {booking.bookingDate ||
+                                                "-"}
+                                        </td>
+
+                                        {/* Status */}
+
+                                        <td className="py-4">
+
+                                            {booking.status ===
+                                            "booked" ? (
+
+                                                <span className="flex items-center gap-2 font-medium text-green-600">
+
+                                                    <CheckCircle
+                                                        size={18}
+                                                    />
+
+                                                    Booked
+
+                                                </span>
+
+                                            ) : (
+
+                                                <span className="flex items-center gap-2 font-medium text-orange-500">
+
+                                                    <Clock
+                                                        size={18}
+                                                    />
+
+                                                    {booking.status ||
+                                                        "Pending"}
+
+                                                </span>
+
+                                            )}
+
+                                        </td>
+
+                                    </tr>
+
+                                )
+                            )}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            )}
+
+        </div>
+    );
 }
 
 export default RecentBookings;

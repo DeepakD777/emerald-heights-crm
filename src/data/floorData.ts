@@ -1,3 +1,7 @@
+// ======================================================
+// Current Floor Map Data
+// ======================================================
+
 export const topFlats = [
   {
     id: 1,
@@ -72,27 +76,22 @@ export const bottomFlats = [
     facing: "East",
     status: "available",
   },
-
   {
     id: 8,
     type: "stair",
   },
-
   {
     id: 9,
     type: "lobby",
   },
-
   {
     id: 10,
     type: "lift",
   },
-
   {
     id: 11,
     type: "lift",
   },
-
   {
     id: 12,
     number: "A-108",
@@ -123,4 +122,99 @@ export const bottomFlats = [
     facing: "East",
     status: "available",
   },
+];
+
+// ======================================================
+// Complete Residential Inventory
+// ======================================================
+//
+// Tower A - Amogh
+// 10 Floors × 10 Flats = 100
+//
+// Tower B - Ekash
+// 10 Floors × 8 Flats = 80
+//
+// Tower C - Ishan
+// 10 Floors × 12 Flats = 120
+//
+// Total Residential = 300 Flats
+// ======================================================
+
+export const residentialFlats = [
+
+  // ====================================================
+  // Tower A - Amogh
+  // ====================================================
+
+  ...Array.from({ length: 10 }, (_, floorIndex) =>
+    Array.from({ length: 10 }, (_, flatIndex) => {
+
+      const floor = floorIndex + 1;
+      const flat = flatIndex + 1;
+
+      return {
+        id: `A-${floor}-${flat}`,
+        number: `A-${floor}${String(flat).padStart(2, "0")}`,
+        tower: "A",
+        towerName: "Amogh",
+        floor,
+        area: "1650 sqft",
+        type: "3 BHK",
+        facing: "East",
+        status: "available",
+      };
+
+    })
+  ).flat(),
+
+  // ====================================================
+  // Tower B - Ekash
+  // ====================================================
+
+  ...Array.from({ length: 10 }, (_, floorIndex) =>
+    Array.from({ length: 8 }, (_, flatIndex) => {
+
+      const floor = floorIndex + 1;
+      const flat = flatIndex + 1;
+
+      return {
+        id: `B-${floor}-${flat}`,
+        number: `B-${floor}${String(flat).padStart(2, "0")}`,
+        tower: "B",
+        towerName: "Ekash",
+        floor,
+        area: "1650 sqft",
+        type: "3 BHK",
+        facing: "East",
+        status: "available",
+      };
+
+    })
+  ).flat(),
+
+  // ====================================================
+  // Tower C - Ishan
+  // ====================================================
+
+  ...Array.from({ length: 10 }, (_, floorIndex) =>
+    Array.from({ length: 12 }, (_, flatIndex) => {
+
+      const floor = floorIndex + 1;
+      const flat = flatIndex + 1;
+
+      return {
+        id: `C-${floor}-${flat}`,
+        number: `C-${floor}${String(flat).padStart(2, "0")}`,
+        tower: "C",
+        towerName: "Ishan",
+        floor,
+        area: "1650 sqft",
+        type: "3 BHK",
+        facing: "East",
+        status: "available",
+      };
+
+    })
+  ).flat(),
+
 ];
