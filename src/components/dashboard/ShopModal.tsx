@@ -7,11 +7,11 @@ import {
 } from "lucide-react";
 
 interface Shop {
-    id: string;
+    id: string | number;
     number: string;
     floor: number;
-    floorName: string;
-    type: string;
+    floorName?: string;
+    type?: string;
     area: string;
     status: string;
 }
@@ -21,6 +21,7 @@ interface ShopModalProps {
     onClose: () => void;
     shop: Shop | null;
     onBook: (shop: Shop) => void;
+    onStatusChange: (shopId: string | number, status: string) => void;
 }
 
 function ShopModal({
@@ -28,7 +29,9 @@ function ShopModal({
     onClose,
     shop,
     onBook,
+    onStatusChange,
 }: ShopModalProps) {
+
     if (!isOpen || !shop) {
         return null;
     }
@@ -106,26 +109,86 @@ function ShopModal({
                 <div className="space-y-4 p-6">
 
                     {/* Status */}
-                    <div className="flex items-center justify-between rounded-xl border bg-gray-50 p-4">
+                    <div className="rounded-xl border bg-gray-50 p-4">
 
-                        <div className="flex items-center gap-3">
-                            <Tag
-                                size={20}
-                                className="text-gray-600"
-                            />
+                        <div className="mb-3 flex items-center justify-between">
 
-                            <span className="font-medium text-gray-700">
-                                Status
+                            <div className="flex items-center gap-3">
+                                <Tag
+                                    size={20}
+                                    className="text-gray-600"
+                                />
+
+                                <span className="font-medium text-gray-700">
+                                    Status
+                                </span>
+                            </div>
+
+                            <span
+                                className={`rounded-full border px-4 py-1 text-sm font-semibold ${getStatusColor(
+                                    shop.status
+                                )}`}
+                            >
+                                {getStatusText(shop.status)}
                             </span>
+
                         </div>
 
-                        <span
-                            className={`rounded-full border px-4 py-1 text-sm font-semibold ${getStatusColor(
-                                shop.status
-                            )}`}
-                        >
-                            {getStatusText(shop.status)}
-                        </span>
+                        {/* Change Status */}
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onStatusChange(
+                                        shop.id,
+                                        "available"
+                                    )
+                                }
+                                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                    shop.status === "available"
+                                        ? "bg-green-600 text-white"
+                                        : "border border-green-300 bg-white text-green-700 hover:bg-green-50"
+                                }`}
+                            >
+                                Available
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onStatusChange(
+                                        shop.id,
+                                        "hold"
+                                    )
+                                }
+                                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                    shop.status === "hold"
+                                        ? "bg-yellow-500 text-white"
+                                        : "border border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
+                                }`}
+                            >
+                                Hold
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    onStatusChange(
+                                        shop.id,
+                                        "booked"
+                                    )
+                                }
+                                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                    shop.status === "booked"
+                                        ? "bg-red-600 text-white"
+                                        : "border border-red-300 bg-white text-red-700 hover:bg-red-50"
+                                }`}
+                            >
+                                Booked
+                            </button>
+
+                        </div>
 
                     </div>
 
@@ -144,7 +207,11 @@ function ShopModal({
                         </div>
 
                         <span className="font-semibold text-gray-800">
-                            {shop.floorName}
+                            {shop.floorName ?? (
+                                shop.floor === 0
+                                    ? "Ground Floor"
+                                    : `${shop.floor} Floor`
+                            )}
                         </span>
 
                     </div>

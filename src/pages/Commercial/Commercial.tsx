@@ -116,6 +116,45 @@ function Commercial() {
     };
 
     // ======================================================
+    // Change Commercial Shop Status
+    // ======================================================
+
+    const handleStatusChange = (
+        shopId: string | number,
+        newStatus: string
+    ) => {
+
+        setShops((prevShops) => {
+
+            const updatedShops = prevShops.map((shop) =>
+                shop.id === shopId
+                    ? {
+                        ...shop,
+                        status: newStatus,
+                    }
+                    : shop
+            );
+
+            // Save updated status
+            localStorage.setItem(
+                "commercialShops",
+                JSON.stringify(updatedShops)
+            );
+
+            // Update currently selected shop
+            const updatedSelectedShop = updatedShops.find(
+                (shop) => shop.id === shopId
+            );
+
+            if (updatedSelectedShop) {
+                setSelectedShop(updatedSelectedShop);
+            }
+
+            return updatedShops;
+        });
+    };
+
+    // ======================================================
     // Open Booking Modal
     // ======================================================
 
@@ -255,8 +294,8 @@ function Commercial() {
                     <button
                         onClick={() => setSelectedFloor("all")}
                         className={`rounded-lg px-5 py-2 font-medium transition ${selectedFloor === "all"
-                                ? "bg-green-600 text-white"
-                                : "border bg-white hover:bg-gray-100"
+                            ? "bg-green-600 text-white"
+                            : "border bg-white hover:bg-gray-100"
                             }`}
                     >
                         All
@@ -274,8 +313,8 @@ function Commercial() {
                                 )
                             }
                             className={`rounded-lg px-5 py-2 font-medium transition ${selectedFloor === floor
-                                    ? "bg-green-600 text-white"
-                                    : "border bg-white hover:bg-gray-100"
+                                ? "bg-green-600 text-white"
+                                : "border bg-white hover:bg-gray-100"
                                 }`}
                         >
                             {getFloorName(floor)}
@@ -386,6 +425,7 @@ function Commercial() {
                 }}
                 shop={selectedShop}
                 onBook={handleBookShop}
+                onStatusChange={handleStatusChange}
             />
 
             {/* ==================================================

@@ -7,42 +7,69 @@ import Bookings from "../components/dashboard/Bookings";
 import Customers from "../pages/Customers/Customers";
 import Commercial from "../pages/Commercial/Commercial";
 import Residential from "../pages/Residential/Residential";
-import Properties from "../pages/Properties/properties";
+import Properties from "../pages/Properties/Properties";
+import Reports from "../pages/Reports/Reports";
+import Notifications from "../components/dashboard/Notifications";
+
 function AppRoutes() {
-  return (
-    <BrowserRouter>
-      <Routes>
+    return (
+        <BrowserRouter>
 
-        <Route path="/" element={<MainLayout />}>
+            <Routes>
 
-          <Route index element={<Dashboard />} />
+                <Route
+                    path="/"
+                    element={<MainLayout />}
+                >
 
-          <Route
-            path="bookings"
-            element={<Bookings />}
-          />
-          <Route
-            path="customers"
-            element={<Customers />}
-          />
-          <Route
-            path="commercial"
-            element={<Commercial />}
-          />
-          <Route
-            path="residential"
-            element={<Residential />}
-          />
-          <Route
-            path="properties"
-            element={<Properties />}
-          />
+                    <Route
+                        index
+                        element={<Dashboard />}
+                    />
 
-        </Route>
+                    <Route
+                        path="bookings"
+                        element={<Bookings />}
+                    />
 
-      </Routes>
-    </BrowserRouter>
-  );
+                    <Route
+                        path="customers"
+                        element={<Customers />}
+                    />
+
+                    <Route
+                        path="commercial"
+                        element={<Commercial />}
+                    />
+
+                    <Route
+                        path="residential"
+                        element={<Residential />}
+                    />
+
+                    <Route
+                        path="properties"
+                        element={<Properties />}
+                    />
+
+                    <Route
+                        path="reports"
+                        element={<Reports />}
+                    />
+
+                    {/* Notifications */}
+
+                    <Route
+                        path="notifications"
+                        element={<Notifications />}
+                    />
+
+                </Route>
+
+            </Routes>
+
+        </BrowserRouter>
+    );
 }
 
 export default AppRoutes;

@@ -1,22 +1,54 @@
 import { useMemo, useState } from "react";
+
 import { Search, RotateCcw } from "lucide-react";
 
 import { residentialFlats } from "../../data/floorData";
+
 import { useFlat } from "../../context/FlatContext";
 import { useBooking } from "../../context/BookingContext";
 
+import FlatModal from "../../components/dashboard/FlatModal";
+
 type Tower = "all" | "A" | "B" | "C";
-type Status = "all" | "available" | "hold" | "booked";
+
+type Status =
+    | "all"
+    | "available"
+    | "hold"
+    | "booked";
 
 function Residential() {
-    const { flatStatuses } = useFlat();
-    const { bookings } = useBooking();
+
+    // ======================================================
+    // Context
+    // ======================================================
+
+    const {
+        flatStatuses,
+        updateFlatStatus,
+    } = useFlat();
+
+    const {
+        bookings,
+        addBooking,
+    } = useBooking();
+
+    // ======================================================
+    // Flat Modal
+    // ======================================================
+
+    const [selectedFlat, setSelectedFlat] =
+        useState<any>(null);
+
+    const [isFlatModalOpen, setIsFlatModalOpen] =
+        useState(false);
 
     // ======================================================
     // Filters
     // ======================================================
 
-    const [search, setSearch] = useState("");
+    const [search, setSearch] =
+        useState("");
 
     const [selectedTower, setSelectedTower] =
         useState<Tower>("all");
@@ -38,7 +70,9 @@ function Residential() {
     // ======================================================
 
     const towerName = (tower: string) => {
+
         switch (tower) {
+
             case "A":
                 return "Amogh";
 
@@ -50,7 +84,9 @@ function Residential() {
 
             default:
                 return "";
+
         }
+
     };
 
     // ======================================================
@@ -58,6 +94,7 @@ function Residential() {
     // ======================================================
 
     const getFlatStatus = (flat: any) => {
+
         const booking = bookings.find(
             (booking: any) =>
                 booking.flatNumber === flat.number
@@ -67,16 +104,18 @@ function Residential() {
             return "booked";
         }
 
-        const savedStatus = flatStatuses.find(
-            (item) =>
-                item.number === flat.number
-        );
+        const savedStatus =
+            flatStatuses.find(
+                (item) =>
+                    item.number === flat.number
+            );
 
         if (savedStatus) {
             return savedStatus.status;
         }
 
         return flat.status;
+
     };
 
     // ======================================================
@@ -84,16 +123,23 @@ function Residential() {
     // ======================================================
 
     const getStatusColor = (status: string) => {
+
         switch (status) {
+
             case "booked":
+
                 return "bg-red-100 border-red-400 text-red-700";
 
             case "hold":
+
                 return "bg-yellow-100 border-yellow-400 text-yellow-700";
 
             default:
+
                 return "bg-green-100 border-green-400 text-green-700";
+
         }
+
     };
 
     // ======================================================
@@ -101,16 +147,22 @@ function Residential() {
     // ======================================================
 
     const floors = useMemo(() => {
+
         return Array.from(
             new Set(
                 residentialFlats.map(
                     (flat: any) => flat.floor
                 )
             )
-        ).sort((a, b) => Number(a) - Number(b));
+        ).sort(
+            (a, b) =>
+                Number(a) - Number(b)
+        );
+
     }, []);
 
     const unitTypes = useMemo(() => {
+
         return Array.from(
             new Set(
                 residentialFlats.map(
@@ -118,9 +170,11 @@ function Residential() {
                 )
             )
         ).filter(Boolean);
+
     }, []);
 
     const facings = useMemo(() => {
+
         return Array.from(
             new Set(
                 residentialFlats.map(
@@ -128,6 +182,7 @@ function Residential() {
                 )
             )
         ).filter(Boolean);
+
     }, []);
 
     // ======================================================
@@ -135,6 +190,7 @@ function Residential() {
     // ======================================================
 
     const filteredFlats = useMemo(() => {
+
         const searchText =
             search.trim().toLowerCase();
 
@@ -152,13 +208,7 @@ function Residential() {
                     String(flat.tower)
                         .toLowerCase()
                         .includes(searchText) ||
-                    String(flat.floor)
-                        .toLowerCase()
-                        .includes(searchText) ||
-                    String(flat.type || "")
-                        .toLowerCase()
-                        .includes(searchText) ||
-                    String(flat.facing || "")
+                    String(flat.towerName)
                         .toLowerCase()
                         .includes(searchText);
 
@@ -168,7 +218,8 @@ function Residential() {
 
                 const matchesFloor =
                     selectedFloor === "all" ||
-                    String(flat.floor) === selectedFloor;
+                    String(flat.floor) ===
+                        selectedFloor;
 
                 const matchesType =
                     selectedType === "all" ||
@@ -190,8 +241,10 @@ function Residential() {
                     matchesFacing &&
                     matchesStatus
                 );
+
             }
         );
+
     }, [
         search,
         selectedTower,
@@ -204,134 +257,99 @@ function Residential() {
     ]);
 
     // ======================================================
-    // Statistics
-    // ======================================================
-
-    const totalFlats =
-        filteredFlats.length;
-
-    const availableFlats =
-        filteredFlats.filter(
-            (flat: any) =>
-                getFlatStatus(flat) === "available"
-        ).length;
-
-    const bookedFlats =
-        filteredFlats.filter(
-            (flat: any) =>
-                getFlatStatus(flat) === "booked"
-        ).length;
-
-    const holdFlats =
-        filteredFlats.filter(
-            (flat: any) =>
-                getFlatStatus(flat) === "hold"
-        ).length;
-
-    // ======================================================
     // Reset Filters
     // ======================================================
 
     const resetFilters = () => {
+
         setSearch("");
         setSelectedTower("all");
         setSelectedFloor("all");
         setSelectedType("all");
         setSelectedFacing("all");
         setSelectedStatus("all");
+
     };
 
+    // ======================================================
+    // Open Flat
+    // ======================================================
+
+    const openFlat = (flat: any) => {
+
+        setSelectedFlat({
+            ...flat,
+            status: getFlatStatus(flat),
+        });
+
+        setIsFlatModalOpen(true);
+
+    };
+
+    // ======================================================
+    // Save Flat Status
+    // ======================================================
+
+    const handleSaveFlat = (
+        updatedFlat: any
+    ) => {
+
+        updateFlatStatus(
+            updatedFlat.number,
+            updatedFlat.status
+        );
+
+        setSelectedFlat({
+            ...updatedFlat,
+        });
+
+        setIsFlatModalOpen(false);
+
+    };
+
+    // ======================================================
+    // Booking
+    // ======================================================
+
+    const handleBooking = (
+        bookingData: any
+    ) => {
+
+        // Save booking
+        addBooking(bookingData);
+
+        // Change flat status
+        updateFlatStatus(
+            bookingData.flatNumber,
+            "booked"
+        );
+
+        // Close modal
+        setIsFlatModalOpen(false);
+
+    };
+
+    // ======================================================
+    // UI
+    // ======================================================
+
     return (
+
         <div className="space-y-6">
 
             {/* ==================================================
                 Header
             ================================================== */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+            <div>
 
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <h1 className="text-2xl font-bold text-gray-800">
+                    Residential
+                </h1>
 
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-800">
-                            Residential
-                        </h1>
-
-                        <p className="mt-1 text-gray-500">
-                            Live inventory of all residential flats
-                        </p>
-                    </div>
-
-                    {/* Search */}
-
-                    <div className="relative w-full lg:w-80">
-
-                        <Search
-                            size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        />
-
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) =>
-                                setSearch(e.target.value)
-                            }
-                            placeholder="Search flat no, tower, floor..."
-                            className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 outline-none focus:border-green-500"
-                        />
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            {/* ==================================================
-                Statistics
-            ================================================== */}
-
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-
-                <div className="rounded-2xl bg-white p-5 shadow">
-                    <p className="text-sm text-gray-500">
-                        Total Flats
-                    </p>
-
-                    <p className="mt-2 text-2xl font-bold text-gray-800">
-                        {totalFlats}
-                    </p>
-                </div>
-
-                <div className="rounded-2xl bg-green-50 p-5 shadow">
-                    <p className="text-sm text-green-700">
-                        Available
-                    </p>
-
-                    <p className="mt-2 text-2xl font-bold text-green-700">
-                        {availableFlats}
-                    </p>
-                </div>
-
-                <div className="rounded-2xl bg-yellow-50 p-5 shadow">
-                    <p className="text-sm text-yellow-700">
-                        Hold
-                    </p>
-
-                    <p className="mt-2 text-2xl font-bold text-yellow-700">
-                        {holdFlats}
-                    </p>
-                </div>
-
-                <div className="rounded-2xl bg-red-50 p-5 shadow">
-                    <p className="text-sm text-red-700">
-                        Booked
-                    </p>
-
-                    <p className="mt-2 text-2xl font-bold text-red-700">
-                        {bookedFlats}
-                    </p>
-                </div>
+                <p className="mt-1 text-gray-500">
+                    Residential Flats Inventory
+                </p>
 
             </div>
 
@@ -341,33 +359,62 @@ function Residential() {
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-5 flex items-center justify-between">
 
-                    <div>
-                        <h2 className="text-lg font-bold text-gray-800">
-                            Filters
-                        </h2>
-
-                        <p className="text-sm text-gray-500">
-                            Filter residential inventory
-                        </p>
-                    </div>
+                    <h2 className="text-xl font-bold text-gray-800">
+                        Filters
+                    </h2>
 
                     <button
                         onClick={resetFilters}
-                        className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                        className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
                     >
+
                         <RotateCcw size={16} />
+
                         Reset
+
                     </button>
 
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+
+                    {/* Search */}
+
+                    <div>
+
+                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                            Search
+                        </label>
+
+                        <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
+
+                            <Search
+                                size={18}
+                                className="text-gray-400"
+                            />
+
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) =>
+                                    setSearch(
+                                        e.target.value
+                                    )
+                                }
+                                placeholder="Search flat..."
+                                className="ml-2 w-full outline-none"
+                            />
+
+                        </div>
+
+                    </div>
 
                     {/* Tower */}
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Tower
                         </label>
@@ -381,27 +428,31 @@ function Residential() {
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+
                             <option value="all">
                                 All Towers
                             </option>
 
                             <option value="A">
-                                A - Amogh
+                                Tower A - Amogh
                             </option>
 
                             <option value="B">
-                                B - Ekash
+                                Tower B - Ekash
                             </option>
 
                             <option value="C">
-                                C - Ishan
+                                Tower C - Ishan
                             </option>
+
                         </select>
+
                     </div>
 
                     {/* Floor */}
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Floor
                         </label>
@@ -415,24 +466,32 @@ function Residential() {
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+
                             <option value="all">
                                 All Floors
                             </option>
 
-                            {floors.map((floor) => (
-                                <option
-                                    key={String(floor)}
-                                    value={String(floor)}
-                                >
-                                    Floor {floor}
-                                </option>
-                            ))}
+                            {floors.map(
+                                (floor) => (
+
+                                    <option
+                                        key={String(floor)}
+                                        value={String(floor)}
+                                    >
+                                        Floor {floor}
+                                    </option>
+
+                                )
+                            )}
+
                         </select>
+
                     </div>
 
                     {/* Unit Type */}
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Unit Type
                         </label>
@@ -446,24 +505,32 @@ function Residential() {
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+
                             <option value="all">
                                 All Types
                             </option>
 
-                            {unitTypes.map((type) => (
-                                <option
-                                    key={String(type)}
-                                    value={String(type)}
-                                >
-                                    {String(type)}
-                                </option>
-                            ))}
+                            {unitTypes.map(
+                                (type) => (
+
+                                    <option
+                                        key={String(type)}
+                                        value={String(type)}
+                                    >
+                                        {String(type)}
+                                    </option>
+
+                                )
+                            )}
+
                         </select>
+
                     </div>
 
                     {/* Facing */}
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Facing
                         </label>
@@ -477,24 +544,32 @@ function Residential() {
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+
                             <option value="all">
                                 All Facing
                             </option>
 
-                            {facings.map((facing) => (
-                                <option
-                                    key={String(facing)}
-                                    value={String(facing)}
-                                >
-                                    {String(facing)}
-                                </option>
-                            ))}
+                            {facings.map(
+                                (facing) => (
+
+                                    <option
+                                        key={String(facing)}
+                                        value={String(facing)}
+                                    >
+                                        {String(facing)}
+                                    </option>
+
+                                )
+                            )}
+
                         </select>
+
                     </div>
 
                     {/* Status */}
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Status
                         </label>
@@ -508,6 +583,7 @@ function Residential() {
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+
                             <option value="all">
                                 All Status
                             </option>
@@ -523,7 +599,9 @@ function Residential() {
                             <option value="booked">
                                 Booked
                             </option>
+
                         </select>
+
                     </div>
 
                 </div>
@@ -539,14 +617,19 @@ function Residential() {
                 <div className="mb-6 flex items-center justify-between">
 
                     <div>
+
                         <h2 className="text-xl font-bold text-gray-800">
                             Residential Flats
                         </h2>
 
                         <p className="mt-1 text-sm text-gray-500">
-                            Showing {filteredFlats.length} of{" "}
-                            {residentialFlats.length} flats
+                            Showing{" "}
+                            {filteredFlats.length}{" "}
+                            of{" "}
+                            {residentialFlats.length}{" "}
+                            flats
                         </p>
+
                     </div>
 
                 </div>
@@ -576,48 +659,54 @@ function Residential() {
 
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10">
 
-                        {filteredFlats.map((flat: any) => {
+                        {filteredFlats.map(
+                            (flat: any) => {
 
-                            const status =
-                                getFlatStatus(flat);
+                                const status =
+                                    getFlatStatus(flat);
 
-                            return (
+                                return (
 
-                                <div
-                                    key={flat.id}
-                                    className={`rounded-lg border p-3 text-center transition hover:scale-105 ${getStatusColor(
-                                        status
-                                    )}`}
-                                >
+                                    <div
+                                        key={flat.id}
+                                        onClick={() =>
+                                            openFlat(flat)
+                                        }
+                                        className={`cursor-pointer rounded-lg border p-3 text-center transition hover:scale-105 hover:shadow-md ${getStatusColor(
+                                            status
+                                        )}`}
+                                    >
 
-                                    <p className="font-bold">
-                                        {flat.number}
-                                    </p>
+                                        <p className="font-bold">
+                                            {flat.number}
+                                        </p>
 
-                                    <p className="mt-1 text-xs">
-                                        Floor {flat.floor}
-                                    </p>
+                                        <p className="mt-1 text-xs">
+                                            Floor {flat.floor}
+                                        </p>
 
-                                    <p className="mt-1 text-xs">
-                                        {flat.area}
-                                    </p>
+                                        <p className="mt-1 text-xs">
+                                            {flat.area}
+                                        </p>
 
-                                    <p className="mt-1 text-xs">
-                                        {flat.type}
-                                    </p>
+                                        <p className="mt-1 text-xs">
+                                            {flat.type}
+                                        </p>
 
-                                    <p className="mt-1 text-xs">
-                                        {flat.facing}
-                                    </p>
+                                        <p className="mt-1 text-xs">
+                                            {flat.facing}
+                                        </p>
 
-                                    <p className="mt-1 text-xs font-semibold capitalize">
-                                        {status}
-                                    </p>
+                                        <p className="mt-1 text-xs font-semibold capitalize">
+                                            {status}
+                                        </p>
 
-                                </div>
+                                    </div>
 
-                            );
-                        })}
+                                );
+
+                            }
+                        )}
 
                     </div>
 
@@ -634,26 +723,51 @@ function Residential() {
                 <div className="flex flex-wrap gap-6 text-sm">
 
                     <div className="flex items-center gap-2">
+
                         <div className="h-4 w-4 rounded bg-green-500" />
+
                         Available
+
                     </div>
 
                     <div className="flex items-center gap-2">
+
                         <div className="h-4 w-4 rounded bg-yellow-400" />
+
                         Hold
+
                     </div>
 
                     <div className="flex items-center gap-2">
+
                         <div className="h-4 w-4 rounded bg-red-500" />
+
                         Booked
+
                     </div>
 
                 </div>
 
             </div>
 
+            {/* ==================================================
+                Flat Modal
+            ================================================== */}
+
+            <FlatModal
+                isOpen={isFlatModalOpen}
+                onClose={() =>
+                    setIsFlatModalOpen(false)
+                }
+                flat={selectedFlat}
+                onSave={handleSaveFlat}
+                onBooking={handleBooking}
+            />
+
         </div>
+
     );
+
 }
 
 export default Residential;

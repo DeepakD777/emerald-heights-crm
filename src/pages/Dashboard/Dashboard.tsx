@@ -2,6 +2,8 @@
 // Dashboard Page
 // ======================================================
 
+import { useState } from "react";
+
 import StatsCard from "../../components/dashboard/StatsCard";
 import InventoryChart from "../../components/dashboard/InventoryChart";
 import FloorPreview from "../../components/dashboard/FloorPreview";
@@ -9,7 +11,6 @@ import QuickActions from "../../components/dashboard/QuickActions";
 import RecentBookings from "../../components/dashboard/RecentBookings";
 import FloorMap from "../../components/dashboard/Floormap";
 
-import { useBooking } from "../../context/BookingContext";
 import { useFlat } from "../../context/FlatContext";
 
 import { residentialFlats } from "../../data/floorData";
@@ -17,14 +18,38 @@ import { commercialShops } from "../../data/commercialData";
 
 import {
     Building2,
+    Store,
     Home,
-    CalendarDays,
-    IndianRupee,
+    CheckCircle,
 } from "lucide-react";
 
 function Dashboard() {
-    const { bookings } = useBooking();
+
     const { flatStatuses } = useFlat();
+
+    // ======================================================
+    // Commercial Shops
+    // Read saved status from localStorage
+    // ======================================================
+
+    const [savedCommercialShops] = useState(() => {
+
+        const savedShops =
+            localStorage.getItem("commercialShops");
+
+        if (savedShops) {
+            try {
+                return JSON.parse(savedShops);
+            } catch (error) {
+                console.error(
+                    "Failed to load commercial shops:",
+                    error
+                );
+            }
+        }
+
+        return commercialShops;
+    });
 
     // ======================================================
     // Residential Units
@@ -38,14 +63,15 @@ function Dashboard() {
     // ======================================================
 
     const commercialUnits =
-        commercialShops.length;
+        savedCommercialShops.length;
 
     // ======================================================
     // Total Units
     // ======================================================
 
     const totalUnits =
-        residentialUnits + commercialUnits;
+        residentialUnits +
+        commercialUnits;
 
     // ======================================================
     // Residential Status
@@ -68,11 +94,19 @@ function Dashboard() {
             };
         });
 
+    // ======================================================
+    // Residential Booked
+    // ======================================================
+
     const residentialBooked =
         residentialWithStatus.filter(
             (flat) =>
                 flat.status === "booked"
         ).length;
+
+    // ======================================================
+    // Residential Hold
+    // ======================================================
 
     const residentialHold =
         residentialWithStatus.filter(
@@ -81,35 +115,43 @@ function Dashboard() {
         ).length;
 
     // ======================================================
-    // Commercial Status
+    // Commercial Booked
     // ======================================================
 
     const commercialBooked =
-        commercialShops.filter(
-            (shop) =>
+        savedCommercialShops.filter(
+            (shop: any) =>
                 shop.status === "booked"
         ).length;
 
+    // ======================================================
+    // Commercial Hold
+    // ======================================================
+
     const commercialHold =
-        commercialShops.filter(
-            (shop) =>
+        savedCommercialShops.filter(
+            (shop: any) =>
                 shop.status === "hold"
         ).length;
 
     // ======================================================
-    // Total Booked / Hold
+    // Total Booked Units
     // ======================================================
 
     const bookedUnits =
         residentialBooked +
         commercialBooked;
 
+    // ======================================================
+    // Total Hold Units
+    // ======================================================
+
     const holdUnits =
         residentialHold +
         commercialHold;
 
     // ======================================================
-    // Available Units
+    // Total Available Units
     // ======================================================
 
     const availableUnits =
@@ -118,20 +160,8 @@ function Dashboard() {
         holdUnits;
 
     // ======================================================
-    // Revenue
+    // UI
     // ======================================================
-
-    const revenue =
-        bookings.reduce(
-            (total, booking) =>
-                total +
-                (
-                    Number(
-                        booking.bookingAmount
-                    ) || 0
-                ),
-            0
-        );
 
     return (
         <div className="space-y-6">
@@ -142,58 +172,60 @@ function Dashboard() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-                {/* Total Units */}
+                {/* ==================================================
+                    Residential Units
+                ================================================== */}
 
                 <StatsCard
-                    title="Total Units"
-                    value={totalUnits}
-                    subtitle="Residential + Commercial"
+                    title="Residential Units"
+                    value={residentialUnits}
+                    subtitle="Total Residential Units"
                     icon={
                         <Building2 size={28} />
                     }
                     color="bg-green-600"
                 />
 
-                {/* Available Units */}
+                {/* ==================================================
+                    Commercial Units
+                ================================================== */}
 
                 <StatsCard
-                    title="Available Units"
+                    title="Commercial Units"
+                    value={commercialUnits}
+                    subtitle="Total Commercial Units"
+                    icon={
+                        <Store size={28} />
+                    }
+                    color="bg-blue-600"
+                />
+
+                {/* ==================================================
+                    Available Units
+                ================================================== */}
+
+                <StatsCard
+                    title="Total Available Units"
                     value={availableUnits}
                     subtitle="Ready for Booking"
                     icon={
                         <Home size={28} />
                     }
-                    color="bg-blue-600"
+                    color="bg-green-600"
                 />
 
-                {/* Total Bookings */}
+                {/* ==================================================
+                    Booked Units
+                ================================================== */}
 
                 <StatsCard
-                    title="Bookings"
-                    value={bookings.length}
-                    subtitle="Completed Bookings"
+                    title="Total Booked Units"
+                    value={bookedUnits}
+                    subtitle="Currently Booked"
                     icon={
-                        <CalendarDays
-                            size={28}
-                        />
+                        <CheckCircle size={28} />
                     }
-                    color="bg-orange-500"
-                />
-
-                {/* Revenue */}
-
-                <StatsCard
-                    title="Revenue"
-                    value={`₹${revenue.toLocaleString(
-                        "en-IN"
-                    )}`}
-                    subtitle="Total Sales"
-                    icon={
-                        <IndianRupee
-                            size={28}
-                        />
-                    }
-                    color="bg-purple-600"
+                    color="bg-red-500"
                 />
 
             </div>

@@ -2,6 +2,10 @@ import { useMemo, useState } from "react";
 import { useBooking } from "../../context/BookingContext";
 import CustomerDetailsModal from "../../components/dashboard/CustomerDetailsModal";
 
+// ======================================================
+// Customer
+// ======================================================
+
 interface Customer {
     customerName: string;
     mobile: string;
@@ -9,20 +13,105 @@ interface Customer {
     address: string;
     aadhar: string;
     pan: string;
+
     properties: string[];
+
     totalAmount: number;
     bookingCount: number;
     latestBookingDate: string;
+
+    // ==================================================
+    // Document Status
+    // ==================================================
+
+    agreementToSellStatus:
+        | "pending"
+        | "generated"
+        | "uploaded"
+        | "given";
+
+    tripartiteAgreementStatus:
+        | "not-required"
+        | "pending"
+        | "completed";
 }
 
+// ======================================================
+// Document Status Badge
+// ======================================================
+
+function DocumentStatusBadge({
+    status,
+}: {
+    status:
+        | "pending"
+        | "generated"
+        | "uploaded"
+        | "given"
+        | "not-required"
+        | "completed";
+}) {
+
+    if (status === "given") {
+        return (
+            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                Given
+            </span>
+        );
+    }
+
+    if (status === "completed") {
+        return (
+            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                Completed
+            </span>
+        );
+    }
+
+    if (status === "not-required") {
+        return (
+            <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                Not Required
+            </span>
+        );
+    }
+
+    if (status === "generated") {
+        return (
+            <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                Generated
+            </span>
+        );
+    }
+
+    if (status === "uploaded") {
+        return (
+            <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                Uploaded
+            </span>
+        );
+    }
+
+    return (
+        <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+            Pending
+        </span>
+    );
+}
+
+// ======================================================
+// Customers
+// ======================================================
+
 function Customers() {
+
     const { bookings } = useBooking();
 
     const [search, setSearch] = useState("");
 
-    // ======================================================
+    // ==================================================
     // Customer Details Modal
-    // ======================================================
+    // ==================================================
 
     const [selectedCustomer, setSelectedCustomer] =
         useState<Customer | null>(null);
@@ -30,97 +119,298 @@ function Customers() {
     const [isCustomerModalOpen, setIsCustomerModalOpen] =
         useState(false);
 
-    // ======================================================
+    // ==================================================
     // Create Unique Customers
-    // ======================================================
+    // ==================================================
 
     const customers = useMemo(() => {
-        const customerMap = new Map<string, Customer>();
+
+        const customerMap =
+            new Map<string, Customer>();
 
         bookings.forEach((booking) => {
 
-            // Mobile is used as primary customer identifier
-            const normalizedName = (booking.customerName || "")
-                .trim()
-                .toLowerCase();
+            // ------------------------------------------
+            // Customer Identifier
+            // ------------------------------------------
 
-            const normalizedMobile = (booking.mobile || "")
-                .trim();
+            const normalizedName =
+                (booking.customerName || "")
+                    .trim()
+                    .toLowerCase();
 
-            const normalizedEmail = (booking.email || "")
-                .trim()
-                .toLowerCase();
+            const normalizedMobile =
+                (booking.mobile || "").trim();
+
+            const normalizedEmail =
+                (booking.email || "")
+                    .trim()
+                    .toLowerCase();
 
             const key =
                 `${normalizedName}|${normalizedMobile}|${normalizedEmail}`;
 
-            const existing = customerMap.get(key);
+            const existing =
+                customerMap.get(key);
 
             const amount =
                 Number(booking.bookingAmount) || 0;
 
+            // ==================================================
+            // Existing Customer
+            // ==================================================
+
             if (existing) {
 
-                // Add property if not already present
+                // ------------------------------------------
+                // Add Property
+                // ------------------------------------------
+
                 if (
+                    booking.flatNumber &&
                     !existing.properties.includes(
                         booking.flatNumber
                     )
                 ) {
+
                     existing.properties.push(
                         booking.flatNumber
                     );
+
                 }
+
+                // ------------------------------------------
+                // Amount
+                // ------------------------------------------
 
                 existing.totalAmount += amount;
 
+                // ------------------------------------------
+                // Booking Count
+                // ------------------------------------------
+
                 existing.bookingCount += 1;
 
-                // Keep latest booking date
+                // ------------------------------------------
+                // Latest Booking Date
+                // ------------------------------------------
+
                 if (
                     booking.bookingDate &&
                     booking.bookingDate >
-                    existing.latestBookingDate
+                        existing.latestBookingDate
                 ) {
+
                     existing.latestBookingDate =
                         booking.bookingDate;
+
                 }
 
-            } else {
+                // ==================================================
+                // Agreement To Sell Status
+                // ==================================================
 
-                customerMap.set(key, {
-                    customerName:
-                        booking.customerName,
+                const agreementStatus =
+                    booking.documents
+                        ?.agreementToSell
+                        ?.status || "pending";
 
-                    mobile:
-                        booking.mobile,
+                if (
+                    agreementStatus === "pending"
+                ) {
 
-                    email:
-                        booking.email,
+                    existing.agreementToSellStatus =
+                        "pending";
 
-                    address:
-                        booking.address,
+                } else if (
+                    agreementStatus === "given"
+                ) {
 
-                    aadhar:
-                        booking.aadhar,
+                    // Only mark Given if it was not
+                    // already found as Pending.
+                    if (
+                        existing.agreementToSellStatus !==
+                        "pending"
+                    ) {
 
-                    pan:
-                        booking.pan,
+                        existing.agreementToSellStatus =
+                            "given";
 
-                    properties: [
-                        booking.flatNumber,
-                    ],
+                    }
 
-                    totalAmount:
-                        amount,
+                } else if (
+                    agreementStatus === "uploaded"
+                ) {
 
-                    bookingCount: 1,
+                    if (
+                        existing.agreementToSellStatus !==
+                            "pending" &&
+                        existing.agreementToSellStatus !==
+                            "given"
+                    ) {
 
-                    latestBookingDate:
-                        booking.bookingDate,
-                });
+                        existing.agreementToSellStatus =
+                            "uploaded";
+
+                    }
+
+                } else if (
+                    agreementStatus === "generated"
+                ) {
+
+                    if (
+                        existing.agreementToSellStatus !==
+                            "pending" &&
+                        existing.agreementToSellStatus !==
+                            "uploaded" &&
+                        existing.agreementToSellStatus !==
+                            "given"
+                    ) {
+
+                        existing.agreementToSellStatus =
+                            "generated";
+
+                    }
+
+                }
+
+                // ==================================================
+                // Tripartite Agreement Status
+                // ==================================================
+
+                const tripartite =
+                    booking.documents
+                        ?.tripartiteAgreement;
+
+                if (
+                    tripartite?.required
+                ) {
+
+                    const tripartiteStatus =
+                        tripartite.document
+                            ?.status || "pending";
+
+                    if (
+                        tripartiteStatus !==
+                        "completed"
+                    ) {
+
+                        existing.tripartiteAgreementStatus =
+                            "pending";
+
+                    } else if (
+                        existing.tripartiteAgreementStatus !==
+                        "pending"
+                    ) {
+
+                        existing.tripartiteAgreementStatus =
+                            "completed";
+
+                    }
+
+                }
 
             }
+
+            // ==================================================
+            // New Customer
+            // ==================================================
+
+            else {
+
+                // ------------------------------------------
+                // Agreement Status
+                // ------------------------------------------
+
+                const agreementStatus =
+                    booking.documents
+                        ?.agreementToSell
+                        ?.status || "pending";
+
+                // ------------------------------------------
+                // Tripartite Status
+                // ------------------------------------------
+
+                const tripartite =
+                    booking.documents
+                        ?.tripartiteAgreement;
+
+                let tripartiteStatus:
+                    | "not-required"
+                    | "pending"
+                    | "completed" =
+                    "not-required";
+
+                if (
+                    tripartite?.required
+                ) {
+
+                    tripartiteStatus =
+                        tripartite.document
+                            ?.status === "completed"
+                            ? "completed"
+                            : "pending";
+
+                }
+
+                customerMap.set(
+                    key,
+                    {
+
+                        customerName:
+                            booking.customerName,
+
+                        mobile:
+                            booking.mobile,
+
+                        email:
+                            booking.email,
+
+                        address:
+                            booking.address,
+
+                        aadhar:
+                            booking.aadhar,
+
+                        pan:
+                            booking.pan,
+
+                        properties:
+                            booking.flatNumber
+                                ? [
+                                    booking.flatNumber,
+                                ]
+                                : [],
+
+                        totalAmount:
+                            amount,
+
+                        bookingCount:
+                            1,
+
+                        latestBookingDate:
+                            booking.bookingDate,
+
+                        agreementToSellStatus:
+                            agreementStatus ===
+                            "given"
+                                ? "given"
+                                : agreementStatus ===
+                                  "uploaded"
+                                ? "uploaded"
+                                : agreementStatus ===
+                                  "generated"
+                                ? "generated"
+                                : "pending",
+
+                        tripartiteAgreementStatus:
+                            tripartiteStatus,
+
+                    }
+                );
+
+            }
+
         });
 
         return Array.from(
@@ -159,14 +449,21 @@ function Customers() {
                             .includes(searchText)
                 )
             );
+
         });
 
     // ======================================================
     // Format Amount
     // ======================================================
 
-    const formatAmount = (amount: number) => {
-        return amount.toLocaleString("en-IN");
+    const formatAmount = (
+        amount: number
+    ) => {
+
+        return amount.toLocaleString(
+            "en-IN"
+        );
+
     };
 
     // ======================================================
@@ -177,9 +474,14 @@ function Customers() {
         customer: Customer
     ) => {
 
-        setSelectedCustomer(customer);
+        setSelectedCustomer(
+            customer
+        );
 
-        setIsCustomerModalOpen(true);
+        setIsCustomerModalOpen(
+            true
+        );
+
     };
 
     // ======================================================
@@ -188,12 +490,22 @@ function Customers() {
 
     const handleCloseCustomerModal = () => {
 
-        setIsCustomerModalOpen(false);
+        setIsCustomerModalOpen(
+            false
+        );
 
-        setSelectedCustomer(null);
+        setSelectedCustomer(
+            null
+        );
+
     };
 
+    // ======================================================
+    // Return
+    // ======================================================
+
     return (
+
         <div className="space-y-6">
 
             {/* ==================================================
@@ -223,7 +535,9 @@ function Customers() {
                         placeholder="Search Customer..."
                         value={search}
                         onChange={(e) =>
-                            setSearch(e.target.value)
+                            setSearch(
+                                e.target.value
+                            )
                         }
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none focus:border-green-500 md:w-72"
                     />
@@ -358,6 +672,22 @@ function Customers() {
                                     Last Booking
                                 </th>
 
+                                {/* ==================================================
+                                    NEW - Agreement To Sell
+                                ================================================== */}
+
+                                <th className="border p-3 text-left">
+                                    Agreement to Sell
+                                </th>
+
+                                {/* ==================================================
+                                    NEW - Tripartite Agreement
+                                ================================================== */}
+
+                                <th className="border p-3 text-left">
+                                    Tripartite Agreement
+                                </th>
+
                             </tr>
 
                         </thead>
@@ -369,7 +699,7 @@ function Customers() {
                                 <tr>
 
                                     <td
-                                        colSpan={7}
+                                        colSpan={9}
                                         className="p-10 text-center text-gray-500"
                                     >
                                         No Customers Found
@@ -396,7 +726,9 @@ function Customers() {
 
                                             <td className="border p-3 font-semibold text-gray-800">
 
-                                                {customer.customerName}
+                                                {
+                                                    customer.customerName
+                                                }
 
                                             </td>
 
@@ -404,7 +736,10 @@ function Customers() {
 
                                             <td className="border p-3">
 
-                                                {customer.mobile || "-"}
+                                                {
+                                                    customer.mobile ||
+                                                    "-"
+                                                }
 
                                             </td>
 
@@ -412,7 +747,10 @@ function Customers() {
 
                                             <td className="border p-3">
 
-                                                {customer.email || "-"}
+                                                {
+                                                    customer.email ||
+                                                    "-"
+                                                }
 
                                             </td>
 
@@ -423,13 +761,19 @@ function Customers() {
                                                 <div className="flex flex-wrap gap-2">
 
                                                     {customer.properties.map(
-                                                        (property) => (
+                                                        (
+                                                            property
+                                                        ) => (
 
                                                             <span
-                                                                key={property}
+                                                                key={
+                                                                    property
+                                                                }
                                                                 className="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700"
                                                             >
-                                                                {property}
+                                                                {
+                                                                    property
+                                                                }
                                                             </span>
 
                                                         )
@@ -445,7 +789,9 @@ function Customers() {
 
                                                 <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
 
-                                                    {customer.bookingCount}
+                                                    {
+                                                        customer.bookingCount
+                                                    }
 
                                                 </span>
 
@@ -457,9 +803,11 @@ function Customers() {
 
                                                 ₹{" "}
 
-                                                {formatAmount(
-                                                    customer.totalAmount
-                                                )}
+                                                {
+                                                    formatAmount(
+                                                        customer.totalAmount
+                                                    )
+                                                }
 
                                             </td>
 
@@ -467,8 +815,38 @@ function Customers() {
 
                                             <td className="border p-3">
 
-                                                {customer.latestBookingDate ||
-                                                    "-"}
+                                                {
+                                                    customer.latestBookingDate ||
+                                                    "-"
+                                                }
+
+                                            </td>
+
+                                            {/* ==================================================
+                                                Agreement To Sell
+                                            ================================================== */}
+
+                                            <td className="border p-3">
+
+                                                <DocumentStatusBadge
+                                                    status={
+                                                        customer.agreementToSellStatus
+                                                    }
+                                                />
+
+                                            </td>
+
+                                            {/* ==================================================
+                                                Tripartite Agreement
+                                            ================================================== */}
+
+                                            <td className="border p-3">
+
+                                                <DocumentStatusBadge
+                                                    status={
+                                                        customer.tripartiteAgreementStatus
+                                                    }
+                                                />
 
                                             </td>
 
@@ -492,7 +870,9 @@ function Customers() {
             ================================================== */}
 
             <CustomerDetailsModal
-                isOpen={isCustomerModalOpen}
+                isOpen={
+                    isCustomerModalOpen
+                }
                 onClose={
                     handleCloseCustomerModal
                 }
@@ -505,7 +885,9 @@ function Customers() {
             />
 
         </div>
+
     );
+
 }
 
 export default Customers;

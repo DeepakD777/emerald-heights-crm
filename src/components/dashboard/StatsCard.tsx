@@ -17,7 +17,7 @@ interface StatsCardProps {
   title: string;
 
   // बड़ी Value
- value: string | number;
+  value: string | number;
 
   // छोटा Description
   subtitle: string;
