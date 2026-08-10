@@ -14,6 +14,19 @@ interface NavbarProps {
     onMenuClick?: () => void;
 }
 
+interface NotificationItem {
+    id: string;
+    bookingId: string;
+    customerName: string;
+    flatNumber: string;
+    type:
+    | "requisition"
+    | "agreement"
+    | "tripartite";
+    title: string;
+    status: string;
+}
+
 function Navbar({
     onMenuClick,
 }: NavbarProps) {
@@ -28,26 +41,145 @@ function Navbar({
     ] = useState(false);
 
     // ======================================================
-    // Pending Agreement To Sell
-    // ======================================================
-    // Agreement is considered pending until it is
-    // explicitly marked as "given".
+    // Build Notifications
     // ======================================================
 
-    const pendingAgreementBookings =
-        bookings.filter((booking) => {
+    const notifications: NotificationItem[] = [];
 
-            const status =
-                booking.documents
-                    ?.agreementToSell
-                    ?.status;
+    bookings.forEach((booking) => {
 
-            return status !== "given";
+        // ==================================================
+        // Requisition Letter
+        // ==================================================
 
-        });
+        const requisitionStatus =
+            booking.documents
+                ?.requisitionLetter
+                ?.status ?? "pending";
+
+        if (
+            requisitionStatus !== "given" &&
+            requisitionStatus !== "completed"
+        ) {
+
+            notifications.push({
+
+                id: `${booking.id}-requisition`,
+
+                bookingId: booking.id,
+
+                customerName:
+                    booking.customerName,
+
+                flatNumber:
+                    booking.flatNumber,
+
+                type: "requisition",
+
+                title:
+                    "Requisition Letter Pending",
+
+                status:
+                    requisitionStatus,
+
+            });
+
+        }
+
+        // ==================================================
+        // Agreement To Sell
+        // ==================================================
+
+        const agreementStatus =
+            booking.documents
+                ?.agreementToSell
+                ?.status ?? "pending";
+
+        if (
+            agreementStatus !== "given" &&
+            agreementStatus !== "completed"
+        ) {
+
+            notifications.push({
+
+                id: `${booking.id}-agreement`,
+
+                bookingId: booking.id,
+
+                customerName:
+                    booking.customerName,
+
+                flatNumber:
+                    booking.flatNumber,
+
+                type: "agreement",
+
+                title:
+                    "Agreement to Sell Pending",
+
+                status:
+                    agreementStatus,
+
+            });
+
+        }
+
+        // ==================================================
+        // Tripartite Agreement
+        // ==================================================
+
+        const tripartite =
+            booking.documents?.tripartiteAgreement;
+
+        const tripartiteRequired =
+            tripartite?.required === true;
+
+        const tripartiteStatus =
+            tripartite?.document?.status ?? "pending";
+
+        // Tripartite notification tabhi aayegi
+        // jab agreement Required ho aur Completed na ho.
+
+        if (
+            tripartiteRequired &&
+            tripartiteStatus !== "completed"
+        ) {
+
+            notifications.push({
+
+                id:
+                    `${booking.id}-tripartite`,
+
+                bookingId:
+                    booking.id,
+
+                customerName:
+                    booking.customerName,
+
+                flatNumber:
+                    booking.flatNumber,
+
+                type:
+                    "tripartite",
+
+                title:
+                    "Tripartite Agreement Pending",
+
+                status:
+                    tripartiteStatus,
+
+            });
+
+        }
+
+    });
+
+    // ======================================================
+    // Notification Count
+    // ======================================================
 
     const notificationCount =
-        pendingAgreementBookings.length;
+        notifications.length;
 
     // ======================================================
     // View Booking
@@ -57,30 +189,83 @@ function Navbar({
         bookingId: string
     ) => {
 
-        console.log(
-            "Opening booking:",
-            bookingId
-        );
+        setIsNotificationsOpen(false);
 
-        setIsNotificationsOpen(
-            false
+        navigate(
+            `/bookings?bookingId=${bookingId}`
         );
-
-        navigate("/bookings");
 
     };
 
     // ======================================================
-    // Toggle Notifications
+    // Notification Icon
     // ======================================================
 
-    const handleNotificationClick = () => {
+    const getNotificationIcon =
+        (type: NotificationItem["type"]) => {
 
-        setIsNotificationsOpen(
-            (previous) => !previous
-        );
+            switch (type) {
 
-    };
+                case "requisition":
+                    return (
+                        <AlertTriangle
+                            size={20}
+                            className="text-orange-600"
+                        />
+                    );
+
+                case "agreement":
+                    return (
+                        <AlertTriangle
+                            size={20}
+                            className="text-yellow-600"
+                        />
+                    );
+
+                case "tripartite":
+                    return (
+                        <AlertTriangle
+                            size={20}
+                            className="text-blue-600"
+                        />
+                    );
+
+                default:
+                    return (
+                        <AlertTriangle
+                            size={20}
+                            className="text-yellow-600"
+                        />
+                    );
+
+            }
+
+        };
+
+    // ======================================================
+    // Notification Background
+    // ======================================================
+
+    const getNotificationBackground =
+        (type: NotificationItem["type"]) => {
+
+            switch (type) {
+
+                case "requisition":
+                    return "bg-orange-100";
+
+                case "agreement":
+                    return "bg-yellow-100";
+
+                case "tripartite":
+                    return "bg-blue-100";
+
+                default:
+                    return "bg-yellow-100";
+
+            }
+
+        };
 
     // ======================================================
     // Component
@@ -215,8 +400,11 @@ function Navbar({
 
                     <button
                         type="button"
-                        onClick={
-                            handleNotificationClick
+                        onClick={() =>
+                            setIsNotificationsOpen(
+                                (previous) =>
+                                    !previous
+                            )
                         }
                         className="
                             relative
@@ -391,7 +579,7 @@ function Navbar({
                                             text-gray-500
                                         "
                                     >
-                                        No pending Agreement to Sell.
+                                        No pending documents.
                                     </p>
 
                                 </div>
@@ -399,7 +587,7 @@ function Navbar({
                             ) : (
 
                                 /* ==================================================
-                                    PENDING AGREEMENTS
+                                    PENDING DOCUMENTS
                                 ================================================== */
 
                                 <div
@@ -409,170 +597,163 @@ function Navbar({
                                     "
                                 >
 
-                                    {pendingAgreementBookings.map(
-                                        (booking) => {
+                                    {notifications.map(
+                                        (notification) => (
 
-                                            const agreementStatus =
-                                                booking
-                                                    .documents
-                                                    ?.agreementToSell
-                                                    ?.status ||
-                                                "pending";
-
-                                            return (
+                                            <div
+                                                key={
+                                                    notification.id
+                                                }
+                                                className="
+                                                    border-b
+                                                    border-gray-100
+                                                    last:border-b-0
+                                                "
+                                            >
 
                                                 <div
-                                                    key={
-                                                        booking.id
-                                                    }
                                                     className="
-                                                        border-b
-                                                        border-gray-100
-                                                        last:border-b-0
+                                                        flex
+                                                        gap-3
+                                                        px-4
+                                                        py-4
                                                     "
                                                 >
 
+                                                    {/* Icon */}
+
+                                                    <div
+                                                        className={`
+                                                            flex
+                                                            h-10
+                                                            w-10
+                                                            shrink-0
+                                                            items-center
+                                                            justify-center
+                                                            rounded-full
+                                                            ${getNotificationBackground(
+                                                            notification.type
+                                                        )}
+                                                        `}
+                                                    >
+
+                                                        {getNotificationIcon(
+                                                            notification.type
+                                                        )}
+
+                                                    </div>
+
+                                                    {/* Content */}
+
                                                     <div
                                                         className="
-                                                            flex
-                                                            gap-3
-                                                            px-4
-                                                            py-4
+                                                            min-w-0
+                                                            flex-1
                                                         "
                                                     >
 
-                                                        {/* Warning Icon */}
-
-                                                        <div
+                                                        <p
                                                             className="
-                                                                flex
-                                                                h-10
-                                                                w-10
-                                                                shrink-0
-                                                                items-center
-                                                                justify-center
-                                                                rounded-full
-                                                                bg-yellow-100
+                                                                font-semibold
+                                                                text-gray-800
                                                             "
                                                         >
+                                                            {
+                                                                notification.title
+                                                            }
+                                                        </p>
 
-                                                            <AlertTriangle
-                                                                size={20}
+                                                        <p
+                                                            className="
+                                                                mt-1
+                                                                text-sm
+                                                                text-gray-600
+                                                            "
+                                                        >
+                                                            Customer:{" "}
+
+                                                            <span
                                                                 className="
-                                                                    text-yellow-600
+                                                                    font-medium
                                                                 "
-                                                            />
+                                                            >
+                                                                {
+                                                                    notification.customerName
+                                                                }
+                                                            </span>
+                                                        </p>
 
-                                                        </div>
-
-                                                        {/* Content */}
-
-                                                        <div
+                                                        <p
                                                             className="
-                                                                min-w-0
-                                                                flex-1
+                                                                text-sm
+                                                                text-gray-600
                                                             "
                                                         >
+                                                            Flat:{" "}
 
-                                                            <p
+                                                            <span
+                                                                className="
+                                                                    font-medium
+                                                                "
+                                                            >
+                                                                {
+                                                                    notification.flatNumber
+                                                                }
+                                                            </span>
+                                                        </p>
+
+                                                        <p
+                                                            className="
+                                                                mt-1
+                                                                text-xs
+                                                                text-gray-500
+                                                            "
+                                                        >
+                                                            Status:{" "}
+
+                                                            <span
                                                                 className="
                                                                     font-semibold
-                                                                    text-gray-800
+                                                                    capitalize
                                                                 "
                                                             >
-                                                                Agreement to Sell Pending
-                                                            </p>
-
-                                                            <p
-                                                                className="
-                                                                    mt-1
-                                                                    text-sm
-                                                                    text-gray-600
-                                                                "
-                                                            >
-                                                                Customer:{" "}
-                                                                <span
-                                                                    className="
-                                                                        font-medium
-                                                                    "
-                                                                >
-                                                                    {
-                                                                        booking.customerName
-                                                                    }
-                                                                </span>
-                                                            </p>
-
-                                                            <p
-                                                                className="
-                                                                    text-sm
-                                                                    text-gray-600
-                                                                "
-                                                            >
-                                                                Flat:{" "}
-                                                                <span
-                                                                    className="
-                                                                        font-medium
-                                                                    "
-                                                                >
-                                                                    {
-                                                                        booking.flatNumber
-                                                                    }
-                                                                </span>
-                                                            </p>
-
-                                                            <p
-                                                                className="
-                                                                    mt-1
-                                                                    text-xs
-                                                                    text-yellow-700
-                                                                "
-                                                            >
-                                                                Status:{" "}
-                                                                <span
-                                                                    className="
-                                                                        font-semibold
-                                                                        capitalize
-                                                                    "
-                                                                >
-                                                                    {
-                                                                        agreementStatus
-                                                                    }
-                                                                </span>
-                                                            </p>
-
-                                                            {/* View Booking */}
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    handleViewBooking(
-                                                                        booking.id
-                                                                    )
+                                                                {
+                                                                    notification.status
                                                                 }
-                                                                className="
-                                                                    mt-3
-                                                                    rounded-lg
-                                                                    bg-green-600
-                                                                    px-3
-                                                                    py-1.5
-                                                                    text-xs
-                                                                    font-medium
-                                                                    text-white
-                                                                    hover:bg-green-700
-                                                                "
-                                                            >
-                                                                View Booking
-                                                            </button>
+                                                            </span>
+                                                        </p>
 
-                                                        </div>
+                                                        {/* View Booking */}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleViewBooking(
+                                                                    notification.bookingId
+                                                                )
+                                                            }
+                                                            className="
+                                                                mt-3
+                                                                rounded-lg
+                                                                bg-green-600
+                                                                px-3
+                                                                py-1.5
+                                                                text-xs
+                                                                font-medium
+                                                                text-white
+                                                                hover:bg-green-700
+                                                            "
+                                                        >
+                                                            View Booking
+                                                        </button>
 
                                                     </div>
 
                                                 </div>
 
-                                            );
+                                            </div>
 
-                                        }
+                                        )
                                     )}
 
                                 </div>
@@ -640,7 +821,6 @@ function Navbar({
             </div>
 
         </header>
-
     );
 }
 

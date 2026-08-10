@@ -1,10 +1,17 @@
 import { useMemo, useState } from "react";
+
 import { useFlat } from "../../context/FlatContext";
 import { useBooking } from "../../context/BookingContext";
+
 import { residentialFlats } from "../../data/floorData";
+
 import FlatModal from "./FlatModal";
 
 type Tower = "A" | "B" | "C";
+
+// ======================================================
+// Status Color
+// ======================================================
 
 function getColor(status: string) {
     switch (status) {
@@ -22,6 +29,10 @@ function getColor(status: string) {
     }
 }
 
+// ======================================================
+// Tower Name
+// ======================================================
+
 function getTowerName(tower: Tower) {
     switch (tower) {
         case "A":
@@ -38,7 +49,12 @@ function getTowerName(tower: Tower) {
     }
 }
 
+// ======================================================
+// Floor Map
+// ======================================================
+
 function FloorMap() {
+
     const [selectedTower, setSelectedTower] =
         useState<Tower>("A");
 
@@ -61,11 +77,12 @@ function FloorMap() {
         updateFlatStatus,
     } = useFlat();
 
-    // ======================================================
+    // ==================================================
     // Actual Flat Status
-    // ======================================================
+    // ==================================================
 
     const getFlatStatus = (flat: any) => {
+
         const booking = bookings.find(
             (booking: any) =>
                 booking.flatNumber === flat.number
@@ -75,10 +92,11 @@ function FloorMap() {
             return "booked";
         }
 
-        const savedStatus = flatStatuses.find(
-            (item) =>
-                item.number === flat.number
-        );
+        const savedStatus =
+            flatStatuses.find(
+                (item) =>
+                    item.number === flat.number
+            );
 
         if (savedStatus) {
             return savedStatus.status;
@@ -87,42 +105,48 @@ function FloorMap() {
         return flat.status;
     };
 
-    // ======================================================
+    // ==================================================
     // Selected Floor Flats
-    // ======================================================
+    // ==================================================
 
     const floorFlats = useMemo(() => {
+
         return residentialFlats.filter(
             (flat) =>
                 flat.tower === selectedTower &&
                 flat.floor === selectedFloor
         );
+
     }, [selectedTower, selectedFloor]);
 
-    // ======================================================
+    // ==================================================
     // Floor Statistics
-    // ======================================================
+    // ==================================================
 
-    const availableCount = floorFlats.filter(
-        (flat) =>
-            getFlatStatus(flat) === "available"
-    ).length;
+    const availableCount =
+        floorFlats.filter(
+            (flat) =>
+                getFlatStatus(flat) === "available"
+        ).length;
 
-    const bookedCount = floorFlats.filter(
-        (flat) =>
-            getFlatStatus(flat) === "booked"
-    ).length;
+    const bookedCount =
+        floorFlats.filter(
+            (flat) =>
+                getFlatStatus(flat) === "booked"
+        ).length;
 
-    const holdCount = floorFlats.filter(
-        (flat) =>
-            getFlatStatus(flat) === "hold"
-    ).length;
+    const holdCount =
+        floorFlats.filter(
+            (flat) =>
+                getFlatStatus(flat) === "hold"
+        ).length;
 
-    // ======================================================
+    // ==================================================
     // Open Flat
-    // ======================================================
+    // ==================================================
 
     const openFlat = (flat: any) => {
+
         setSelectedFlat({
             ...flat,
             status: getFlatStatus(flat),
@@ -131,11 +155,14 @@ function FloorMap() {
         setIsOpen(true);
     };
 
-    // ======================================================
+    // ==================================================
     // Save Flat
-    // ======================================================
+    // ==================================================
 
-    const handleSaveFlat = (updatedFlat: any) => {
+    const handleSaveFlat = (
+        updatedFlat: any
+    ) => {
+
         updateFlatStatus(
             updatedFlat.number,
             updatedFlat.status
@@ -148,11 +175,14 @@ function FloorMap() {
         setIsOpen(false);
     };
 
-    // ======================================================
+    // ==================================================
     // Booking
-    // ======================================================
+    // ==================================================
 
-    const handleBooking = (bookingData: any) => {
+    const handleBooking = (
+        bookingData: any
+    ) => {
+
         addBooking(bookingData);
 
         updateFlatStatus(
@@ -160,21 +190,98 @@ function FloorMap() {
             "booked"
         );
 
-        setSelectedFlat((prev: any) => {
-            if (!prev) {
-                return prev;
-            }
+        setSelectedFlat(
+            (prev: any) => {
 
-            return {
-                ...prev,
-                status: "booked",
-            };
-        });
+                if (!prev) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    status: "booked",
+                };
+            }
+        );
 
         setIsOpen(false);
     };
 
+    // ==================================================
+    // Split Flats Into Two Rows
+    // ==================================================
+
+    const firstRow =
+        floorFlats.slice(
+            0,
+            Math.ceil(
+                floorFlats.length / 2
+            )
+        );
+
+    const secondRow =
+        floorFlats.slice(
+            Math.ceil(
+                floorFlats.length / 2
+            )
+        );
+
+    // ==================================================
+    // Flat Box
+    // ==================================================
+
+    const renderFlat = (
+        flat: any
+    ) => {
+
+        const status =
+            getFlatStatus(flat);
+
+        return (
+            <button
+                key={flat.id}
+                type="button"
+                onClick={() =>
+                    openFlat(flat)
+                }
+                className={`
+                    h-[125px]
+                    w-full
+                    min-w-[150px]
+                    rounded-xl
+                    border-2
+                    p-3
+                    text-center
+                    transition-all
+                    duration-200
+                    hover:-translate-y-1
+                    hover:shadow-lg
+                    ${getColor(status)}
+                `}
+            >
+
+                <p className="text-base font-bold">
+                    {flat.number}
+                </p>
+
+                <p className="mt-2 text-xs">
+                    {flat.area}
+                </p>
+
+                <p className="mt-1 text-xs">
+                    {flat.type}
+                </p>
+
+                <p className="mt-2 text-xs font-bold uppercase">
+                    {status}
+                </p>
+
+            </button>
+        );
+    };
+
     return (
+
         <div className="rounded-2xl bg-white p-6 shadow">
 
             {/* ==================================================
@@ -188,8 +295,9 @@ function FloorMap() {
                 </h2>
 
                 <p className="mt-1 text-gray-500">
-                    {getTowerName(selectedTower)}{" "}
-                    - Tower {selectedTower}
+                    {getTowerName(selectedTower)}
+                    {" - Tower "}
+                    {selectedTower}
                     {" • "}
                     Floor {selectedFloor}
                 </p>
@@ -208,20 +316,38 @@ function FloorMap() {
 
                 <div className="flex flex-wrap gap-3">
 
-                    {(["A", "B", "C"] as Tower[]).map(
+                    {(
+                        ["A", "B", "C"] as Tower[]
+                    ).map(
                         (tower) => (
 
                             <button
                                 key={tower}
+                                type="button"
                                 onClick={() => {
-                                    setSelectedTower(tower);
-                                    setSelectedFloor(1);
+
+                                    setSelectedTower(
+                                        tower
+                                    );
+
+                                    setSelectedFloor(
+                                        1
+                                    );
                                 }}
-                                className={`rounded-lg px-5 py-2 font-medium transition ${
-                                    selectedTower === tower
-                                        ? "bg-green-600 text-white"
-                                        : "border bg-white text-gray-700 hover:bg-gray-100"
-                                }`}
+                                className={`
+                                    rounded-lg
+                                    px-5
+                                    py-2
+                                    font-medium
+                                    transition
+
+                                    ${
+                                        selectedTower ===
+                                        tower
+                                            ? "bg-green-600 text-white"
+                                            : "border bg-white text-gray-700 hover:bg-gray-100"
+                                    }
+                                `}
                             >
                                 Tower {tower} -{" "}
                                 {getTowerName(tower)}
@@ -248,24 +374,40 @@ function FloorMap() {
 
                     {Array.from(
                         { length: 10 },
-                        (_, index) => index + 1
-                    ).map((floor) => (
+                        (_, index) =>
+                            index + 1
+                    ).map(
+                        (floor) => (
 
-                        <button
-                            key={floor}
-                            onClick={() =>
-                                setSelectedFloor(floor)
-                            }
-                            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                selectedFloor === floor
-                                    ? "bg-blue-600 text-white"
-                                    : "border bg-white text-gray-700 hover:bg-gray-100"
-                            }`}
-                        >
-                            Floor {floor}
-                        </button>
+                            <button
+                                key={floor}
+                                type="button"
+                                onClick={() =>
+                                    setSelectedFloor(
+                                        floor
+                                    )
+                                }
+                                className={`
+                                    rounded-lg
+                                    px-4
+                                    py-2
+                                    text-sm
+                                    font-medium
+                                    transition
 
-                    ))}
+                                    ${
+                                        selectedFloor ===
+                                        floor
+                                            ? "bg-blue-600 text-white"
+                                            : "border bg-white text-gray-700 hover:bg-gray-100"
+                                    }
+                                `}
+                            >
+                                Floor {floor}
+                            </button>
+
+                        )
+                    )}
 
                 </div>
 
@@ -278,6 +420,7 @@ function FloorMap() {
             <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
 
                 <div className="rounded-xl bg-gray-50 p-4">
+
                     <p className="text-sm text-gray-500">
                         Total Flats
                     </p>
@@ -285,9 +428,11 @@ function FloorMap() {
                     <p className="mt-1 text-2xl font-bold text-gray-800">
                         {floorFlats.length}
                     </p>
+
                 </div>
 
                 <div className="rounded-xl bg-green-50 p-4">
+
                     <p className="text-sm text-green-600">
                         Available
                     </p>
@@ -295,9 +440,11 @@ function FloorMap() {
                     <p className="mt-1 text-2xl font-bold text-green-700">
                         {availableCount}
                     </p>
+
                 </div>
 
                 <div className="rounded-xl bg-red-50 p-4">
+
                     <p className="text-sm text-red-600">
                         Booked
                     </p>
@@ -305,9 +452,11 @@ function FloorMap() {
                     <p className="mt-1 text-2xl font-bold text-red-700">
                         {bookedCount}
                     </p>
+
                 </div>
 
                 <div className="rounded-xl bg-yellow-50 p-4">
+
                     <p className="text-sm text-yellow-600">
                         Hold
                     </p>
@@ -315,17 +464,20 @@ function FloorMap() {
                     <p className="mt-1 text-2xl font-bold text-yellow-700">
                         {holdCount}
                     </p>
+
                 </div>
 
             </div>
 
             {/* ==================================================
-                Floor Layout
+                FLOOR MAP
             ================================================== */}
 
-            <div className="rounded-2xl border bg-gray-50 p-5">
+            <div className="overflow-x-auto rounded-2xl border bg-gray-50 p-5">
 
-                <div className="mb-5 text-center">
+                {/* Map Header */}
+
+                <div className="mb-6 text-center">
 
                     <h3 className="text-lg font-bold text-gray-800">
                         Tower {selectedTower} -{" "}
@@ -338,53 +490,43 @@ function FloorMap() {
 
                 </div>
 
-                {/* Flats Grid */}
+                {/* ==================================================
+                    Actual Floor Layout
+                ================================================== */}
 
-                <div
-                    className={`grid gap-3 ${
-                        floorFlats.length >= 12
-                            ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"
-                            : floorFlats.length >= 10
-                                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-5"
-                                : "grid-cols-2 sm:grid-cols-4"
-                    }`}
-                >
+                <div className="mx-auto min-w-[850px] max-w-[1100px]">
 
-                    {floorFlats.map((flat) => {
+                    {/* Top Row */}
 
-                        const status =
-                            getFlatStatus(flat);
+                    <div className="grid grid-cols-5 gap-4">
 
-                        return (
-                            <button
-                                key={flat.id}
-                                onClick={() =>
-                                    openFlat(flat)
-                                }
-                                className={`min-h-[110px] rounded-xl border-2 p-4 text-center transition hover:scale-[1.03] hover:shadow-md ${getColor(
-                                    status
-                                )}`}
-                            >
+                        {firstRow.map(
+                            renderFlat
+                        )}
 
-                                <p className="text-lg font-bold">
-                                    {flat.number}
-                                </p>
+                    </div>
 
-                                <p className="mt-1 text-xs">
-                                    {flat.area}
-                                </p>
+                    {/* ==================================================
+                        Corridor
+                    ================================================== */}
 
-                                <p className="mt-1 text-xs">
-                                    {flat.type}
-                                </p>
+                    <div className="my-4 flex h-12 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white">
 
-                                <p className="mt-2 text-xs font-semibold uppercase">
-                                    {status}
-                                </p>
+                        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-400">
+                            Common Passage
+                        </span>
 
-                            </button>
-                        );
-                    })}
+                    </div>
+
+                    {/* Bottom Row */}
+
+                    <div className="grid grid-cols-5 gap-4">
+
+                        {secondRow.map(
+                            renderFlat
+                        )}
+
+                    </div>
 
                 </div>
 

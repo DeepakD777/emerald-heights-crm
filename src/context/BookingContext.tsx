@@ -8,10 +8,11 @@ import {
 import type { ReactNode } from "react";
 
 // ======================================================
-// Agreement Document
+// Agreement / Document
 // ======================================================
 
 interface AgreementDocument {
+
     status:
         | "pending"
         | "generated"
@@ -26,6 +27,7 @@ interface AgreementDocument {
     uploadedAt?: string;
     givenAt?: string;
     completedAt?: string;
+
 }
 
 // ======================================================
@@ -34,11 +36,28 @@ interface AgreementDocument {
 
 interface BookingDocuments {
 
+    // ----------------------------------------------
+    // Requisition Letter
+    // ----------------------------------------------
+
+    requisitionLetter: AgreementDocument;
+
+    // ----------------------------------------------
+    // Agreement to Sell
+    // ----------------------------------------------
+
     agreementToSell: AgreementDocument;
 
+    // ----------------------------------------------
+    // Tripartite Agreement
+    // ----------------------------------------------
+
     tripartiteAgreement: {
+
         required: boolean;
+
         document: AgreementDocument;
+
     };
 
 }
@@ -76,6 +95,7 @@ interface Booking {
     // ==================================================
 
     documents: BookingDocuments;
+
 }
 
 // ======================================================
@@ -97,6 +117,7 @@ interface BookingContextType {
     deleteBooking: (
         id: string
     ) => void;
+
 }
 
 // ======================================================
@@ -105,6 +126,16 @@ interface BookingContextType {
 
 const createDefaultDocuments =
     (): BookingDocuments => ({
+
+        // ----------------------------------------------
+        // Requisition Letter
+        // ----------------------------------------------
+
+        requisitionLetter: {
+
+            status: "pending",
+
+        },
 
         // ----------------------------------------------
         // Agreement to Sell
@@ -185,9 +216,47 @@ export function BookingProvider({
 
                         ...booking,
 
-                        documents:
-                            booking.documents ??
-                            createDefaultDocuments(),
+                        documents: {
+
+                            // ----------------------------------
+                            // Requisition Letter
+                            // ----------------------------------
+
+                            requisitionLetter:
+                                booking.documents
+                                    ?.requisitionLetter ??
+                                {
+                                    status: "pending",
+                                },
+
+                            // ----------------------------------
+                            // Agreement To Sell
+                            // ----------------------------------
+
+                            agreementToSell:
+                                booking.documents
+                                    ?.agreementToSell ??
+                                {
+                                    status: "pending",
+                                },
+
+                            // ----------------------------------
+                            // Tripartite Agreement
+                            // ----------------------------------
+
+                            tripartiteAgreement:
+                                booking.documents
+                                    ?.tripartiteAgreement ??
+                                {
+                                    required: false,
+
+                                    document: {
+                                        status: "pending",
+                                    },
+
+                                },
+
+                        },
 
                     })
                 );
@@ -247,6 +316,7 @@ export function BookingProvider({
                         booking.id ===
                         updatedBooking.id
                             ? {
+
                                 ...updatedBooking,
 
                                 documents:
@@ -254,6 +324,7 @@ export function BookingProvider({
                                         .documents ??
                                     booking.documents ??
                                     createDefaultDocuments(),
+
                             }
                             : booking
                 )

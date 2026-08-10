@@ -15,14 +15,26 @@ function BookingDetailsModal({
   booking,
   onUpdate,
 }: BookingDetailsModalProps) {
-  const agreementInputRef = useRef<HTMLInputElement>(null);
-  const tripartiteInputRef = useRef<HTMLInputElement>(null);
+
+  const requisitionInputRef =
+    useRef<HTMLInputElement>(null);
+
+  const agreementInputRef =
+    useRef<HTMLInputElement>(null);
+
+  const tripartiteInputRef =
+    useRef<HTMLInputElement>(null);
 
   if (!booking) return null;
 
   // ======================================================
   // Document Data
   // ======================================================
+
+  const requisition =
+    booking.documents?.requisitionLetter ?? {
+      status: "pending",
+    };
 
   const agreement =
     booking.documents?.agreementToSell ?? {
@@ -42,7 +54,9 @@ function BookingDetailsModal({
   // ======================================================
 
   const getStatusBadge = (status: string) => {
+
     switch (status) {
+
       case "given":
       case "completed":
         return "bg-green-100 text-green-700";
@@ -59,10 +73,6 @@ function BookingDetailsModal({
   };
 
   // ======================================================
-  // Upload Agreement To Sell
-  // ======================================================
-
-  // ======================================================
   // Generate Agreement To Sell
   // ======================================================
 
@@ -70,10 +80,16 @@ function BookingDetailsModal({
     generateAgreement(booking);
   };
 
-  const handleAgreementUpload = (
+  // ======================================================
+  // Upload Requisition Letter
+  // ======================================================
+
+  const handleRequisitionUpload = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+
+    const file =
+      event.target.files?.[0];
 
     if (!file) return;
 
@@ -84,40 +100,69 @@ function BookingDetailsModal({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Please upload PDF, JPG or PNG file only.");
+
+      alert(
+        "Please upload PDF, JPG or PNG file only."
+      );
+
       event.target.value = "";
+
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize =
+      10 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      alert("File size must be less than 10 MB.");
+
+      alert(
+        "File size must be less than 10 MB."
+      );
+
       event.target.value = "";
+
       return;
     }
 
-    const reader = new FileReader();
+    const reader =
+      new FileReader();
 
     reader.onload = () => {
-      const fileUrl = reader.result as string;
+
+      const fileUrl =
+        reader.result as string;
 
       const updatedBooking = {
+
         ...booking,
 
         documents: {
+
           ...booking.documents,
 
-          agreementToSell: {
-            ...agreement,
+          requisitionLetter: {
+
+            ...requisition,
+
             status: "uploaded",
+
             fileName: file.name,
+
             fileUrl,
-            uploadedAt: new Date().toISOString(),
+
+            uploadedAt:
+              new Date().toISOString(),
+
           },
 
-          tripartiteAgreement: tripartite,
+          agreementToSell:
+            agreement,
+
+          tripartiteAgreement:
+            tripartite,
+
         },
+
       };
 
       onUpdate(updatedBooking);
@@ -126,7 +171,113 @@ function BookingDetailsModal({
     };
 
     reader.onerror = () => {
-      alert("Unable to read the selected file.");
+
+      alert(
+        "Unable to read the selected file."
+      );
+
+      event.target.value = "";
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  // ======================================================
+  // Upload Agreement To Sell
+  // ======================================================
+
+  const handleAgreementUpload = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+
+      alert(
+        "Please upload PDF, JPG or PNG file only."
+      );
+
+      event.target.value = "";
+
+      return;
+    }
+
+    const maxSize =
+      10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+
+      alert(
+        "File size must be less than 10 MB."
+      );
+
+      event.target.value = "";
+
+      return;
+    }
+
+    const reader =
+      new FileReader();
+
+    reader.onload = () => {
+
+      const fileUrl =
+        reader.result as string;
+
+      const updatedBooking = {
+
+        ...booking,
+
+        documents: {
+
+          ...booking.documents,
+
+          requisitionLetter:
+            requisition,
+
+          agreementToSell: {
+
+            ...agreement,
+
+            status: "uploaded",
+
+            fileName: file.name,
+
+            fileUrl,
+
+            uploadedAt:
+              new Date().toISOString(),
+
+          },
+
+          tripartiteAgreement:
+            tripartite,
+
+        },
+
+      };
+
+      onUpdate(updatedBooking);
+
+      event.target.value = "";
+    };
+
+    reader.onerror = () => {
+
+      alert(
+        "Unable to read the selected file."
+      );
+
       event.target.value = "";
     };
 
@@ -140,7 +291,9 @@ function BookingDetailsModal({
   const handleTripartiteUpload = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+
+    const file =
+      event.target.files?.[0];
 
     if (!file) return;
 
@@ -151,46 +304,77 @@ function BookingDetailsModal({
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Please upload PDF, JPG or PNG file only.");
+
+      alert(
+        "Please upload PDF, JPG or PNG file only."
+      );
+
       event.target.value = "";
+
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024;
+    const maxSize =
+      10 * 1024 * 1024;
 
     if (file.size > maxSize) {
-      alert("File size must be less than 10 MB.");
+
+      alert(
+        "File size must be less than 10 MB."
+      );
+
       event.target.value = "";
+
       return;
     }
 
-    const reader = new FileReader();
+    const reader =
+      new FileReader();
 
     reader.onload = () => {
-      const fileUrl = reader.result as string;
+
+      const fileUrl =
+        reader.result as string;
 
       const updatedBooking = {
+
         ...booking,
 
         documents: {
+
           ...booking.documents,
 
-          agreementToSell: agreement,
+          requisitionLetter:
+            requisition,
+
+          agreementToSell:
+            agreement,
 
           tripartiteAgreement: {
+
             ...tripartite,
 
             required: true,
 
             document: {
+
               ...tripartite.document,
+
               status: "uploaded",
+
               fileName: file.name,
+
               fileUrl,
-              uploadedAt: new Date().toISOString(),
+
+              uploadedAt:
+                new Date().toISOString(),
+
             },
+
           },
+
         },
+
       };
 
       onUpdate(updatedBooking);
@@ -199,7 +383,11 @@ function BookingDetailsModal({
     };
 
     reader.onerror = () => {
-      alert("Unable to read the selected file.");
+
+      alert(
+        "Unable to read the selected file."
+      );
+
       event.target.value = "";
     };
 
@@ -210,109 +398,212 @@ function BookingDetailsModal({
   // View Document
   // ======================================================
 
-const handleViewDocument = (fileUrl?: string) => {
-  if (!fileUrl) {
-    alert("Document is not uploaded yet.");
-    return;
-  }
+  const handleViewDocument = (
+    fileUrl?: string
+  ) => {
 
-  try {
-    // ==================================================
-    // Data URL -> Blob
-    // ==================================================
+    if (!fileUrl) {
 
-    if (fileUrl.startsWith("data:")) {
-      const parts = fileUrl.split(",");
-
-      const mimeMatch =
-        parts[0].match(/data:(.*?);base64/);
-
-      const mimeType =
-        mimeMatch?.[1] ||
-        "application/pdf";
-
-      const byteCharacters = atob(parts[1]);
-
-      const byteNumbers = new Array(
-        byteCharacters.length
+      alert(
+        "Document is not uploaded yet."
       );
-
-      for (
-        let i = 0;
-        i < byteCharacters.length;
-        i++
-      ) {
-        byteNumbers[i] =
-          byteCharacters.charCodeAt(i);
-      }
-
-      const byteArray =
-        new Uint8Array(byteNumbers);
-
-      const blob = new Blob(
-        [byteArray],
-        {
-          type: mimeType,
-        }
-      );
-
-      const blobUrl =
-        URL.createObjectURL(blob);
-
-      window.open(
-        blobUrl,
-        "_blank"
-      );
-
-      // Browser ko document load karne ka time
-      setTimeout(() => {
-        URL.revokeObjectURL(blobUrl);
-      }, 60000);
 
       return;
     }
 
-    // ==================================================
-    // Normal URL
-    // ==================================================
+    try {
 
-    window.open(
-      fileUrl,
-      "_blank",
-      "noopener,noreferrer"
-    );
+      if (fileUrl.startsWith("data:")) {
 
-  } catch (error) {
+        const parts =
+          fileUrl.split(",");
 
-    console.error(
-      "Document preview error:",
-      error
-    );
+        const mimeMatch =
+          parts[0].match(
+            /data:(.*?);base64/
+          );
 
-    alert(
-      "Unable to open the document."
-    );
-  }
-};
+        const mimeType =
+          mimeMatch?.[1] ||
+          "application/pdf";
+
+        const byteCharacters =
+          atob(parts[1]);
+
+        const byteNumbers =
+          new Array(
+            byteCharacters.length
+          );
+
+        for (
+          let i = 0;
+          i < byteCharacters.length;
+          i++
+        ) {
+
+          byteNumbers[i] =
+            byteCharacters.charCodeAt(i);
+        }
+
+        const byteArray =
+          new Uint8Array(
+            byteNumbers
+          );
+
+        const blob =
+          new Blob(
+            [byteArray],
+            {
+              type: mimeType,
+            }
+          );
+
+        const blobUrl =
+          URL.createObjectURL(blob);
+
+        window.open(
+          blobUrl,
+          "_blank"
+        );
+
+        setTimeout(() => {
+
+          URL.revokeObjectURL(
+            blobUrl
+          );
+
+        }, 60000);
+
+        return;
+      }
+
+      window.open(
+        fileUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Document preview error:",
+        error
+      );
+
+      alert(
+        "Unable to open the document."
+      );
+    }
+  };
+
+  // ======================================================
+  // Requisition Letter - Mark Given
+  // ======================================================
+
+  const handleRequisitionGiven = () => {
+
+    const updatedBooking = {
+
+      ...booking,
+
+      documents: {
+
+        ...booking.documents,
+
+        requisitionLetter: {
+
+          ...requisition,
+
+          status: "given",
+
+          givenAt:
+            new Date().toISOString(),
+
+        },
+
+        agreementToSell:
+          agreement,
+
+        tripartiteAgreement:
+          tripartite,
+
+      },
+
+    };
+
+    onUpdate(updatedBooking);
+  };
+
+  // ======================================================
+  // Requisition Letter - Mark Pending
+  // ======================================================
+
+  const handleRequisitionPending = () => {
+
+    const updatedBooking = {
+
+      ...booking,
+
+      documents: {
+
+        ...booking.documents,
+
+        requisitionLetter: {
+
+          ...requisition,
+
+          status: "pending",
+
+          givenAt: undefined,
+
+        },
+
+        agreementToSell:
+          agreement,
+
+        tripartiteAgreement:
+          tripartite,
+
+      },
+
+    };
+
+    onUpdate(updatedBooking);
+  };
+
   // ======================================================
   // Agreement - Mark Given
   // ======================================================
 
   const handleAgreementGiven = () => {
+
     const updatedBooking = {
+
       ...booking,
 
       documents: {
+
         ...booking.documents,
 
+        requisitionLetter:
+          requisition,
+
         agreementToSell: {
+
           ...agreement,
+
           status: "given",
-          givenAt: new Date().toISOString(),
+
+          givenAt:
+            new Date().toISOString(),
+
         },
 
-        tripartiteAgreement: tripartite,
+        tripartiteAgreement:
+          tripartite,
+
       },
+
     };
 
     onUpdate(updatedBooking);
@@ -323,20 +614,33 @@ const handleViewDocument = (fileUrl?: string) => {
   // ======================================================
 
   const handleAgreementPending = () => {
+
     const updatedBooking = {
+
       ...booking,
 
       documents: {
+
         ...booking.documents,
 
+        requisitionLetter:
+          requisition,
+
         agreementToSell: {
+
           ...agreement,
+
           status: "pending",
+
           givenAt: undefined,
+
         },
 
-        tripartiteAgreement: tripartite,
+        tripartiteAgreement:
+          tripartite,
+
       },
+
     };
 
     onUpdate(updatedBooking);
@@ -347,19 +651,32 @@ const handleViewDocument = (fileUrl?: string) => {
   // ======================================================
 
   const handleTripartiteRequired = () => {
+
     const updatedBooking = {
+
       ...booking,
 
       documents: {
+
         ...booking.documents,
 
-        agreementToSell: agreement,
+        requisitionLetter:
+          requisition,
+
+        agreementToSell:
+          agreement,
 
         tripartiteAgreement: {
+
           ...tripartite,
-          required: !tripartite.required,
+
+          required:
+            !tripartite.required,
+
         },
+
       },
+
     };
 
     onUpdate(updatedBooking);
@@ -370,24 +687,40 @@ const handleViewDocument = (fileUrl?: string) => {
   // ======================================================
 
   const handleTripartiteComplete = () => {
+
     const updatedBooking = {
+
       ...booking,
 
       documents: {
+
         ...booking.documents,
 
-        agreementToSell: agreement,
+        requisitionLetter:
+          requisition,
+
+        agreementToSell:
+          agreement,
 
         tripartiteAgreement: {
+
           ...tripartite,
 
           document: {
+
             ...tripartite.document,
+
             status: "completed",
-            completedAt: new Date().toISOString(),
+
+            completedAt:
+              new Date().toISOString(),
+
           },
+
         },
+
       },
+
     };
 
     onUpdate(updatedBooking);
@@ -397,40 +730,70 @@ const handleViewDocument = (fileUrl?: string) => {
   // Tripartite Pending
   // ======================================================
 
-  const handleTripartitePending = () => {
+const handleTripartitePending = () => {
+
     const updatedBooking = {
-      ...booking,
 
-      documents: {
-        ...booking.documents,
+        ...booking,
 
-        agreementToSell: agreement,
+        documents: {
 
-        tripartiteAgreement: {
-          ...tripartite,
+            ...booking.documents,
 
-          document: {
-            ...tripartite.document,
-            status: "pending",
-            completedAt: undefined,
-          },
+            requisitionLetter:
+                booking.documents?.requisitionLetter ?? {
+                    status: "pending",
+                },
+
+            agreementToSell:
+                booking.documents?.agreementToSell ?? {
+                    status: "pending",
+                },
+
+            tripartiteAgreement: {
+
+                ...booking.documents?.tripartiteAgreement,
+
+                // IMPORTANT:
+                // Mark Pending karne par
+                // Tripartite Required rahega.
+
+                required: true,
+
+                document: {
+
+                    ...booking.documents
+                        ?.tripartiteAgreement
+                        ?.document,
+
+                    status: "pending",
+
+                    completedAt:
+                        undefined,
+
+                },
+
+            },
+
         },
-      },
+
     };
 
     onUpdate(updatedBooking);
-  };
+};
 
   // ======================================================
   // UI
   // ======================================================
 
   return (
+
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="Booking Details"
     >
+
       <div className="space-y-6">
 
         {/* ==================================================
@@ -438,6 +801,7 @@ const handleViewDocument = (fileUrl?: string) => {
         ================================================== */}
 
         <div>
+
           <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
             Flat Information
           </h3>
@@ -475,6 +839,7 @@ const handleViewDocument = (fileUrl?: string) => {
             </div>
 
             <div>
+
               <p className="mb-1 text-sm text-gray-500">
                 Status
               </p>
@@ -482,9 +847,11 @@ const handleViewDocument = (fileUrl?: string) => {
               <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-sm font-semibold capitalize text-red-700">
                 {booking.status || "Booked"}
               </span>
+
             </div>
 
           </div>
+
         </div>
 
         {/* ==================================================
@@ -492,6 +859,7 @@ const handleViewDocument = (fileUrl?: string) => {
         ================================================== */}
 
         <div>
+
           <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
             Customer Information
           </h3>
@@ -539,6 +907,7 @@ const handleViewDocument = (fileUrl?: string) => {
             </div>
 
           </div>
+
         </div>
 
         {/* ==================================================
@@ -546,6 +915,7 @@ const handleViewDocument = (fileUrl?: string) => {
         ================================================== */}
 
         <div>
+
           <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
             Customer KYC
           </h3>
@@ -573,6 +943,7 @@ const handleViewDocument = (fileUrl?: string) => {
             </div>
 
           </div>
+
         </div>
 
         {/* ==================================================
@@ -580,6 +951,7 @@ const handleViewDocument = (fileUrl?: string) => {
         ================================================== */}
 
         <div>
+
           <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
             Payment Details
           </h3>
@@ -587,6 +959,7 @@ const handleViewDocument = (fileUrl?: string) => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <div>
+
               <p className="text-sm text-gray-500">
                 Booking Amount
               </p>
@@ -597,9 +970,11 @@ const handleViewDocument = (fileUrl?: string) => {
                   booking.bookingAmount || 0
                 ).toLocaleString("en-IN")}
               </p>
+
             </div>
 
             <div>
+
               <p className="text-sm text-gray-500">
                 Payment Mode
               </p>
@@ -607,9 +982,11 @@ const handleViewDocument = (fileUrl?: string) => {
               <p className="font-semibold">
                 {booking.paymentMode || "-"}
               </p>
+
             </div>
 
             <div>
+
               <p className="text-sm text-gray-500">
                 Booking Date
               </p>
@@ -617,9 +994,11 @@ const handleViewDocument = (fileUrl?: string) => {
               <p className="font-semibold">
                 {booking.bookingDate || "-"}
               </p>
+
             </div>
 
           </div>
+
         </div>
 
         {/* ==================================================
@@ -633,6 +1012,147 @@ const handleViewDocument = (fileUrl?: string) => {
           </h3>
 
           <div className="space-y-4">
+
+            {/* ==================================================
+                Requisition Letter
+            ================================================== */}
+
+            <div className="rounded-xl border border-gray-200 p-4">
+
+              <div className="flex flex-col gap-4">
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                  <div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+
+                      <h4 className="font-bold text-gray-800">
+                        Requisition Letter
+                      </h4>
+
+                      <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                        Mandatory
+                      </span>
+
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+
+                      <span className="text-sm text-gray-500">
+                        Status:
+                      </span>
+
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusBadge(
+                          requisition.status
+                        )}`}
+                      >
+                        {requisition.status}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+
+                    {requisition.status === "given" ? (
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleRequisitionPending
+                        }
+                        className="rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600"
+                      >
+                        Mark Pending
+                      </button>
+
+                    ) : (
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleRequisitionGiven
+                        }
+                        className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                      >
+                        Mark as Given
+                      </button>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+                {requisition.fileName && (
+
+                  <div className="rounded-lg bg-green-50 p-3">
+
+                    <p className="text-sm font-medium text-green-800">
+                      Uploaded Document
+                    </p>
+
+                    <p className="mt-1 truncate text-sm text-gray-600">
+                      {requisition.fileName}
+                    </p>
+
+                  </div>
+
+                )}
+
+                <div className="flex flex-wrap gap-2">
+
+                  <input
+                    ref={requisitionInputRef}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                    onChange={
+                      handleRequisitionUpload
+                    }
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      requisitionInputRef.current?.click()
+                    }
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    {requisition.fileUrl
+                      ? "Replace Document"
+                      : "Upload Document"}
+                  </button>
+
+                  {requisition.fileUrl && (
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleViewDocument(
+                          requisition.fileUrl
+                        )
+                      }
+                      className="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                    >
+                      View Document
+                    </button>
+
+                  )}
+
+                </div>
+
+                <p className="text-xs text-gray-500">
+                  Supported formats: PDF, JPG, PNG.
+                  Maximum file size: 10 MB.
+                </p>
+
+              </div>
+
+            </div>
 
             {/* ==================================================
                 Agreement To Sell
@@ -680,7 +1200,9 @@ const handleViewDocument = (fileUrl?: string) => {
 
                     <button
                       type="button"
-                      onClick={handleGenerateAgreement}
+                      onClick={
+                        handleGenerateAgreement
+                      }
                       className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
                     >
                       Generate Agreement
@@ -716,8 +1238,6 @@ const handleViewDocument = (fileUrl?: string) => {
 
                 </div>
 
-                {/* File Information */}
-
                 {agreement.fileName && (
 
                   <div className="rounded-lg bg-green-50 p-3">
@@ -734,10 +1254,7 @@ const handleViewDocument = (fileUrl?: string) => {
 
                 )}
 
-                {/* Actions */}
-
                 <div className="flex flex-wrap gap-2">
-
 
                   <input
                     ref={agreementInputRef}
@@ -780,8 +1297,8 @@ const handleViewDocument = (fileUrl?: string) => {
                 </div>
 
                 <p className="text-xs text-gray-500">
-                  Supported formats: PDF, JPG, PNG. Maximum
-                  file size: 10 MB.
+                  Supported formats: PDF, JPG, PNG.
+                  Maximum file size: 10 MB.
                 </p>
 
               </div>
@@ -807,10 +1324,11 @@ const handleViewDocument = (fileUrl?: string) => {
                       </h4>
 
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-semibold ${tripartite.required
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                          }`}
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                          tripartite.required
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
                       >
                         {tripartite.required
                           ? "Required"
@@ -829,13 +1347,12 @@ const handleViewDocument = (fileUrl?: string) => {
 
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${getStatusBadge(
-                            tripartite.document
-                              ?.status ||
-                            "pending"
+                            tripartite.document?.status ||
+                              "pending"
                           )}`}
                         >
-                          {tripartite.document
-                            ?.status || "pending"}
+                          {tripartite.document?.status ||
+                            "pending"}
                         </span>
 
                       </div>
@@ -851,10 +1368,11 @@ const handleViewDocument = (fileUrl?: string) => {
                       onClick={
                         handleTripartiteRequired
                       }
-                      className={`rounded-lg px-4 py-2 text-sm font-medium ${tripartite.required
-                        ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                        }`}
+                      className={`rounded-lg px-4 py-2 text-sm font-medium ${
+                        tripartite.required
+                          ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                      }`}
                     >
                       {tripartite.required
                         ? "Set Not Required"
@@ -862,9 +1380,8 @@ const handleViewDocument = (fileUrl?: string) => {
                     </button>
 
                     {tripartite.required &&
-                      tripartite.document
-                        ?.status !==
-                      "completed" && (
+                      tripartite.document?.status !==
+                        "completed" && (
 
                         <button
                           type="button"
@@ -879,9 +1396,8 @@ const handleViewDocument = (fileUrl?: string) => {
                       )}
 
                     {tripartite.required &&
-                      tripartite.document
-                        ?.status ===
-                      "completed" && (
+                      tripartite.document?.status ===
+                        "completed" && (
 
                         <button
                           type="button"
@@ -903,32 +1419,29 @@ const handleViewDocument = (fileUrl?: string) => {
 
                   <>
 
-                    {tripartite.document
-                      ?.fileName && (
+                    {tripartite.document?.fileName && (
 
-                        <div className="rounded-lg bg-green-50 p-3">
+                      <div className="rounded-lg bg-green-50 p-3">
 
-                          <p className="text-sm font-medium text-green-800">
-                            Uploaded Document
-                          </p>
+                        <p className="text-sm font-medium text-green-800">
+                          Uploaded Document
+                        </p>
 
-                          <p className="mt-1 truncate text-sm text-gray-600">
-                            {
-                              tripartite.document
-                                .fileName
-                            }
-                          </p>
+                        <p className="mt-1 truncate text-sm text-gray-600">
+                          {
+                            tripartite.document
+                              .fileName
+                          }
+                        </p>
 
-                        </div>
+                      </div>
 
-                      )}
+                    )}
 
                     <div className="flex flex-wrap gap-2">
 
                       <input
-                        ref={
-                          tripartiteInputRef
-                        }
+                        ref={tripartiteInputRef}
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                         onChange={
@@ -944,29 +1457,27 @@ const handleViewDocument = (fileUrl?: string) => {
                         }
                         className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                       >
-                        {tripartite.document
-                          ?.fileUrl
+                        {tripartite.document?.fileUrl
                           ? "Replace Document"
                           : "Upload Document"}
                       </button>
 
-                      {tripartite.document
-                        ?.fileUrl && (
+                      {tripartite.document?.fileUrl && (
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleViewDocument(
-                                tripartite.document
-                                  .fileUrl
-                              )
-                            }
-                            className="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-                          >
-                            View Document
-                          </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleViewDocument(
+                              tripartite.document
+                                .fileUrl
+                            )
+                          }
+                          className="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                        >
+                          View Document
+                        </button>
 
-                        )}
+                      )}
 
                     </div>
 
@@ -1014,6 +1525,7 @@ const handleViewDocument = (fileUrl?: string) => {
         <div className="flex justify-end border-t pt-5">
 
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg bg-green-600 px-6 py-2 text-white hover:bg-green-700"
           >
@@ -1023,6 +1535,7 @@ const handleViewDocument = (fileUrl?: string) => {
         </div>
 
       </div>
+
     </Modal>
   );
 }

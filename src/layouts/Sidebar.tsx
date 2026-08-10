@@ -31,6 +31,10 @@ interface SidebarProps {
     onClose?: () => void;
 }
 
+// ======================================================
+// Menu Items
+// ======================================================
+
 const menuItems: MenuItem[] = [
     {
         title: "Dashboard",
@@ -86,42 +90,90 @@ const menuItems: MenuItem[] = [
     },
 ];
 
+// ======================================================
+// Sidebar
+// ======================================================
+
 function Sidebar({
     isOpen = false,
     onClose,
 }: SidebarProps) {
 
-    // ======================================================
-    // Booking Data
-    // ======================================================
-
     const { bookings } = useBooking();
 
-    // ======================================================
-    // Pending Agreement To Sell Count
-    // ======================================================
+    // ==================================================
+    // Notification Count
+    // Same logic as Navbar
+    // ==================================================
 
-    const pendingAgreementCount =
-        bookings.filter((booking) => {
+    let notificationCount = 0;
 
-            const status =
-                booking.documents
-                    ?.agreementToSell
-                    ?.status;
+    bookings.forEach((booking) => {
 
-            return status !== "given";
+        // ----------------------------------------------
+        // Requisition Letter
+        // ----------------------------------------------
 
-        }).length;
+        const requisitionStatus =
+            booking.documents
+                ?.requisitionLetter
+                ?.status ?? "pending";
+
+        if (
+            requisitionStatus !== "given" &&
+            requisitionStatus !== "completed"
+        ) {
+            notificationCount++;
+        }
+
+        // ----------------------------------------------
+        // Agreement To Sell
+        // ----------------------------------------------
+
+        const agreementStatus =
+            booking.documents
+                ?.agreementToSell
+                ?.status ?? "pending";
+
+        if (
+            agreementStatus !== "given" &&
+            agreementStatus !== "completed"
+        ) {
+            notificationCount++;
+        }
+
+        // ----------------------------------------------
+        // Tripartite Agreement
+        // ----------------------------------------------
+
+        const tripartite =
+            booking.documents
+                ?.tripartiteAgreement;
+
+        const tripartiteRequired =
+            tripartite?.required === true;
+
+        const tripartiteStatus =
+            tripartite
+                ?.document
+                ?.status ?? "pending";
+
+        if (
+            tripartiteRequired &&
+            tripartiteStatus !== "completed"
+        ) {
+            notificationCount++;
+        }
+
+    });
 
     return (
         <>
-
             {/* ==================================================
-                Mobile Overlay
+                MOBILE OVERLAY
             ================================================== */}
 
             {isOpen && (
-
                 <div
                     className="
                         fixed
@@ -132,11 +184,10 @@ function Sidebar({
                     "
                     onClick={onClose}
                 />
-
             )}
 
             {/* ==================================================
-                Sidebar
+                SIDEBAR
             ================================================== */}
 
             <aside
@@ -152,17 +203,20 @@ function Sidebar({
                     text-white
                     transition-transform
                     duration-300
+
                     lg:static
                     lg:translate-x-0
-                    ${isOpen
-                        ? "translate-x-0"
-                        : "-translate-x-full"
+
+                    ${
+                        isOpen
+                            ? "translate-x-0"
+                            : "-translate-x-full"
                     }
                 `}
             >
 
                 {/* ==================================================
-                    Logo
+                    LOGO
                 ================================================== */}
 
                 <div
@@ -218,7 +272,7 @@ function Sidebar({
                 </div>
 
                 {/* ==================================================
-                    Menu
+                    MENU
                 ================================================== */}
 
                 <nav
@@ -238,14 +292,15 @@ function Sidebar({
                             "/notifications";
 
                         return (
-
                             <NavLink
                                 key={item.title}
                                 to={item.path}
                                 end={
                                     item.path === "/"
                                 }
-                                onClick={onClose}
+                                onClick={() =>
+                                    onClose?.()
+                                }
                                 className={({
                                     isActive,
                                 }) =>
@@ -269,6 +324,8 @@ function Sidebar({
                                 }
                             >
 
+                                {/* Left */}
+
                                 <div
                                     className="
                                         flex
@@ -284,6 +341,8 @@ function Sidebar({
                                     </span>
 
                                 </div>
+
+                                {/* Right */}
 
                                 <div
                                     className="
@@ -301,42 +360,42 @@ function Sidebar({
                                         />
                                     )}
 
-                                    {/* Notification Count */}
+                                    {/* Notification Badge */}
 
                                     {isNotification &&
-                                        pendingAgreementCount >
+                                        notificationCount >
                                             0 && (
-
                                             <span
                                                 className="
+                                                    flex
+                                                    min-w-5
+                                                    h-5
+                                                    items-center
+                                                    justify-center
                                                     rounded-full
                                                     bg-red-500
-                                                    px-2
-                                                    py-1
-                                                    text-xs
-                                                    font-semibold
+                                                    px-1.5
+                                                    text-[11px]
+                                                    font-bold
                                                     text-white
                                                 "
                                             >
                                                 {
-                                                    pendingAgreementCount
+                                                    notificationCount
                                                 }
                                             </span>
-
                                         )}
 
                                 </div>
 
                             </NavLink>
-
                         );
-
                     })}
 
                 </nav>
 
                 {/* ==================================================
-                    Logout
+                    LOGOUT
                 ================================================== */}
 
                 <div
@@ -375,7 +434,6 @@ function Sidebar({
                 </div>
 
             </aside>
-
         </>
     );
 }
