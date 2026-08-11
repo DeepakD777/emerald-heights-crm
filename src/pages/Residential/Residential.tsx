@@ -9,7 +9,17 @@ import { useBooking } from "../../context/BookingContext";
 
 import FlatModal from "../../components/dashboard/FlatModal";
 
-type Tower = "all" | "A" | "B" | "C";
+// ======================================================
+// Types
+// ======================================================
+
+type Block = "A" | "B" | "C";
+
+type Phase =
+    | "a"
+    | "phase1"
+    | "phase2"
+    | "c1";
 
 type Status =
     | "all"
@@ -17,11 +27,15 @@ type Status =
     | "hold"
     | "booked";
 
+// ======================================================
+// Residential Page
+// ======================================================
+
 function Residential() {
 
-    // ======================================================
+    // ==================================================
     // Context
-    // ======================================================
+    // ==================================================
 
     const {
         flatStatuses,
@@ -33,9 +47,9 @@ function Residential() {
         addBooking,
     } = useBooking();
 
-    // ======================================================
-    // Flat Modal
-    // ======================================================
+    // ==================================================
+    // Selected Flat
+    // ==================================================
 
     const [selectedFlat, setSelectedFlat] =
         useState<any>(null);
@@ -43,295 +57,525 @@ function Residential() {
     const [isFlatModalOpen, setIsFlatModalOpen] =
         useState(false);
 
-    // ======================================================
+    // ==================================================
+    // Main Navigation
+    // ==================================================
+
+    const [selectedBlock, setSelectedBlock] =
+        useState<Block>("A");
+
+    const [selectedPhase, setSelectedPhase] =
+        useState<Phase>("a");
+
+    const [selectedFloor, setSelectedFloor] =
+        useState(1);
+
+    // ==================================================
     // Filters
-    // ======================================================
+    // ==================================================
 
     const [search, setSearch] =
         useState("");
 
-    const [selectedTower, setSelectedTower] =
-        useState<Tower>("all");
-
-    const [selectedFloor, setSelectedFloor] =
-        useState("all");
-
-    const [selectedType, setSelectedType] =
-        useState("all");
-
-    const [selectedFacing, setSelectedFacing] =
-        useState("all");
-
     const [selectedStatus, setSelectedStatus] =
         useState<Status>("all");
 
-    // ======================================================
-    // Tower Name
-    // ======================================================
+    // ==================================================
+    // Current Tower
+    // ==================================================
 
-    const towerName = (tower: string) => {
+    const currentTower =
+        selectedPhase === "a"
+            ? "A"
+            : selectedPhase === "phase1"
+                ? "B"
+                : selectedPhase === "phase2"
+                    ? "B1"
+                    : "C1";
 
-        switch (tower) {
+    // ==================================================
+    // Current Section Name
+    // ==================================================
 
-            case "A":
-                return "Amogh";
+    const currentSectionName =
+        selectedPhase === "a"
+            ? "A Block - Amogh"
+            : selectedPhase === "phase1"
+                ? "B Block - Phase 1"
+                : selectedPhase === "phase2"
+                    ? "B Block - Phase 2 (B1 Tower)"
+                    : "C Block - C1 Tower";
 
-            case "B":
-                return "Ekash";
+    // ==================================================
+    // Current Tower Name
+    // ==================================================
 
-            case "C":
-                return "Ishan";
+    const currentTowerName =
+        selectedPhase === "a"
+            ? "Amogh"
+            : selectedPhase === "phase1"
+                ? "Ekash"
+                : selectedPhase === "phase2"
+                    ? "Ekash"
+                    : "Ishan";
 
-            default:
-                return "";
+    // ==================================================
+    // Current Tower Total
+    // ==================================================
 
-        }
+    const currentTowerTotal =
+        selectedPhase === "a"
+            ? 100
+            : selectedPhase === "phase1"
+                ? 40
+                : selectedPhase === "phase2"
+                    ? 40
+                    : 90;
 
-    };
-
-    // ======================================================
-    // Actual Flat Status
-    // ======================================================
-
-    const getFlatStatus = (flat: any) => {
-
-        const booking = bookings.find(
-            (booking: any) =>
-                booking.flatNumber === flat.number
-        );
-
-        if (booking) {
-            return "booked";
-        }
-
-        const savedStatus =
-            flatStatuses.find(
-                (item) =>
-                    item.number === flat.number
-            );
-
-        if (savedStatus) {
-            return savedStatus.status;
-        }
-
-        return flat.status;
-
-    };
-
-    // ======================================================
-    // Status Color
-    // ======================================================
-
-    const getStatusColor = (status: string) => {
-
-        switch (status) {
-
-            case "booked":
-
-                return "bg-red-100 border-red-400 text-red-700";
-
-            case "hold":
-
-                return "bg-yellow-100 border-yellow-400 text-yellow-700";
-
-            default:
-
-                return "bg-green-100 border-green-400 text-green-700";
-
-        }
-
-    };
-
-    // ======================================================
-    // Dynamic Filter Options
-    // ======================================================
+    // ==================================================
+    // Floors
+    // ==================================================
 
     const floors = useMemo(() => {
 
         return Array.from(
             new Set(
-                residentialFlats.map(
-                    (flat: any) => flat.floor
-                )
+                residentialFlats
+                    .filter(
+                        (flat) =>
+                            flat.tower ===
+                            currentTower
+                    )
+                    .map(
+                        (flat) =>
+                            flat.floor
+                    )
             )
         ).sort(
             (a, b) =>
-                Number(a) - Number(b)
+                a - b
         );
 
-    }, []);
+    }, [currentTower]);
 
-    const unitTypes = useMemo(() => {
+    // ==================================================
+    // Actual Flat Status
+    // ==================================================
 
-        return Array.from(
-            new Set(
-                residentialFlats.map(
-                    (flat: any) => flat.type
-                )
-            )
-        ).filter(Boolean);
+    const getFlatStatus = (
+        flat: any
+    ) => {
 
-    }, []);
+        // ----------------------------------------------
+        // Booking Status
+        // ----------------------------------------------
 
-    const facings = useMemo(() => {
+        const booking =
+            bookings.find(
+                (booking: any) => {
 
-        return Array.from(
-            new Set(
-                residentialFlats.map(
-                    (flat: any) => flat.facing
-                )
-            )
-        ).filter(Boolean);
+                    const sameNumber =
+                        booking.flatNumber ===
+                        flat.number;
 
-    }, []);
+                    const sameTower =
+                        !booking.tower ||
+                        booking.tower ===
+                        flat.tower;
 
-    // ======================================================
-    // Filter Flats
-    // ======================================================
+                    return (
+                        sameNumber &&
+                        sameTower
+                    );
 
-    const filteredFlats = useMemo(() => {
+                }
+            );
 
-        const searchText =
-            search.trim().toLowerCase();
+        if (booking) {
+
+            return "booked";
+
+        }
+
+        // ----------------------------------------------
+        // Saved Status
+        // ----------------------------------------------
+
+        const savedStatus =
+            flatStatuses.find(
+                (item: any) => {
+
+                    const sameNumber =
+                        item.number ===
+                        flat.number;
+
+                    const sameTower =
+                        !item.tower ||
+                        item.tower ===
+                        flat.tower;
+
+                    return (
+                        sameNumber &&
+                        sameTower
+                    );
+
+                }
+            );
+
+        if (savedStatus) {
+
+            return savedStatus.status;
+
+        }
+
+        // ----------------------------------------------
+        // Default Status
+        // ----------------------------------------------
+
+        return flat.status;
+
+    };
+
+    // ==================================================
+    // Status Color
+    // ==================================================
+
+    const getStatusColor = (
+        status: string
+    ) => {
+
+        switch (status) {
+
+            case "booked":
+
+                return `
+                    bg-red-50
+                    border-red-400
+                    text-red-700
+                    hover:bg-red-100
+                    hover:border-red-500
+                `;
+
+            case "hold":
+
+                return `
+                    bg-yellow-50
+                    border-yellow-400
+                    text-yellow-700
+                    hover:bg-yellow-100
+                    hover:border-yellow-500
+                `;
+
+            default:
+
+                return `
+                    bg-green-50
+                    border-green-400
+                    text-green-700
+                    hover:bg-green-100
+                    hover:border-green-500
+                `;
+
+        }
+
+    };
+
+    // ==================================================
+    // Status Text
+    // ==================================================
+
+    const getStatusText = (
+        status: string
+    ) => {
+
+        switch (status) {
+
+            case "booked":
+                return "BOOKED";
+
+            case "hold":
+                return "HOLD";
+
+            default:
+                return "AVAILABLE";
+
+        }
+
+    };
+
+    // ==================================================
+    // Current Flats
+    // ==================================================
+
+    const currentFlats = useMemo(() => {
 
         return residentialFlats.filter(
-            (flat: any) => {
-
-                const status =
-                    getFlatStatus(flat);
-
-                const matchesSearch =
-                    !searchText ||
-                    String(flat.number)
-                        .toLowerCase()
-                        .includes(searchText) ||
-                    String(flat.tower)
-                        .toLowerCase()
-                        .includes(searchText) ||
-                    String(flat.towerName)
-                        .toLowerCase()
-                        .includes(searchText);
+            (flat) => {
 
                 const matchesTower =
-                    selectedTower === "all" ||
-                    flat.tower === selectedTower;
+                    flat.tower ===
+                    currentTower;
 
                 const matchesFloor =
-                    selectedFloor === "all" ||
-                    String(flat.floor) ===
-                        selectedFloor;
-
-                const matchesType =
-                    selectedType === "all" ||
-                    flat.type === selectedType;
-
-                const matchesFacing =
-                    selectedFacing === "all" ||
-                    flat.facing === selectedFacing;
-
-                const matchesStatus =
-                    selectedStatus === "all" ||
-                    status === selectedStatus;
+                    flat.floor ===
+                    selectedFloor;
 
                 return (
-                    matchesSearch &&
                     matchesTower &&
-                    matchesFloor &&
-                    matchesType &&
-                    matchesFacing &&
-                    matchesStatus
+                    matchesFloor
                 );
 
             }
         );
 
     }, [
-        search,
-        selectedTower,
+        currentTower,
         selectedFloor,
-        selectedType,
-        selectedFacing,
-        selectedStatus,
-        flatStatuses,
-        bookings,
     ]);
 
-    // ======================================================
+    // ==================================================
+    // Filtered Flats
+    // ==================================================
+
+    const filteredFlats =
+        useMemo(() => {
+
+            const searchText =
+                search
+                    .trim()
+                    .toLowerCase();
+
+            return currentFlats.filter(
+                (flat: any) => {
+
+                    const status =
+                        getFlatStatus(
+                            flat
+                        );
+
+                    const matchesSearch =
+                        !searchText ||
+                        String(
+                            flat.number
+                        )
+                            .toLowerCase()
+                            .includes(
+                                searchText
+                            );
+
+                    const matchesStatus =
+                        selectedStatus ===
+                            "all" ||
+                        status ===
+                            selectedStatus;
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
+
+                }
+            );
+
+        }, [
+            currentFlats,
+            search,
+            selectedStatus,
+            flatStatuses,
+            bookings,
+        ]);
+
+    // ==================================================
+    // Current Statistics
+    // ==================================================
+
+    const totalFlats =
+        currentFlats.length;
+
+    const availableFlats =
+        currentFlats.filter(
+            (flat) =>
+                getFlatStatus(
+                    flat
+                ) === "available"
+        ).length;
+
+    const bookedFlats =
+        currentFlats.filter(
+            (flat) =>
+                getFlatStatus(
+                    flat
+                ) === "booked"
+        ).length;
+
+    const holdFlats =
+        currentFlats.filter(
+            (flat) =>
+                getFlatStatus(
+                    flat
+                ) === "hold"
+        ).length;
+
+    // ==================================================
     // Reset Filters
-    // ======================================================
+    // ==================================================
 
     const resetFilters = () => {
 
         setSearch("");
-        setSelectedTower("all");
-        setSelectedFloor("all");
-        setSelectedType("all");
-        setSelectedFacing("all");
-        setSelectedStatus("all");
+
+        setSelectedStatus(
+            "all"
+        );
 
     };
 
-    // ======================================================
-    // Open Flat
-    // ======================================================
+    // ==================================================
+    // Block Change
+    // ==================================================
 
-    const openFlat = (flat: any) => {
+    const handleBlockChange = (
+        block: Block
+    ) => {
+
+        setSelectedBlock(
+            block
+        );
+
+        setSelectedFloor(
+            1
+        );
+
+        resetFilters();
+
+        if (block === "A") {
+
+            setSelectedPhase(
+                "a"
+            );
+
+        }
+
+        if (block === "B") {
+
+            setSelectedPhase(
+                "phase1"
+            );
+
+        }
+
+        if (block === "C") {
+
+            setSelectedPhase(
+                "c1"
+            );
+
+        }
+
+    };
+
+    // ==================================================
+    // Phase Change
+    // ==================================================
+
+    const handlePhaseChange = (
+        phase: Phase
+    ) => {
+
+        setSelectedPhase(
+            phase
+        );
+
+        setSelectedFloor(
+            1
+        );
+
+        resetFilters();
+
+    };
+
+    // ==================================================
+    // Open Flat
+    // ==================================================
+
+    const openFlat = (
+        flat: any
+    ) => {
 
         setSelectedFlat({
+
             ...flat,
-            status: getFlatStatus(flat),
+
+            status:
+                getFlatStatus(
+                    flat
+                ),
+
         });
 
-        setIsFlatModalOpen(true);
+        setIsFlatModalOpen(
+            true
+        );
 
     };
 
-    // ======================================================
+    // ==================================================
     // Save Flat Status
-    // ======================================================
+    // ==================================================
 
     const handleSaveFlat = (
         updatedFlat: any
     ) => {
 
         updateFlatStatus(
+
             updatedFlat.number,
+
             updatedFlat.status
+
         );
 
         setSelectedFlat({
+
             ...updatedFlat,
+
         });
 
-        setIsFlatModalOpen(false);
+        setIsFlatModalOpen(
+            false
+        );
 
     };
 
-    // ======================================================
+    // ==================================================
     // Booking
-    // ======================================================
+    // ==================================================
 
     const handleBooking = (
         bookingData: any
     ) => {
 
-        // Save booking
-        addBooking(bookingData);
-
-        // Change flat status
-        updateFlatStatus(
-            bookingData.flatNumber,
-            "booked"
+        addBooking(
+            bookingData
         );
 
-        // Close modal
-        setIsFlatModalOpen(false);
+        updateFlatStatus(
+
+            bookingData.flatNumber,
+
+            "booked"
+
+        );
+
+        setIsFlatModalOpen(
+            false
+        );
 
     };
 
-    // ======================================================
-    // UI
-    // ======================================================
+    // ==================================================
+    // Render
+    // ==================================================
 
     return (
 
@@ -344,48 +588,610 @@ function Residential() {
             <div>
 
                 <h1 className="text-2xl font-bold text-gray-800">
+
                     Residential
+
                 </h1>
 
                 <p className="mt-1 text-gray-500">
+
                     Residential Flats Inventory
+
                 </p>
 
             </div>
 
+
             {/* ==================================================
-                Filters
+                Block Selection
             ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="mb-5 flex items-center justify-between">
+                <h2 className="mb-4 text-lg font-bold text-gray-800">
 
-                    <h2 className="text-xl font-bold text-gray-800">
-                        Filters
-                    </h2>
+                    Select Block
+
+                </h2>
+
+                <div className="flex flex-wrap gap-3">
+
+                    {/* A BLOCK */}
 
                     <button
-                        onClick={resetFilters}
-                        className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
+                        onClick={() =>
+                            handleBlockChange(
+                                "A"
+                            )
+                        }
+                        className={`
+                            rounded-xl
+                            border
+                            px-6
+                            py-3
+                            font-semibold
+                            transition-all
+                            duration-200
+                            ${
+                                selectedBlock ===
+                                "A"
+                                    ? `
+                                        border-green-600
+                                        bg-green-600
+                                        text-white
+                                        shadow-md
+                                      `
+                                    : `
+                                        border-gray-300
+                                        bg-white
+                                        text-gray-700
+                                        hover:border-green-500
+                                        hover:bg-green-50
+                                      `
+                            }
+                        `}
                     >
 
-                        <RotateCcw size={16} />
+                        A Block
 
-                        Reset
+                        <span className="ml-2 text-xs opacity-80">
+
+                            Amogh
+
+                        </span>
+
+                    </button>
+
+
+                    {/* B BLOCK */}
+
+                    <button
+                        onClick={() =>
+                            handleBlockChange(
+                                "B"
+                            )
+                        }
+                        className={`
+                            rounded-xl
+                            border
+                            px-6
+                            py-3
+                            font-semibold
+                            transition-all
+                            duration-200
+                            ${
+                                selectedBlock ===
+                                "B"
+                                    ? `
+                                        border-green-600
+                                        bg-green-600
+                                        text-white
+                                        shadow-md
+                                      `
+                                    : `
+                                        border-gray-300
+                                        bg-white
+                                        text-gray-700
+                                        hover:border-green-500
+                                        hover:bg-green-50
+                                      `
+                            }
+                        `}
+                    >
+
+                        B Block
+
+                        <span className="ml-2 text-xs opacity-80">
+
+                            Ekash
+
+                        </span>
+
+                    </button>
+
+
+                    {/* C BLOCK */}
+
+                    <button
+                        onClick={() =>
+                            handleBlockChange(
+                                "C"
+                            )
+                        }
+                        className={`
+                            rounded-xl
+                            border
+                            px-6
+                            py-3
+                            font-semibold
+                            transition-all
+                            duration-200
+                            ${
+                                selectedBlock ===
+                                "C"
+                                    ? `
+                                        border-green-600
+                                        bg-green-600
+                                        text-white
+                                        shadow-md
+                                      `
+                                    : `
+                                        border-gray-300
+                                        bg-white
+                                        text-gray-700
+                                        hover:border-green-500
+                                        hover:bg-green-50
+                                      `
+                            }
+                        `}
+                    >
+
+                        C Block
+
+                        <span className="ml-2 text-xs opacity-80">
+
+                            Ishan
+
+                        </span>
 
                     </button>
 
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            </div>
 
-                    {/* Search */}
 
-                    <div>
+            {/* ==================================================
+                Phase / Tower Selection
+            ================================================== */}
+
+            <div className="rounded-2xl bg-white p-6 shadow">
+
+                <div className="mb-4">
+
+                    <h2 className="text-lg font-bold text-gray-800">
+
+                        {selectedBlock === "B"
+                            ? "Select Phase"
+                            : selectedBlock === "C"
+                                ? "Select Tower"
+                                : "A Block"}
+
+                    </h2>
+
+                    <p className="mt-1 text-sm text-gray-500">
+
+                        {selectedBlock === "A"
+                            ? "Amogh"
+                            : selectedBlock === "B"
+                                ? "Select Phase of B Block"
+                                : "C1 Tower"}
+
+                    </p>
+
+                </div>
+
+
+                <div className="flex flex-wrap gap-3">
+
+                    {/* A BLOCK */}
+
+                    {selectedBlock === "A" && (
+
+                        <button
+                            onClick={() =>
+                                handlePhaseChange(
+                                    "a"
+                                )
+                            }
+                            className={`
+                                rounded-xl
+                                border
+                                px-5
+                                py-3
+                                font-medium
+                                transition-all
+                                duration-200
+                                ${
+                                    selectedPhase ===
+                                    "a"
+                                        ? `
+                                            border-green-600
+                                            bg-green-600
+                                            text-white
+                                            shadow-md
+                                          `
+                                        : `
+                                            border-gray-300
+                                            bg-white
+                                            text-gray-700
+                                            hover:border-green-500
+                                            hover:bg-green-50
+                                          `
+                                }
+                            `}
+                        >
+
+                            A Block - Amogh
+
+                            <span className="ml-2 text-xs opacity-80">
+
+                                100 Flats
+
+                            </span>
+
+                        </button>
+
+                    )}
+
+
+                    {/* B PHASE 1 */}
+
+                    {selectedBlock === "B" && (
+
+                        <button
+                            onClick={() =>
+                                handlePhaseChange(
+                                    "phase1"
+                                )
+                            }
+                            className={`
+                                rounded-xl
+                                border
+                                px-5
+                                py-3
+                                font-medium
+                                transition-all
+                                duration-200
+                                ${
+                                    selectedPhase ===
+                                    "phase1"
+                                        ? `
+                                            border-green-600
+                                            bg-green-600
+                                            text-white
+                                            shadow-md
+                                          `
+                                        : `
+                                            border-gray-300
+                                            bg-white
+                                            text-gray-700
+                                            hover:border-green-500
+                                            hover:bg-green-50
+                                          `
+                                }
+                            `}
+                        >
+
+                            B Block - Phase 1
+
+                            <span className="ml-2 text-xs opacity-80">
+
+                                40 Flats
+
+                            </span>
+
+                        </button>
+
+                    )}
+
+
+                    {/* B PHASE 2 */}
+
+                    {selectedBlock === "B" && (
+
+                        <button
+                            onClick={() =>
+                                handlePhaseChange(
+                                    "phase2"
+                                )
+                            }
+                            className={`
+                                rounded-xl
+                                border
+                                px-5
+                                py-3
+                                font-medium
+                                transition-all
+                                duration-200
+                                ${
+                                    selectedPhase ===
+                                    "phase2"
+                                        ? `
+                                            border-green-600
+                                            bg-green-600
+                                            text-white
+                                            shadow-md
+                                          `
+                                        : `
+                                            border-gray-300
+                                            bg-white
+                                            text-gray-700
+                                            hover:border-green-500
+                                            hover:bg-green-50
+                                          `
+                                }
+                            `}
+                        >
+
+                            B Block - Phase 2
+
+                            <span className="ml-2 text-xs opacity-80">
+
+                                B1 Tower · 40 Flats
+
+                            </span>
+
+                        </button>
+
+                    )}
+
+
+                    {/* C1 */}
+
+                    {selectedBlock === "C" && (
+
+                        <button
+                            onClick={() =>
+                                handlePhaseChange(
+                                    "c1"
+                                )
+                            }
+                            className={`
+                                rounded-xl
+                                border
+                                px-5
+                                py-3
+                                font-medium
+                                transition-all
+                                duration-200
+                                ${
+                                    selectedPhase ===
+                                    "c1"
+                                        ? `
+                                            border-green-600
+                                            bg-green-600
+                                            text-white
+                                            shadow-md
+                                          `
+                                        : `
+                                            border-gray-300
+                                            bg-white
+                                            text-gray-700
+                                            hover:border-green-500
+                                            hover:bg-green-50
+                                          `
+                                }
+                            `}
+                        >
+
+                            C1 Tower
+
+                            <span className="ml-2 text-xs opacity-80">
+
+                                90 Flats
+
+                            </span>
+
+                        </button>
+
+                    )}
+
+                </div>
+
+            </div>
+
+
+            {/* ==================================================
+                Current Section
+            ================================================== */}
+
+            <div className="rounded-2xl bg-white p-6 shadow">
+
+                <div className="mb-5">
+
+                    <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
+
+                        <div>
+
+                            <h2 className="text-xl font-bold text-gray-800">
+
+                                {currentSectionName}
+
+                            </h2>
+
+                            <p className="text-sm text-gray-500">
+
+                                Tower: {currentTowerName}
+
+                            </p>
+
+                        </div>
+
+                        <div className="text-sm text-gray-500">
+
+                            Total Flats:{" "}
+
+                            <span className="font-semibold text-gray-800">
+
+                                {currentTowerTotal}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {/* ==================================================
+                    Floor Buttons
+                ================================================== */}
+
+                <div className="flex flex-wrap gap-2">
+
+                    {floors.map(
+                        (floor) => (
+
+                            <button
+                                key={floor}
+                                onClick={() =>
+                                    setSelectedFloor(
+                                        floor
+                                    )
+                                }
+                                className={`
+                                    rounded-lg
+                                    border
+                                    px-4
+                                    py-2
+                                    text-sm
+                                    font-semibold
+                                    transition-all
+                                    duration-200
+                                    ${
+                                        selectedFloor ===
+                                        floor
+                                            ? `
+                                                border-blue-600
+                                                bg-blue-600
+                                                text-white
+                                                shadow-md
+                                              `
+                                            : `
+                                                border-gray-300
+                                                bg-white
+                                                text-gray-700
+                                                hover:border-blue-400
+                                                hover:bg-blue-50
+                                              `
+                                    }
+                                `}
+                            >
+
+                                Floor {floor}
+
+                            </button>
+
+                        )
+                    )}
+
+                </div>
+
+            </div>
+
+
+            {/* ==================================================
+                Floor Statistics
+            ================================================== */}
+
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+
+                <div className="rounded-2xl bg-white p-5 shadow">
+
+                    <p className="text-sm text-gray-500">
+
+                        Total Flats
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-gray-800">
+
+                        {totalFlats}
+
+                    </p>
+
+                </div>
+
+
+                <div className="rounded-2xl bg-green-50 p-5">
+
+                    <p className="text-sm text-green-700">
+
+                        Available
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-green-700">
+
+                        {availableFlats}
+
+                    </p>
+
+                </div>
+
+
+                <div className="rounded-2xl bg-red-50 p-5">
+
+                    <p className="text-sm text-red-700">
+
+                        Booked
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-red-700">
+
+                        {bookedFlats}
+
+                    </p>
+
+                </div>
+
+
+                <div className="rounded-2xl bg-yellow-50 p-5">
+
+                    <p className="text-sm text-yellow-700">
+
+                        Hold
+
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-yellow-700">
+
+                        {holdFlats}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {/* ==================================================
+                Search + Status
+            ================================================== */}
+
+            <div className="rounded-2xl bg-white p-5 shadow">
+
+                <div className="flex flex-col gap-4 md:flex-row md:items-end">
+
+                    <div className="flex-1">
 
                         <label className="mb-1 block text-sm font-medium text-gray-600">
-                            Search
+
+                            Search Flat
+
                         </label>
 
                         <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
@@ -403,7 +1209,7 @@ function Residential() {
                                         e.target.value
                                     )
                                 }
-                                placeholder="Search flat..."
+                                placeholder="Search flat number..."
                                 className="ml-2 w-full outline-none"
                             />
 
@@ -411,167 +1217,13 @@ function Residential() {
 
                     </div>
 
-                    {/* Tower */}
 
-                    <div>
-
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
-                            Tower
-                        </label>
-
-                        <select
-                            value={selectedTower}
-                            onChange={(e) =>
-                                setSelectedTower(
-                                    e.target.value as Tower
-                                )
-                            }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
-                        >
-
-                            <option value="all">
-                                All Towers
-                            </option>
-
-                            <option value="A">
-                                Tower A - Amogh
-                            </option>
-
-                            <option value="B">
-                                Tower B - Ekash
-                            </option>
-
-                            <option value="C">
-                                Tower C - Ishan
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    {/* Floor */}
-
-                    <div>
+                    <div className="w-full md:w-52">
 
                         <label className="mb-1 block text-sm font-medium text-gray-600">
-                            Floor
-                        </label>
 
-                        <select
-                            value={selectedFloor}
-                            onChange={(e) =>
-                                setSelectedFloor(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
-                        >
-
-                            <option value="all">
-                                All Floors
-                            </option>
-
-                            {floors.map(
-                                (floor) => (
-
-                                    <option
-                                        key={String(floor)}
-                                        value={String(floor)}
-                                    >
-                                        Floor {floor}
-                                    </option>
-
-                                )
-                            )}
-
-                        </select>
-
-                    </div>
-
-                    {/* Unit Type */}
-
-                    <div>
-
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
-                            Unit Type
-                        </label>
-
-                        <select
-                            value={selectedType}
-                            onChange={(e) =>
-                                setSelectedType(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
-                        >
-
-                            <option value="all">
-                                All Types
-                            </option>
-
-                            {unitTypes.map(
-                                (type) => (
-
-                                    <option
-                                        key={String(type)}
-                                        value={String(type)}
-                                    >
-                                        {String(type)}
-                                    </option>
-
-                                )
-                            )}
-
-                        </select>
-
-                    </div>
-
-                    {/* Facing */}
-
-                    <div>
-
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
-                            Facing
-                        </label>
-
-                        <select
-                            value={selectedFacing}
-                            onChange={(e) =>
-                                setSelectedFacing(
-                                    e.target.value
-                                )
-                            }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
-                        >
-
-                            <option value="all">
-                                All Facing
-                            </option>
-
-                            {facings.map(
-                                (facing) => (
-
-                                    <option
-                                        key={String(facing)}
-                                        value={String(facing)}
-                                    >
-                                        {String(facing)}
-                                    </option>
-
-                                )
-                            )}
-
-                        </select>
-
-                    </div>
-
-                    {/* Status */}
-
-                    <div>
-
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
                             Status
+
                         </label>
 
                         <select
@@ -604,104 +1256,169 @@ function Residential() {
 
                     </div>
 
+
+                    <button
+                        onClick={resetFilters}
+                        className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 font-medium text-gray-600 transition hover:bg-gray-100"
+                    >
+
+                        <RotateCcw
+                            size={16}
+                        />
+
+                        Reset
+
+                    </button>
+
                 </div>
 
             </div>
 
+
             {/* ==================================================
-                Inventory
+                Floor Map
             ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-6 text-center">
 
-                    <div>
+                    <h2 className="text-xl font-bold text-gray-800">
 
-                        <h2 className="text-xl font-bold text-gray-800">
-                            Residential Flats
-                        </h2>
+                        {currentSectionName}
 
-                        <p className="mt-1 text-sm text-gray-500">
-                            Showing{" "}
-                            {filteredFlats.length}{" "}
-                            of{" "}
-                            {residentialFlats.length}{" "}
-                            flats
-                        </p>
+                    </h2>
 
-                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+
+                        Floor {selectedFloor}
+
+                    </p>
 
                 </div>
+
 
                 {filteredFlats.length === 0 ? (
 
                     <div className="rounded-xl border border-dashed p-12 text-center">
 
                         <p className="text-lg font-semibold text-gray-700">
+
                             No Flats Found
+
                         </p>
 
                         <p className="mt-1 text-sm text-gray-500">
-                            Try changing your filters.
+
+                            Try changing your search or status filter.
+
                         </p>
 
                         <button
                             onClick={resetFilters}
-                            className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700"
+                            className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-green-700"
                         >
+
                             Reset Filters
+
                         </button>
 
                     </div>
 
                 ) : (
 
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10">
+                    <div
+                        className={`
+                            grid
+                            grid-cols-2
+                            gap-4
+                            sm:grid-cols-3
+                            md:grid-cols-4
+                            lg:grid-cols-5
+                            xl:grid-cols-6
+                        `}
+                    >
 
                         {filteredFlats.map(
                             (flat: any) => {
 
                                 const status =
-                                    getFlatStatus(flat);
+                                    getFlatStatus(
+                                        flat
+                                    );
 
                                 return (
 
-                                    <div
+                                    <button
                                         key={flat.id}
+                                        type="button"
                                         onClick={() =>
-                                            openFlat(flat)
+                                            openFlat(
+                                                flat
+                                            )
                                         }
-                                        className={`cursor-pointer rounded-lg border p-3 text-center transition hover:scale-105 hover:shadow-md ${getStatusColor(
-                                            status
-                                        )}`}
+                                        className={`
+                                            flex
+                                            min-h-[150px]
+                                            w-full
+                                            flex-col
+                                            items-center
+                                            justify-center
+                                            rounded-xl
+                                            border-2
+                                            p-4
+                                            text-center
+                                            cursor-pointer
+
+                                            transition-all
+                                            duration-200
+                                            ease-out
+
+                                            hover:-translate-y-1
+                                            hover:scale-[1.02]
+                                            hover:shadow-lg
+
+                                            focus:outline-none
+                                            focus:ring-2
+                                            focus:ring-green-400
+                                            focus:ring-offset-2
+
+                                            ${getStatusColor(
+                                                status
+                                            )}
+                                        `}
                                     >
 
-                                        <p className="font-bold">
+                                        <span className="text-lg font-bold">
+
                                             {flat.number}
-                                        </p>
 
-                                        <p className="mt-1 text-xs">
-                                            Floor {flat.floor}
-                                        </p>
+                                        </span>
 
-                                        <p className="mt-1 text-xs">
+
+                                        <span className="mt-2 text-xs">
+
                                             {flat.area}
-                                        </p>
 
-                                        <p className="mt-1 text-xs">
+                                        </span>
+
+
+                                        <span className="mt-1 text-xs">
+
                                             {flat.type}
-                                        </p>
 
-                                        <p className="mt-1 text-xs">
-                                            {flat.facing}
-                                        </p>
+                                        </span>
 
-                                        <p className="mt-1 text-xs font-semibold capitalize">
-                                            {status}
-                                        </p>
 
-                                    </div>
+                                        <span className="mt-3 text-xs font-bold tracking-wide">
+
+                                            {getStatusText(
+                                                status
+                                            )}
+
+                                        </span>
+
+                                    </button>
 
                                 );
 
@@ -712,37 +1429,42 @@ function Residential() {
 
                 )}
 
-            </div>
 
-            {/* ==================================================
-                Legend
-            ================================================== */}
+                {/* ==================================================
+                    Legend
+                ================================================== */}
 
-            <div className="rounded-2xl bg-white p-5 shadow">
-
-                <div className="flex flex-wrap gap-6 text-sm">
+                <div className="mt-8 flex flex-wrap gap-6 border-t pt-5 text-sm">
 
                     <div className="flex items-center gap-2">
 
                         <div className="h-4 w-4 rounded bg-green-500" />
 
-                        Available
+                        <span>
+                            Available
+                        </span>
 
                     </div>
+
 
                     <div className="flex items-center gap-2">
 
                         <div className="h-4 w-4 rounded bg-yellow-400" />
 
-                        Hold
+                        <span>
+                            Hold
+                        </span>
 
                     </div>
+
 
                     <div className="flex items-center gap-2">
 
                         <div className="h-4 w-4 rounded bg-red-500" />
 
-                        Booked
+                        <span>
+                            Booked
+                        </span>
 
                     </div>
 
@@ -750,18 +1472,29 @@ function Residential() {
 
             </div>
 
+
             {/* ==================================================
                 Flat Modal
             ================================================== */}
 
             <FlatModal
-                isOpen={isFlatModalOpen}
-                onClose={() =>
-                    setIsFlatModalOpen(false)
+                isOpen={
+                    isFlatModalOpen
                 }
-                flat={selectedFlat}
-                onSave={handleSaveFlat}
-                onBooking={handleBooking}
+                onClose={() =>
+                    setIsFlatModalOpen(
+                        false
+                    )
+                }
+                flat={
+                    selectedFlat
+                }
+                onSave={
+                    handleSaveFlat
+                }
+                onBooking={
+                    handleBooking
+                }
             />
 
         </div>
