@@ -1,0 +1,195 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+  SALES_MANAGER
+  TEAM_LEADER
+  SALES_EXECUTIVE
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  BOOKED
+  SOLD
+  HOLD
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum DocumentType {
+  REQUISITION_LETTER
+  AGREEMENT_TO_SELL
+  TRIPARTITE_AGREEMENT
+}
+
+enum DocumentStatus {
+  PENDING
+  GENERATED
+  UPLOADED
+  GIVEN
+  COMPLETED
+}
+
+model Admin {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  passwordHash String
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications Notification[]
+
+  @@map("admins")
+}
+
+model Employee {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  phone        String?
+  passwordHash String
+  role         UserRole       @default(SALES_EXECUTIVE)
+  status       EmployeeStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings      Booking[]
+  notifications Notification[]
+
+  @@map("employees")
+}
+
+model Customer {
+  id      String  @id @default(cuid())
+  name    String
+  email   String?
+  phone   String
+  address String?
+  city    String?
+  state   String?
+  aadhar  String?
+  pan     String?
+  notes   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@map("customers")
+}
+
+model Property {
+  id           String         @id @default(cuid())
+  propertyCode String         @unique
+  name         String
+  type         PropertyType
+  status       PropertyStatus @default(AVAILABLE)
+
+  block      String?
+  floor      String?
+  unitNumber String?
+
+  area        Float?
+  price       Float?
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@map("properties")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  bookingCode String        @unique
+  customerId  String
+  propertyId  String
+  employeeId  String?
+  status      BookingStatus @default(PENDING)
+  bookingDate DateTime      @default(now())
+  amount      Float?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer  Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  property  Property          @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  employee  Employee?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  documents BookingDocument[]
+
+  @@index([customerId])
+  @@index([propertyId])
+  @@index([employeeId])
+  @@map("bookings")
+}
+
+model BookingDocument {
+  id          String         @id @default(cuid())
+  bookingId   String
+  type        DocumentType
+  status      DocumentStatus @default(PENDING)
+  fileName    String?
+  fileUrl     String?
+  generatedAt DateTime?
+  uploadedAt  DateTime?
+  givenAt     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, type])
+  @@index([bookingId])
+  @@map("booking_documents")
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  adminId    String?
+  employeeId String?
+  createdAt  DateTime @default(now())
+
+  admin    Admin?    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([employeeId])
+  @@map("notifications")
+}

@@ -5,81 +5,34 @@ import { useBooking } from "../../context/BookingContext";
 
 import { residentialFlats } from "../../data/floorData";
 
-import FlatModal from "./FlatModal";
-
 // ======================================================
 // Types
 // ======================================================
 
+type MapType = "residential" | "commercial";
+
 type Block = "A" | "B" | "C";
 
-type Section =
+type ResidentialSection =
     | "a"
     | "b-phase1"
     | "b-phase2"
     | "c1";
 
-// ======================================================
-// Status Color
-// ======================================================
+type CommercialPhase =
+    | "phase1"
+    | "phase2";
 
-function getColor(status: string) {
-
-    switch (status) {
-
-        case "available":
-
-            return `
-                bg-green-100
-                border-green-400
-                text-green-700
-                hover:bg-green-200
-                hover:border-green-500
-            `;
-
-        case "booked":
-
-            return `
-                bg-red-100
-                border-red-400
-                text-red-700
-                hover:bg-red-200
-                hover:border-red-500
-            `;
-
-        case "hold":
-
-            return `
-                bg-yellow-100
-                border-yellow-400
-                text-yellow-700
-                hover:bg-yellow-200
-                hover:border-yellow-500
-            `;
-
-        default:
-
-            return `
-                bg-gray-100
-                border-gray-300
-                text-gray-700
-                hover:bg-gray-200
-            `;
-
-    }
-
-}
+type CommercialFloor = 0 | 1 | 2 | 3;
 
 // ======================================================
-// Section Name
+// Residential Section Name
 // ======================================================
 
-function getSectionName(
-    section: Section
+function getResidentialSectionName(
+    section: ResidentialSection
 ) {
-
     switch (section) {
-
         case "a":
             return "A Block - Amogh";
 
@@ -94,27 +47,21 @@ function getSectionName(
 
         default:
             return "";
-
     }
-
 }
 
 // ======================================================
-// Tower Name
+// Residential Tower Name
 // ======================================================
 
 function getTowerName(
-    section: Section
+    section: ResidentialSection
 ) {
-
     switch (section) {
-
         case "a":
             return "Amogh";
 
         case "b-phase1":
-            return "Ekash";
-
         case "b-phase2":
             return "Ekash";
 
@@ -123,9 +70,149 @@ function getTowerName(
 
         default:
             return "";
+    }
+}
 
+// ======================================================
+// Residential PDF
+// ======================================================
+
+function getResidentialMapFile(
+    section: ResidentialSection
+) {
+    switch (section) {
+        case "a":
+            return "/floor-maps/cluster-a.pdf";
+
+        case "b-phase1":
+        case "b-phase2":
+            return "/floor-maps/cluster-b.pdf";
+
+        case "c1":
+            return "/floor-maps/cluster-c.pdf";
+
+        default:
+            return "/floor-maps/cluster-a.pdf";
+    }
+}
+
+// ======================================================
+// Commercial PDF
+// ======================================================
+//
+// IMPORTANT:
+//
+// Commercial PDF 1:
+// Ground + First Floor
+//
+// Commercial PDF 2:
+// Second + Third Floor
+//
+// #page=1 / #page=2 is used so the selected
+// floor opens directly in the PDF viewer.
+// ======================================================
+
+function getCommercialMapFile(
+    floor: CommercialFloor
+) {
+    switch (floor) {
+        case 0:
+            return "/floor-maps/commercial-g1.pdf#page=1";
+
+        case 1:
+            return "/floor-maps/commercial-g1.pdf#page=2";
+
+        case 2:
+            return "/floor-maps/commercial-23.pdf#page=1";
+
+        case 3:
+            return "/floor-maps/commercial-23.pdf#page=2";
+
+        default:
+            return "/floor-maps/commercial-g1.pdf#page=1";
+    }
+}
+
+// ======================================================
+// Commercial Floor Name
+// ======================================================
+
+function getCommercialFloorName(
+    floor: CommercialFloor
+) {
+    switch (floor) {
+        case 0:
+            return "Ground Floor";
+
+        case 1:
+            return "1st Floor";
+
+        case 2:
+            return "2nd Floor";
+
+        case 3:
+            return "3rd Floor";
+
+        default:
+            return "Ground Floor";
+    }
+}
+
+// ======================================================
+// Commercial Shop Count
+// ======================================================
+
+function getCommercialShopCount(
+    phase: CommercialPhase,
+    floor: CommercialFloor
+) {
+    // ----------------------------------------------
+    // Phase 1
+    // ----------------------------------------------
+
+    if (phase === "phase1") {
+        return 54;
     }
 
+    // ----------------------------------------------
+    // Phase 2
+    // ----------------------------------------------
+
+    switch (floor) {
+        case 0:
+            return 84;
+
+        case 1:
+            return 87;
+
+        case 2:
+            return 87;
+
+        case 3:
+            return 86;
+
+        default:
+            return 0;
+    }
+}
+
+// ======================================================
+// Commercial Phase Name
+// ======================================================
+
+function getCommercialPhaseName(
+    phase: CommercialPhase
+) {
+    switch (phase) {
+        case "phase1":
+            return "Phase 1 Commercial Hub";
+
+        case "phase2":
+            return "Phase 2 Commercial 1";
+
+        default:
+            return "";
+    }
 }
 
 // ======================================================
@@ -135,56 +222,49 @@ function getTowerName(
 function FloorMap() {
 
     // ==================================================
-    // Selected Block
+    // Main Map Type
+    // ==================================================
+
+    const [mapType, setMapType] =
+        useState<MapType>("residential");
+
+    // ==================================================
+    // Residential State
     // ==================================================
 
     const [selectedBlock, setSelectedBlock] =
         useState<Block>("A");
 
-    // ==================================================
-    // Selected Section
-    // ==================================================
-
     const [selectedSection, setSelectedSection] =
-        useState<Section>("a");
-
-    // ==================================================
-    // Selected Floor
-    // ==================================================
+        useState<ResidentialSection>("a");
 
     const [selectedFloor, setSelectedFloor] =
         useState<number>(1);
 
     // ==================================================
-    // Selected Flat
+    // Commercial State
     // ==================================================
 
-    const [selectedFlat, setSelectedFlat] =
-        useState<any>(null);
+    const [selectedCommercialPhase, setSelectedCommercialPhase] =
+        useState<CommercialPhase>("phase1");
 
-    const [isOpen, setIsOpen] =
-        useState(false);
-
-    // ==================================================
-    // Booking Context
-    // ==================================================
-
-    const {
-        addBooking,
-        bookings,
-    } = useBooking();
+    const [selectedCommercialFloor, setSelectedCommercialFloor] =
+        useState<CommercialFloor>(0);
 
     // ==================================================
-    // Flat Context
+    // Context
     // ==================================================
 
     const {
         flatStatuses,
-        updateFlatStatus,
     } = useFlat();
 
+    const {
+        bookings,
+    } = useBooking();
+
     // ==================================================
-    // Current Tower
+    // Current Residential Tower
     // ==================================================
 
     const currentTower =
@@ -197,83 +277,64 @@ function FloorMap() {
                     : "C1";
 
     // ==================================================
-    // Current Flats
+    // Residential Flats
     // ==================================================
 
-    const sectionFlats =
-        useMemo(() => {
+    const sectionFlats = useMemo(() => {
 
-            return residentialFlats.filter(
-                (flat) =>
-                    flat.tower ===
-                    currentTower
-            );
+        return residentialFlats.filter(
+            (flat) =>
+                flat.tower === currentTower
+        );
 
-        }, [currentTower]);
+    }, [currentTower]);
 
     // ==================================================
-    // Available Floors
+    // Residential Available Floors
     // ==================================================
 
-    const availableFloors =
-        useMemo(() => {
+    const availableFloors = useMemo(() => {
 
-            return Array.from(
-                new Set(
-                    sectionFlats.map(
-                        (flat) =>
-                            flat.floor
-                    )
+        return Array.from(
+            new Set(
+                sectionFlats.map(
+                    (flat) => flat.floor
                 )
-            ).sort(
-                (a, b) =>
-                    a - b
-            );
+            )
+        ).sort(
+            (a, b) => a - b
+        );
 
-        }, [sectionFlats]);
+    }, [sectionFlats]);
 
     // ==================================================
-    // Actual Flat Status
+    // Residential Flat Status
     // ==================================================
 
-    const getFlatStatus = (
-        flat: any
-    ) => {
+    const getFlatStatus = (flat: any) => {
 
-        // ----------------------------------------------
-        // Booking
-        // ----------------------------------------------
+        const booking = bookings.find(
+            (booking: any) => {
 
-        const booking =
-            bookings.find(
-                (booking: any) => {
+                const sameNumber =
+                    booking.flatNumber ===
+                    flat.number;
 
-                    const sameNumber =
-                        booking.flatNumber ===
-                        flat.number;
+                const sameTower =
+                    !booking.tower ||
+                    booking.tower ===
+                    flat.tower;
 
-                    const sameTower =
-                        !booking.tower ||
-                        booking.tower ===
-                        flat.tower;
-
-                    return (
-                        sameNumber &&
-                        sameTower
-                    );
-
-                }
-            );
+                return (
+                    sameNumber &&
+                    sameTower
+                );
+            }
+        );
 
         if (booking) {
-
             return "booked";
-
         }
-
-        // ----------------------------------------------
-        // Saved Status
-        // ----------------------------------------------
 
         const savedStatus =
             flatStatuses.find(
@@ -292,40 +353,35 @@ function FloorMap() {
                         sameNumber &&
                         sameTower
                     );
-
                 }
             );
 
         if (savedStatus) {
-
             return savedStatus.status;
-
         }
 
         return flat.status;
-
     };
 
     // ==================================================
-    // Selected Floor Flats
+    // Residential Current Floor
     // ==================================================
 
-    const floorFlats =
-        useMemo(() => {
+    const floorFlats = useMemo(() => {
 
-            return sectionFlats.filter(
-                (flat) =>
-                    flat.floor ===
-                    selectedFloor
-            );
+        return sectionFlats.filter(
+            (flat) =>
+                flat.floor ===
+                selectedFloor
+        );
 
-        }, [
-            sectionFlats,
-            selectedFloor,
-        ]);
+    }, [
+        sectionFlats,
+        selectedFloor,
+    ]);
 
     // ==================================================
-    // Floor Statistics
+    // Residential Statistics
     // ==================================================
 
     const availableCount =
@@ -350,207 +406,117 @@ function FloorMap() {
         ).length;
 
     // ==================================================
-    // Open Flat
+    // Commercial Statistics
     // ==================================================
 
-    const openFlat = (
-        flat: any
-    ) => {
-
-        setSelectedFlat({
-
-            ...flat,
-
-            status:
-                getFlatStatus(flat),
-
-        });
-
-        setIsOpen(true);
-
-    };
-
-    // ==================================================
-    // Save Flat
-    // ==================================================
-
-    const handleSaveFlat = (
-        updatedFlat: any
-    ) => {
-
-        updateFlatStatus(
-            updatedFlat.number,
-            updatedFlat.status
+    const commercialTotal =
+        getCommercialShopCount(
+            selectedCommercialPhase,
+            selectedCommercialFloor
         );
 
-        setSelectedFlat({
-            ...updatedFlat,
-        });
+    // Currently the supplied commercial inventory
+    // starts with all shops available.
 
-        setIsOpen(false);
+    const commercialAvailable =
+        commercialTotal;
 
-    };
+    const commercialBooked = 0;
 
-    // ==================================================
-    // Booking
-    // ==================================================
-
-    const handleBooking = (
-        bookingData: any
-    ) => {
-
-        addBooking(
-            bookingData
-        );
-
-        updateFlatStatus(
-            bookingData.flatNumber,
-            "booked"
-        );
-
-        setSelectedFlat(
-            (prev: any) => {
-
-                if (!prev) {
-
-                    return prev;
-
-                }
-
-                return {
-
-                    ...prev,
-
-                    status: "booked",
-
-                };
-
-            }
-        );
-
-        setIsOpen(false);
-
-    };
+    const commercialHold = 0;
 
     // ==================================================
-    // Block Change
+    // Residential Block Change
     // ==================================================
 
     const handleBlockChange = (
         block: Block
     ) => {
 
-        setSelectedBlock(
-            block
-        );
+        setSelectedBlock(block);
 
-        setSelectedFloor(
-            1
-        );
+        setSelectedFloor(1);
 
         if (block === "A") {
-
-            setSelectedSection(
-                "a"
-            );
-
+            setSelectedSection("a");
         }
 
         if (block === "B") {
-
-            setSelectedSection(
-                "b-phase1"
-            );
-
+            setSelectedSection("b-phase1");
         }
 
         if (block === "C") {
-
-            setSelectedSection(
-                "c1"
-            );
-
+            setSelectedSection("c1");
         }
-
     };
 
     // ==================================================
-    // Flat Box
+    // Commercial Phase Change
     // ==================================================
 
-    const renderFlat = (
-        flat: any
+    const handleCommercialPhaseChange = (
+        phase: CommercialPhase
     ) => {
 
-        const status =
-            getFlatStatus(flat);
-
-        return (
-
-            <button
-                key={flat.id}
-                type="button"
-                onClick={() =>
-                    openFlat(flat)
-                }
-                className={`
-h-[125px]
-w-[180px]
-min-w-[180px]
-max-w-[180px]
-                    rounded-xl
-                    border-2
-                    p-3
-
-                    text-center
-
-                    cursor-pointer
-
-                    transition-all
-                    duration-200
-                    ease-out
-
-                    hover:-translate-y-1
-                    hover:scale-[1.02]
-                    hover:shadow-lg
-
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-green-400
-                    focus:ring-offset-2
-
-                    ${getColor(status)}
-                `}
-            >
-
-                <p className="text-base font-bold">
-
-                    {flat.number}
-
-                </p>
-
-                <p className="mt-2 text-xs">
-
-                    {flat.area}
-
-                </p>
-
-                <p className="mt-1 text-xs">
-
-                    {flat.type}
-
-                </p>
-
-                <p className="mt-2 text-xs font-bold uppercase">
-
-                    {status}
-
-                </p>
-
-            </button>
-
+        setSelectedCommercialPhase(
+            phase
         );
 
+        setSelectedCommercialFloor(
+            0
+        );
+    };
+
+    // ==================================================
+    // Current Map File
+    // ==================================================
+
+    const mapFile =
+        mapType === "residential"
+            ? getResidentialMapFile(
+                selectedSection
+            )
+            : getCommercialMapFile(
+                selectedCommercialFloor
+            );
+
+    // ==================================================
+    // Current Map Title
+    // ==================================================
+
+    const mapTitle =
+        mapType === "residential"
+            ? getResidentialSectionName(
+                selectedSection
+            )
+            : getCommercialPhaseName(
+                selectedCommercialPhase
+            );
+
+    // ==================================================
+    // Current Map Subtitle
+    // ==================================================
+
+    const mapSubtitle =
+        mapType === "residential"
+            ? `${getTowerName(
+                selectedSection
+            )} • Floor ${selectedFloor}`
+            : `${getCommercialFloorName(
+                selectedCommercialFloor
+            )}`;
+
+    // ==================================================
+    // Open Full Map
+    // ==================================================
+
+    const openFullMap = () => {
+
+        window.open(
+            mapFile,
+            "_blank",
+            "noopener,noreferrer"
+        );
     };
 
     // ==================================================
@@ -558,7 +524,6 @@ max-w-[180px]
     // ==================================================
 
     return (
-
         <div className="rounded-2xl bg-white p-6 shadow">
 
             {/* ==================================================
@@ -568,516 +533,876 @@ max-w-[180px]
             <div className="mb-6">
 
                 <h2 className="text-2xl font-bold text-gray-800">
-
-                    Residential Floor Map
-
+                    Floor Map
                 </h2>
 
                 <p className="mt-1 text-gray-500">
-
-                    {getSectionName(
-                        selectedSection
-                    )}
-
-                    {" • "}
-
-                    Floor {selectedFloor}
-
+                    {mapType === "residential"
+                        ? `${getResidentialSectionName(
+                            selectedSection
+                        )} • Floor ${selectedFloor}`
+                        : `${getCommercialPhaseName(
+                            selectedCommercialPhase
+                        )} • ${getCommercialFloorName(
+                            selectedCommercialFloor
+                        )}`}
                 </p>
 
             </div>
 
-
             {/* ==================================================
-                Block Selector
+                Residential / Commercial Toggle
             ================================================== */}
 
-            <div className="mb-5">
+            <div className="mb-6">
 
                 <p className="mb-2 text-sm font-medium text-gray-600">
-
-                    Select Block
-
+                    Select Property Type
                 </p>
 
                 <div className="flex flex-wrap gap-3">
 
-                    {(
-                        ["A", "B", "C"] as Block[]
-                    ).map(
-                        (block) => (
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setMapType(
+                                "residential"
+                            )
+                        }
+                        className={`
+                            rounded-lg
+                            border
+                            px-6
+                            py-2
+                            font-medium
+                            transition-all
+                            duration-200
+
+                            ${
+                                mapType ===
+                                "residential"
+
+                                    ? `
+                                        border-green-600
+                                        bg-green-600
+                                        text-white
+                                        shadow-md
+                                    `
+
+                                    : `
+                                        bg-white
+                                        text-gray-700
+                                        hover:bg-gray-100
+                                    `
+                            }
+                        `}
+                    >
+                        Residential
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setMapType(
+                                "commercial"
+                            )
+                        }
+                        className={`
+                            rounded-lg
+                            border
+                            px-6
+                            py-2
+                            font-medium
+                            transition-all
+                            duration-200
+
+                            ${
+                                mapType ===
+                                "commercial"
+
+                                    ? `
+                                        border-green-600
+                                        bg-green-600
+                                        text-white
+                                        shadow-md
+                                    `
+
+                                    : `
+                                        bg-white
+                                        text-gray-700
+                                        hover:bg-gray-100
+                                    `
+                            }
+                        `}
+                    >
+                        Commercial
+                    </button>
+
+                </div>
+
+            </div>
+
+            {/* ==================================================
+                RESIDENTIAL
+            ================================================== */}
+
+            {mapType === "residential" && (
+
+                <>
+
+                    {/* ==========================================
+                        Block Selector
+                    ========================================== */}
+
+                    <div className="mb-5">
+
+                        <p className="mb-2 text-sm font-medium text-gray-600">
+                            Select Block
+                        </p>
+
+                        <div className="flex flex-wrap gap-3">
+
+                            {(
+                                ["A", "B", "C"] as Block[]
+                            ).map(
+                                (block) => (
+
+                                    <button
+                                        key={block}
+                                        type="button"
+                                        onClick={() =>
+                                            handleBlockChange(
+                                                block
+                                            )
+                                        }
+                                        className={`
+                                            rounded-lg
+                                            px-5
+                                            py-2
+                                            font-medium
+                                            transition-all
+                                            duration-200
+
+                                            ${
+                                                selectedBlock ===
+                                                block
+
+                                                    ? `
+                                                        bg-green-600
+                                                        text-white
+                                                        shadow-md
+                                                    `
+
+                                                    : `
+                                                        border
+                                                        bg-white
+                                                        text-gray-700
+                                                        hover:bg-gray-100
+                                                    `
+                                            }
+                                        `}
+                                    >
+
+                                        Block {block}
+
+                                        {" - "}
+
+                                        {
+                                            block === "A"
+                                                ? "Amogh"
+                                                : block === "B"
+                                                    ? "Ekash"
+                                                    : "Ishan"
+                                        }
+
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    {/* ==========================================
+                        B Phase Selector
+                    ========================================== */}
+
+                    {selectedBlock === "B" && (
+
+                        <div className="mb-5">
+
+                            <p className="mb-2 text-sm font-medium text-gray-600">
+                                Select Phase
+                            </p>
+
+                            <div className="flex flex-wrap gap-3">
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+
+                                        setSelectedSection(
+                                            "b-phase1"
+                                        );
+
+                                        setSelectedFloor(1);
+
+                                    }}
+                                    className={`
+                                        rounded-lg
+                                        border
+                                        px-5
+                                        py-2
+                                        font-medium
+                                        transition-all
+                                        duration-200
+
+                                        ${
+                                            selectedSection ===
+                                            "b-phase1"
+
+                                                ? `
+                                                    border-green-600
+                                                    bg-green-600
+                                                    text-white
+                                                    shadow-md
+                                                `
+
+                                                : `
+                                                    bg-white
+                                                    text-gray-700
+                                                    hover:bg-gray-100
+                                                `
+                                        }
+                                    `}
+                                >
+
+                                    Phase 1
+
+                                    <span className="ml-2 text-xs opacity-80">
+                                        40 Flats
+                                    </span>
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+
+                                        setSelectedSection(
+                                            "b-phase2"
+                                        );
+
+                                        setSelectedFloor(1);
+
+                                    }}
+                                    className={`
+                                        rounded-lg
+                                        border
+                                        px-5
+                                        py-2
+                                        font-medium
+                                        transition-all
+                                        duration-200
+
+                                        ${
+                                            selectedSection ===
+                                            "b-phase2"
+
+                                                ? `
+                                                    border-green-600
+                                                    bg-green-600
+                                                    text-white
+                                                    shadow-md
+                                                `
+
+                                                : `
+                                                    bg-white
+                                                    text-gray-700
+                                                    hover:bg-gray-100
+                                                `
+                                        }
+                                    `}
+                                >
+
+                                    Phase 2 / B1
+
+                                    <span className="ml-2 text-xs opacity-80">
+                                        40 Flats
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* ==========================================
+                        A Info
+                    ========================================== */}
+
+                    {selectedBlock === "A" && (
+
+                        <div className="mb-5">
+
+                            <p className="mb-2 text-sm font-medium text-gray-600">
+                                Tower
+                            </p>
+
+                            <div
+                                className="
+                                    inline-flex
+                                    items-center
+                                    rounded-lg
+                                    border
+                                    border-green-600
+                                    bg-green-600
+                                    px-5
+                                    py-2
+                                    font-medium
+                                    text-white
+                                    shadow-md
+                                "
+                            >
+
+                                A Block - Amogh
+
+                                <span className="ml-2 text-xs opacity-80">
+                                    100 Flats
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* ==========================================
+                        C Info
+                    ========================================== */}
+
+                    {selectedBlock === "C" && (
+
+                        <div className="mb-5">
+
+                            <p className="mb-2 text-sm font-medium text-gray-600">
+                                Tower
+                            </p>
+
+                            <div
+                                className="
+                                    inline-flex
+                                    items-center
+                                    rounded-lg
+                                    border
+                                    border-green-600
+                                    bg-green-600
+                                    px-5
+                                    py-2
+                                    font-medium
+                                    text-white
+                                    shadow-md
+                                "
+                            >
+
+                                C1 Tower
+
+                                <span className="ml-2 text-xs opacity-80">
+                                    90 Flats
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    )}
+
+
+                    {/* ==========================================
+                        Residential Floor Selector
+                    ========================================== */}
+
+                    <div className="mb-6">
+
+                        <p className="mb-2 text-sm font-medium text-gray-600">
+                            Select Floor
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+
+                            {availableFloors.map(
+                                (floor) => (
+
+                                    <button
+                                        key={floor}
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedFloor(
+                                                floor
+                                            )
+                                        }
+                                        className={`
+                                            rounded-lg
+                                            px-4
+                                            py-2
+                                            text-sm
+                                            font-medium
+                                            transition-all
+                                            duration-200
+
+                                            ${
+                                                selectedFloor ===
+                                                floor
+
+                                                    ? `
+                                                        bg-blue-600
+                                                        text-white
+                                                        shadow-md
+                                                    `
+
+                                                    : `
+                                                        border
+                                                        bg-white
+                                                        text-gray-700
+                                                        hover:bg-gray-100
+                                                    `
+                                            }
+                                        `}
+                                    >
+
+                                        Floor {floor}
+
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    {/* ==========================================
+                        Residential Statistics
+                    ========================================== */}
+
+                    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+
+                        <div className="rounded-xl bg-gray-50 p-4">
+
+                            <p className="text-sm text-gray-500">
+                                Total Flats
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-gray-800">
+                                {floorFlats.length}
+                            </p>
+
+                        </div>
+
+                        <div className="rounded-xl bg-green-50 p-4">
+
+                            <p className="text-sm text-green-600">
+                                Available
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-green-700">
+                                {availableCount}
+                            </p>
+
+                        </div>
+
+                        <div className="rounded-xl bg-red-50 p-4">
+
+                            <p className="text-sm text-red-600">
+                                Booked
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-red-700">
+                                {bookedCount}
+                            </p>
+
+                        </div>
+
+                        <div className="rounded-xl bg-yellow-50 p-4">
+
+                            <p className="text-sm text-yellow-600">
+                                Hold
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-yellow-700">
+                                {holdCount}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </>
+            )}
+
+
+            {/* ==================================================
+                COMMERCIAL
+            ================================================== */}
+
+            {mapType === "commercial" && (
+
+                <>
+
+                    {/* ==========================================
+                        Commercial Phase
+                    ========================================== */}
+
+                    <div className="mb-5">
+
+                        <p className="mb-2 text-sm font-medium text-gray-600">
+                            Select Phase
+                        </p>
+
+                        <div className="flex flex-wrap gap-3">
 
                             <button
-                                key={block}
                                 type="button"
                                 onClick={() =>
-                                    handleBlockChange(
-                                        block
+                                    handleCommercialPhaseChange(
+                                        "phase1"
                                     )
                                 }
                                 className={`
                                     rounded-lg
+                                    border
                                     px-5
                                     py-2
                                     font-medium
                                     transition-all
                                     duration-200
 
-                                    ${selectedBlock ===
-                                        block
-                                        ? `
+                                    ${
+                                        selectedCommercialPhase ===
+                                        "phase1"
+
+                                            ? `
+                                                border-green-600
                                                 bg-green-600
                                                 text-white
                                                 shadow-md
-                                              `
-                                        : `
-                                                border
+                                            `
+
+                                            : `
                                                 bg-white
                                                 text-gray-700
                                                 hover:bg-gray-100
-                                              `
+                                            `
                                     }
                                 `}
                             >
 
-                                Block {block}
+                                Phase 1
 
-                                {" - "}
-
-                                {block === "A"
-                                    ? "Amogh"
-                                    : block === "B"
-                                        ? "Ekash"
-                                        : "Ishan"}
+                                <span className="ml-2 text-xs opacity-80">
+                                    216 Shops
+                                </span>
 
                             </button>
 
-                        )
-                    )}
-
-                </div>
-
-            </div>
-
-
-            {/* ==================================================
-                Phase / Tower Selector
-            ================================================== */}
-
-            {selectedBlock === "B" && (
-
-                <div className="mb-5">
-
-                    <p className="mb-2 text-sm font-medium text-gray-600">
-
-                        Select Phase
-
-                    </p>
-
-                    <div className="flex flex-wrap gap-3">
-
-                        <button
-                            type="button"
-                            onClick={() => {
-
-                                setSelectedSection(
-                                    "b-phase1"
-                                );
-
-                                setSelectedFloor(
-                                    1
-                                );
-
-                            }}
-                            className={`
-                                rounded-lg
-                                border
-                                px-5
-                                py-2
-                                font-medium
-                                transition-all
-                                duration-200
-
-                                ${selectedSection ===
-                                    "b-phase1"
-                                    ? `
-                                            border-green-600
-                                            bg-green-600
-                                            text-white
-                                            shadow-md
-                                          `
-                                    : `
-                                            bg-white
-                                            text-gray-700
-                                            hover:bg-gray-100
-                                          `
-                                }
-                            `}
-                        >
-
-                            Phase 1
-
-                            <span className="ml-2 text-xs opacity-80">
-
-                                40 Flats
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            onClick={() => {
-
-                                setSelectedSection(
-                                    "b-phase2"
-                                );
-
-                                setSelectedFloor(
-                                    1
-                                );
-
-                            }}
-                            className={`
-                                rounded-lg
-                                border
-                                px-5
-                                py-2
-                                font-medium
-                                transition-all
-                                duration-200
-
-                                ${selectedSection ===
-                                    "b-phase2"
-                                    ? `
-                                            border-green-600
-                                            bg-green-600
-                                            text-white
-                                            shadow-md
-                                          `
-                                    : `
-                                            bg-white
-                                            text-gray-700
-                                            hover:bg-gray-100
-                                          `
-                                }
-                            `}
-                        >
-
-                            Phase 2 / B1
-
-                            <span className="ml-2 text-xs opacity-80">
-
-                                40 Flats
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            )}
-
-
-            {selectedBlock === "C" && (
-
-                <div className="mb-5">
-
-                    <p className="mb-2 text-sm font-medium text-gray-600">
-
-                        Tower
-
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={() => {
-
-                            setSelectedSection(
-                                "c1"
-                            );
-
-                            setSelectedFloor(
-                                1
-                            );
-
-                        }}
-                        className="
-                            rounded-lg
-                            border
-                            border-green-600
-                            bg-green-600
-                            px-5
-                            py-2
-                            font-medium
-                            text-white
-                            shadow-md
-                        "
-                    >
-
-                        C1 Tower
-
-                        <span className="ml-2 text-xs opacity-80">
-
-                            90 Flats
-
-                        </span>
-
-                    </button>
-
-                </div>
-
-            )}
-
-
-            {selectedBlock === "A" && (
-
-                <div className="mb-5">
-
-                    <p className="mb-2 text-sm font-medium text-gray-600">
-
-                        Tower
-
-                    </p>
-
-                    <div className="
-                        inline-flex
-                        items-center
-                        rounded-lg
-                        border
-                        border-green-600
-                        bg-green-600
-                        px-5
-                        py-2
-                        font-medium
-                        text-white
-                        shadow-md
-                    ">
-
-                        A Block - Amogh
-
-                        <span className="ml-2 text-xs opacity-80">
-
-                            100 Flats
-
-                        </span>
-
-                    </div>
-
-                </div>
-
-            )}
-
-
-            {/* ==================================================
-                Floor Selector
-            ================================================== */}
-
-            <div className="mb-6">
-
-                <p className="mb-2 text-sm font-medium text-gray-600">
-
-                    Select Floor
-
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-
-                    {availableFloors.map(
-                        (floor) => (
 
                             <button
-                                key={floor}
                                 type="button"
                                 onClick={() =>
-                                    setSelectedFloor(
-                                        floor
+                                    handleCommercialPhaseChange(
+                                        "phase2"
                                     )
                                 }
                                 className={`
                                     rounded-lg
-                                    px-4
+                                    border
+                                    px-5
                                     py-2
-                                    text-sm
                                     font-medium
                                     transition-all
                                     duration-200
 
-                                    ${selectedFloor ===
-                                        floor
-                                        ? `
-                                                bg-blue-600
+                                    ${
+                                        selectedCommercialPhase ===
+                                        "phase2"
+
+                                            ? `
+                                                border-green-600
+                                                bg-green-600
                                                 text-white
                                                 shadow-md
-                                              `
-                                        : `
-                                                border
+                                            `
+
+                                            : `
                                                 bg-white
                                                 text-gray-700
                                                 hover:bg-gray-100
-                                              `
+                                            `
                                     }
                                 `}
                             >
 
-                                Floor {floor}
+                                Phase 2 / Commercial 1
+
+                                <span className="ml-2 text-xs opacity-80">
+                                    344 Shops
+                                </span>
 
                             </button>
 
-                        )
-                    )}
+                        </div>
 
-                </div>
+                    </div>
 
-            </div>
+
+                    {/* ==========================================
+                        Commercial Floor
+                    ========================================== */}
+
+                    <div className="mb-6">
+
+                        <p className="mb-2 text-sm font-medium text-gray-600">
+                            Select Floor
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+
+                            {(
+                                [
+                                    {
+                                        value: 0,
+                                        label: "Ground Floor",
+                                    },
+                                    {
+                                        value: 1,
+                                        label: "1st Floor",
+                                    },
+                                    {
+                                        value: 2,
+                                        label: "2nd Floor",
+                                    },
+                                    {
+                                        value: 3,
+                                        label: "3rd Floor",
+                                    },
+                                ] as {
+                                    value: CommercialFloor;
+                                    label: string;
+                                }[]
+                            ).map(
+                                (floor) => (
+
+                                    <button
+                                        key={floor.value}
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedCommercialFloor(
+                                                floor.value
+                                            )
+                                        }
+                                        className={`
+                                            rounded-lg
+                                            px-4
+                                            py-2
+                                            text-sm
+                                            font-medium
+                                            transition-all
+                                            duration-200
+
+                                            ${
+                                                selectedCommercialFloor ===
+                                                floor.value
+
+                                                    ? `
+                                                        bg-blue-600
+                                                        text-white
+                                                        shadow-md
+                                                    `
+
+                                                    : `
+                                                        border
+                                                        bg-white
+                                                        text-gray-700
+                                                        hover:bg-gray-100
+                                                    `
+                                            }
+                                        `}
+                                    >
+
+                                        {floor.label}
+
+                                    </button>
+
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
+
+                    {/* ==========================================
+                        Commercial Statistics
+                    ========================================== */}
+
+                    <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+
+                        <div className="rounded-xl bg-gray-50 p-4">
+
+                            <p className="text-sm text-gray-500">
+                                Total Shops
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-gray-800">
+                                {commercialTotal}
+                            </p>
+
+                        </div>
+
+
+                        <div className="rounded-xl bg-green-50 p-4">
+
+                            <p className="text-sm text-green-600">
+                                Available
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-green-700">
+                                {commercialAvailable}
+                            </p>
+
+                        </div>
+
+
+                        <div className="rounded-xl bg-red-50 p-4">
+
+                            <p className="text-sm text-red-600">
+                                Booked
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-red-700">
+                                {commercialBooked}
+                            </p>
+
+                        </div>
+
+
+                        <div className="rounded-xl bg-yellow-50 p-4">
+
+                            <p className="text-sm text-yellow-600">
+                                Hold
+                            </p>
+
+                            <p className="mt-1 text-2xl font-bold text-yellow-700">
+                                {commercialHold}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </>
+            )}
 
 
             {/* ==================================================
-                Floor Summary
+                ORIGINAL CLIENT MAP
             ================================================== */}
 
-            <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div
+                className="
+                    overflow-hidden
+                    rounded-2xl
+                    border
+                    border-gray-200
+                    bg-gray-50
+                "
+            >
 
-                <div className="rounded-xl bg-gray-50 p-4">
+                {/* ==============================================
+                    Map Header
+                ============================================== */}
 
-                    <p className="text-sm text-gray-500">
+                <div
+                    className="
+                        flex
+                        flex-col
+                        gap-3
+                        border-b
+                        bg-white
+                        p-4
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                    "
+                >
 
-                        Total Flats
+                    <div>
 
-                    </p>
+                        <h3 className="text-lg font-bold text-gray-800">
+                            {mapTitle}
+                        </h3>
 
-                    <p className="mt-1 text-2xl font-bold text-gray-800">
+                        <p className="text-sm text-gray-500">
+                            {mapSubtitle}
+                        </p>
 
-                        {floorFlats.length}
-
-                    </p>
-
-                </div>
-
-
-                <div className="rounded-xl bg-green-50 p-4">
-
-                    <p className="text-sm text-green-600">
-
-                        Available
-
-                    </p>
-
-                    <p className="mt-1 text-2xl font-bold text-green-700">
-
-                        {availableCount}
-
-                    </p>
-
-                </div>
-
-
-                <div className="rounded-xl bg-red-50 p-4">
-
-                    <p className="text-sm text-red-600">
-
-                        Booked
-
-                    </p>
-
-                    <p className="mt-1 text-2xl font-bold text-red-700">
-
-                        {bookedCount}
-
-                    </p>
-
-                </div>
+                    </div>
 
 
-                <div className="rounded-xl bg-yellow-50 p-4">
-
-                    <p className="text-sm text-yellow-600">
-
-                        Hold
-
-                    </p>
-
-                    <p className="mt-1 text-2xl font-bold text-yellow-700">
-
-                        {holdCount}
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            {/* ==================================================
-                Floor Map
-            ================================================== */}
-
-            <div className="overflow-x-auto rounded-2xl border bg-gray-50 p-5">
-
-                <div className="mb-6 text-center">
-
-                    <h3 className="text-lg font-bold text-gray-800">
-
-                        {getSectionName(
-                            selectedSection
-                        )}
-
-                    </h3>
-
-                    <p className="text-sm text-gray-500">
-
-                        {getTowerName(
-                            selectedSection
-                        )}
-
-                        {" • "}
-
-                        Floor {selectedFloor}
-
-                    </p>
-
-                </div>
-
-
-                <div className="mx-auto min-w-[850px] max-w-[1100px]">
-
-                    {/* ==================================================
-                        Flat Layout
-                    ================================================== */}
-                    <div
+                    <button
+                        type="button"
+                        onClick={openFullMap}
                         className="
-        flex
-        flex-wrap
-        justify-center
-        gap-4
-        mx-auto
-        max-w-[1100px]
-    "
+                            rounded-lg
+                            bg-green-600
+                            px-4
+                            py-2
+                            text-sm
+                            font-semibold
+                            text-white
+                            shadow-sm
+                            transition-all
+                            duration-200
+                            hover:bg-green-700
+                            hover:shadow-md
+                        "
                     >
+                        Open Full Map
+                    </button>
 
-                        {floorFlats.map(
-                            renderFlat
-                        )}
-
-                    </div>
+                </div>
 
 
-                    {/* ==================================================
-                        Common Passage
-                    ================================================== */}
+                {/* ==============================================
+                    PDF Viewer
+                ============================================== */}
 
-                    <div className="my-4 flex h-12 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white">
+                <div className="h-[700px] w-full bg-gray-200">
 
-                        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-400">
-
-                            Common Passage
-
-                        </span>
-
-                    </div>
+                    <iframe
+                        key={mapFile}
+                        src={mapFile}
+                        title={
+                            mapType === "residential"
+                                ? `${getResidentialSectionName(
+                                    selectedSection
+                                )} - Floor ${selectedFloor}`
+                                : `${getCommercialPhaseName(
+                                    selectedCommercialPhase
+                                )} - ${getCommercialFloorName(
+                                    selectedCommercialFloor
+                                )}`
+                        }
+                        className="h-full w-full border-0"
+                    />
 
                 </div>
 
@@ -1085,74 +1410,35 @@ max-w-[180px]
 
 
             {/* ==================================================
-                Legend
+                Map Information
             ================================================== */}
 
-            <div className="mt-6 flex flex-wrap gap-6 text-sm">
+            <div
+                className="
+                    mt-4
+                    rounded-xl
+                    border
+                    border-blue-100
+                    bg-blue-50
+                    p-4
+                "
+            >
 
-                <div className="flex items-center gap-2">
+                <p className="text-sm text-blue-800">
 
-                    <div className="h-4 w-4 rounded bg-green-500" />
+                    <span className="font-semibold">
+                        Floor Plan:
+                    </span>{" "}
 
-                    <span>
-                        Available
-                    </span>
+                    Original client-provided architectural
+                    floor plan is displayed without modification.
 
-                </div>
-
-
-                <div className="flex items-center gap-2">
-
-                    <div className="h-4 w-4 rounded bg-yellow-400" />
-
-                    <span>
-                        Hold
-                    </span>
-
-                </div>
-
-
-                <div className="flex items-center gap-2">
-
-                    <div className="h-4 w-4 rounded bg-red-500" />
-
-                    <span>
-                        Booked
-                    </span>
-
-                </div>
+                </p>
 
             </div>
-
-
-            {/* ==================================================
-                Flat Modal
-            ================================================== */}
-
-            <FlatModal
-                isOpen={
-                    isOpen
-                }
-                onClose={() =>
-                    setIsOpen(
-                        false
-                    )
-                }
-                onSave={
-                    handleSaveFlat
-                }
-                onBooking={
-                    handleBooking
-                }
-                flat={
-                    selectedFlat
-                }
-            />
 
         </div>
-
     );
-
 }
 
 export default FloorMap;
