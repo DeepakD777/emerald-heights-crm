@@ -55,6 +55,14 @@ enum DocumentStatus {
   COMPLETED
 }
 
+enum NocStatus {
+  PENDING
+  IN_PROCESS
+  APPROVED
+  REJECTED
+  ISSUED
+}
+
 model Admin {
   id           String  @id @default(cuid())
   name         String
@@ -115,10 +123,15 @@ model Property {
   type         PropertyType
   status       PropertyStatus @default(AVAILABLE)
 
+  // Inventory hierarchy
+  phase      String?
   block      String?
+  tower      String?
   floor      String?
+  series     String?
   unitNumber String?
 
+  // Property details
   area        Float?
   price       Float?
   description String?
@@ -128,6 +141,13 @@ model Property {
 
   bookings Booking[]
 
+  // Useful for Residential / Commercial inventory filtering
+  @@index([type])
+  @@index([status])
+  @@index([type, phase])
+  @@index([type, phase, tower])
+  @@index([type, phase, tower, floor])
+  @@index([unitNumber])
   @@map("properties")
 }
 
@@ -149,6 +169,7 @@ model Booking {
   property  Property          @relation(fields: [propertyId], references: [id], onDelete: Restrict)
   employee  Employee?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   documents BookingDocument[]
+  nocs      Noc[]
 
   @@index([customerId])
   @@index([propertyId])
@@ -157,18 +178,21 @@ model Booking {
 }
 
 model BookingDocument {
-  id          String         @id @default(cuid())
-  bookingId   String
-  type        DocumentType
-  status      DocumentStatus @default(PENDING)
-  fileName    String?
-  fileUrl     String?
+  id        String         @id @default(cuid())
+  bookingId String
+  type      DocumentType
+  status    DocumentStatus @default(PENDING)
+
+  fileName String?
+  fileUrl  String?
+
   generatedAt DateTime?
   uploadedAt  DateTime?
   givenAt     DateTime?
   completedAt DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
@@ -177,14 +201,42 @@ model BookingDocument {
   @@map("booking_documents")
 }
 
+model Noc {
+  id        String @id @default(cuid())
+  nocCode   String @unique
+  bookingId String
+
+  isRequired Boolean   @default(false)
+  status     NocStatus @default(PENDING)
+
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  issuedAt    DateTime?
+
+  remarks  String?
+  fileName String?
+  fileUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("nocs")
+}
+
 model Notification {
-  id         String   @id @default(cuid())
-  title      String
-  message    String
-  isRead     Boolean  @default(false)
+  id      String  @id @default(cuid())
+  title   String
+  message String
+  isRead  Boolean @default(false)
+
   adminId    String?
   employeeId String?
-  createdAt  DateTime @default(now())
+
+  createdAt DateTime @default(now())
 
   admin    Admin?    @relation(fields: [adminId], references: [id], onDelete: Cascade)
   employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)

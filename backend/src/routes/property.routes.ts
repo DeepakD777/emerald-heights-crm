@@ -8,12 +8,32 @@ import {
     deleteProperty,
 } from "../controllers/property.controller";
 
+import {
+    authenticate,
+} from "../middleware/auth.middleware";
+
+import {
+    requireAdmin,
+} from "../middleware/role.middleware";
+
 const router = Router();
 
-router.get("/", getProperties);
-router.get("/:id", getPropertyById);
-router.post("/", createProperty);
-router.put("/:id", updateProperty);
-router.delete("/:id", deleteProperty);
+// =========================
+// VIEW ACCESS
+// Admin + Employee
+// =========================
+
+router.get("/", authenticate, getProperties);
+router.get("/:id", authenticate, getPropertyById);
+
+
+// =========================
+// ADMIN ONLY
+// Create / Update / Delete
+// =========================
+
+router.post("/", authenticate, requireAdmin, createProperty);
+router.put("/:id", authenticate, requireAdmin, updateProperty);
+router.delete("/:id", authenticate, requireAdmin, deleteProperty);
 
 export default router;

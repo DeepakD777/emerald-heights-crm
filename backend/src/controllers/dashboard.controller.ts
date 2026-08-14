@@ -10,16 +10,32 @@ export const getDashboardSummary = async (
       totalEmployees,
       activeEmployees,
       totalCustomers,
+
       totalProperties,
       availableProperties,
+      holdProperties,
       bookedProperties,
       soldProperties,
+
+      totalResidential,
+      availableResidential,
+      holdResidential,
+      bookedResidential,
+      soldResidential,
+
+      totalCommercial,
+      availableCommercial,
+      holdCommercial,
+      bookedCommercial,
+      soldCommercial,
+
       totalBookings,
       pendingBookings,
       confirmedBookings,
       completedBookings,
       cancelledBookings,
     ] = await Promise.all([
+      // Employees
       prisma.employee.count(),
 
       prisma.employee.count({
@@ -28,13 +44,21 @@ export const getDashboardSummary = async (
         },
       }),
 
+      // Customers
       prisma.customer.count(),
 
+      // All Properties
       prisma.property.count(),
 
       prisma.property.count({
         where: {
           status: "AVAILABLE",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          status: "HOLD",
         },
       }),
 
@@ -50,6 +74,77 @@ export const getDashboardSummary = async (
         },
       }),
 
+      // Residential
+      prisma.property.count({
+        where: {
+          type: "RESIDENTIAL",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "RESIDENTIAL",
+          status: "AVAILABLE",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "RESIDENTIAL",
+          status: "HOLD",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "RESIDENTIAL",
+          status: "BOOKED",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "RESIDENTIAL",
+          status: "SOLD",
+        },
+      }),
+
+      // Commercial
+      prisma.property.count({
+        where: {
+          type: "COMMERCIAL",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "COMMERCIAL",
+          status: "AVAILABLE",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "COMMERCIAL",
+          status: "HOLD",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "COMMERCIAL",
+          status: "BOOKED",
+        },
+      }),
+
+      prisma.property.count({
+        where: {
+          type: "COMMERCIAL",
+          status: "SOLD",
+        },
+      }),
+
+      // Bookings
       prisma.booking.count(),
 
       prisma.booking.count({
@@ -83,8 +178,9 @@ export const getDashboardSummary = async (
       },
     });
 
-    res.json({
+    return res.json({
       success: true,
+
       data: {
         employees: {
           total: totalEmployees,
@@ -98,8 +194,25 @@ export const getDashboardSummary = async (
         properties: {
           total: totalProperties,
           available: availableProperties,
+          hold: holdProperties,
           booked: bookedProperties,
           sold: soldProperties,
+
+          residential: {
+            total: totalResidential,
+            available: availableResidential,
+            hold: holdResidential,
+            booked: bookedResidential,
+            sold: soldResidential,
+          },
+
+          commercial: {
+            total: totalCommercial,
+            available: availableCommercial,
+            hold: holdCommercial,
+            booked: bookedCommercial,
+            sold: soldCommercial,
+          },
         },
 
         bookings: {
@@ -111,16 +224,21 @@ export const getDashboardSummary = async (
         },
 
         revenue: {
-          totalBookingAmount: amountSummary._sum.amount ?? 0,
+          totalBookingAmount:
+            amountSummary._sum.amount ?? 0,
         },
       },
     });
   } catch (error) {
-    console.error("Dashboard summary error:", error);
+    console.error(
+      "Dashboard summary error:",
+      error
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard summary",
+      message:
+        "Failed to fetch dashboard summary",
     });
   }
 };

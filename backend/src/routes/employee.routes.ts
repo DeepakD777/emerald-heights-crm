@@ -8,12 +8,18 @@ import {
   deleteEmployee,
 } from "../controllers/employee.controller";
 
+import { authenticate } from "../middleware/auth.middleware";
+import { requireAdmin } from "../middleware/role.middleware";
+
 const router = Router();
 
-router.get("/", getEmployees);
-router.get("/:id", getEmployeeById);
-router.post("/", createEmployee);
-router.put("/:id", updateEmployee);
-router.delete("/:id", deleteEmployee);
+// Admin + Employee can view
+router.get("/", authenticate, getEmployees);
+router.get("/:id", authenticate, getEmployeeById);
+
+// Admin only
+router.post("/", authenticate, requireAdmin, createEmployee);
+router.put("/:id", authenticate, requireAdmin, updateEmployee);
+router.delete("/:id", authenticate, requireAdmin, deleteEmployee);
 
 export default router;
