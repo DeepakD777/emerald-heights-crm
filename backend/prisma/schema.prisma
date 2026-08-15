@@ -123,6 +123,9 @@ model Property {
   type         PropertyType
   status       PropertyStatus @default(AVAILABLE)
 
+  // Fine Dine reservation/locking
+  isFineDine Boolean @default(false)
+
   // Inventory hierarchy
   phase      String?
   block      String?
@@ -141,9 +144,10 @@ model Property {
 
   bookings Booking[]
 
-  // Useful for Residential / Commercial inventory filtering
+  // Inventory filtering indexes
   @@index([type])
   @@index([status])
+  @@index([isFineDine])
   @@index([type, phase])
   @@index([type, phase, tower])
   @@index([type, phase, tower, floor])

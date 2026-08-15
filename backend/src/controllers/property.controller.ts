@@ -73,6 +73,30 @@ const optionalText = (
   return String(value).trim();
 };
 
+const normalizeBoolean = (
+  value: unknown
+): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized === "true") {
+    return true;
+  }
+
+  if (normalized === "false") {
+    return false;
+  }
+
+  throw new Error(
+    `Invalid boolean value: ${value}`
+  );
+};
+
 // ======================================================
 // GET /api/properties
 // ======================================================
@@ -85,6 +109,7 @@ export const getProperties = async (
     const {
       type,
       status,
+      isFineDine,
       phase,
       block,
       tower,
@@ -103,6 +128,11 @@ export const getProperties = async (
           status:
             status !== undefined
               ? normalizePropertyStatus(status)
+              : undefined,
+
+          isFineDine:
+            isFineDine !== undefined
+              ? normalizeBoolean(isFineDine)
               : undefined,
 
           phase:
@@ -239,6 +269,7 @@ export const createProperty = async (
       name,
       type,
       status,
+      isFineDine,
 
       phase,
       block,
@@ -293,6 +324,27 @@ export const createProperty = async (
         ? normalizePropertyStatus(status)
         : PropertyStatus.AVAILABLE;
 
+    const normalizedFineDine =
+      isFineDine !== undefined
+        ? normalizeBoolean(isFineDine)
+        : false;
+
+    if (
+      normalizedFineDine &&
+      (
+        normalizedStatus ===
+          PropertyStatus.BOOKED ||
+        normalizedStatus ===
+          PropertyStatus.SOLD
+      )
+    ) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "Booked or sold property cannot be reserved for Fine Dine",
+      });
+    }
+
     const property =
       await prisma.property.create({
         data: {
@@ -307,6 +359,9 @@ export const createProperty = async (
 
           status:
             normalizedStatus,
+
+          isFineDine:
+            normalizedFineDine,
 
           phase:
             optionalText(phase),
@@ -389,6 +444,14 @@ export const updateProperty = async (
         where: {
           id: propertyId,
         },
+
+        include: {
+          bookings: {
+            select: {
+              id: true,
+            },
+          },
+        },
       });
 
     if (!existingProperty) {
@@ -404,6 +467,7 @@ export const updateProperty = async (
       name,
       type,
       status,
+      isFineDine,
 
       phase,
       block,
@@ -469,6 +533,48 @@ export const updateProperty = async (
     if (status !== undefined) {
       updateData.status =
         normalizePropertyStatus(status);
+    }
+
+    // --------------------------------------------------
+    // Fine Dine
+    // --------------------------------------------------
+
+    if (isFineDine !== undefined) {
+      const fineDineValue =
+        normalizeBoolean(isFineDine);
+
+      if (fineDineValue) {
+        const effectiveStatus =
+          updateData.status ??
+          existingProperty.status;
+
+        if (
+          effectiveStatus ===
+            PropertyStatus.BOOKED ||
+          effectiveStatus ===
+            PropertyStatus.SOLD
+        ) {
+          return res.status(409).json({
+            success: false,
+            message:
+              "Booked or sold property cannot be reserved for Fine Dine",
+          });
+        }
+
+        if (
+          existingProperty.bookings.length >
+          0
+        ) {
+          return res.status(409).json({
+            success: false,
+            message:
+              "Property with booking history cannot be reserved for Fine Dine",
+          });
+        }
+      }
+
+      updateData.isFineDine =
+        fineDineValue;
     }
 
     // --------------------------------------------------
@@ -542,7 +648,11 @@ export const updateProperty = async (
     return res.json({
       success: true,
       message:
-        "Property updated successfully",
+        updateData.isFineDine === true
+          ? "Property reserved for Fine Dine successfully"
+          : updateData.isFineDine === false
+            ? "Property released from Fine Dine successfully"
+            : "Property updated successfully",
       data: property,
     });
   } catch (error) {
@@ -568,12 +678,11 @@ export const updateProperty = async (
 // DELETE /api/properties/:id
 //
 // Safety:
-// AVAILABLE -> delete allowed
-// HOLD      -> delete allowed
+// Fine Dine -> blocked
 // BOOKED    -> blocked
 // SOLD      -> blocked
-//
-// Any property with booking history is also blocked.
+// Booking history -> blocked
+// AVAILABLE / HOLD without history -> allowed
 // ======================================================
 
 export const deleteProperty = async (
@@ -604,6 +713,14 @@ export const deleteProperty = async (
         success: false,
         message:
           "Property not found",
+      });
+    }
+
+    if (existingProperty.isFineDine) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "Fine Dine reserved property cannot be deleted. Release it from Fine Dine first.",
       });
     }
 
