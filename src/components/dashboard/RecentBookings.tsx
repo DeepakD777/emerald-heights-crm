@@ -1,32 +1,108 @@
 import {
     CheckCircle,
     Clock,
+    XCircle,
 } from "lucide-react";
 
-import { useBooking } from "../../context/BookingContext";
+import type {
+    Booking,
+} from "../../services/bookingService";
 
-function RecentBookings() {
-    const { bookings } = useBooking();
+type RecentBookingsProps = {
+    bookings: Booking[];
+};
 
-    // Latest bookings first
-    const recentBookings = [...bookings]
-        .sort((a, b) => {
-            const dateA = new Date(
-                a.bookingDate || ""
-            ).getTime();
+function RecentBookings({
+    bookings,
+}: RecentBookingsProps) {
 
-            const dateB = new Date(
-                b.bookingDate || ""
-            ).getTime();
+    const recentBookings =
+        [...bookings]
+            .sort((a, b) => {
 
-            return dateB - dateA;
-        })
-        .slice(0, 5);
+                const dateA =
+                    new Date(
+                        a.bookingDate ||
+                        ""
+                    ).getTime();
+
+                const dateB =
+                    new Date(
+                        b.bookingDate ||
+                        ""
+                    ).getTime();
+
+                return (
+                    dateB -
+                    dateA
+                );
+            })
+            .slice(
+                0,
+                5
+            );
+
+    const getStatusDisplay = (
+        status: string
+    ) => {
+
+        const normalized =
+            String(
+                status || ""
+            ).toLowerCase();
+
+        if (
+            normalized ===
+            "booked" ||
+            normalized ===
+            "confirmed"
+        ) {
+            return (
+                <span className="flex items-center gap-2 font-medium text-green-600">
+
+                    <CheckCircle
+                        size={18}
+                    />
+
+                    Booked
+
+                </span>
+            );
+        }
+
+        if (
+            normalized ===
+            "cancelled"
+        ) {
+            return (
+                <span className="flex items-center gap-2 font-medium text-red-600">
+
+                    <XCircle
+                        size={18}
+                    />
+
+                    Cancelled
+
+                </span>
+            );
+        }
+
+        return (
+            <span className="flex items-center gap-2 font-medium text-orange-500">
+
+                <Clock
+                    size={18}
+                />
+
+                {status ||
+                    "Pending"}
+
+            </span>
+        );
+    };
 
     return (
         <div className="rounded-2xl bg-white p-6 shadow">
-
-            {/* Header */}
 
             <div className="mb-6">
 
@@ -40,9 +116,8 @@ function RecentBookings() {
 
             </div>
 
-            {/* Empty State */}
-
-            {recentBookings.length === 0 ? (
+            {recentBookings.length ===
+            0 ? (
 
                 <div className="py-10 text-center text-gray-500">
                     No bookings found
@@ -89,83 +164,59 @@ function RecentBookings() {
                         <tbody>
 
                             {recentBookings.map(
-                                (booking) => (
+                                (
+                                    booking
+                                ) => (
 
                                     <tr
-                                        key={booking.id}
+                                        key={
+                                            booking.id
+                                        }
                                         className="border-b hover:bg-gray-50"
                                     >
 
-                                        {/* Customer */}
-
                                         <td className="py-4 font-medium">
-                                            {booking.customerName}
+                                            {
+                                                booking.customerName
+                                            }
                                         </td>
-
-                                        {/* Unit */}
 
                                         <td className="py-4">
-                                            {booking.flatNumber}
+                                            {
+                                                booking.flatNumber
+                                            }
                                         </td>
-
-                                        {/* Amount */}
 
                                         <td className="py-4 font-semibold">
                                             ₹
                                             {Number(
                                                 booking.bookingAmount ||
-                                                    0
+                                                0
                                             ).toLocaleString(
                                                 "en-IN"
                                             )}
                                         </td>
 
-                                        {/* Payment */}
-
                                         <td className="py-4">
-                                            {booking.paymentMode ||
-                                                "-"}
+                                            {
+                                                booking.paymentMode ||
+                                                "-"
+                                            }
                                         </td>
-
-                                        {/* Date */}
 
                                         <td className="py-4 text-sm text-gray-600">
-                                            {booking.bookingDate ||
-                                                "-"}
+                                            {
+                                                booking.bookingDate ||
+                                                "-"
+                                            }
                                         </td>
 
-                                        {/* Status */}
-
                                         <td className="py-4">
-
-                                            {booking.status ===
-                                            "booked" ? (
-
-                                                <span className="flex items-center gap-2 font-medium text-green-600">
-
-                                                    <CheckCircle
-                                                        size={18}
-                                                    />
-
-                                                    Booked
-
-                                                </span>
-
-                                            ) : (
-
-                                                <span className="flex items-center gap-2 font-medium text-orange-500">
-
-                                                    <Clock
-                                                        size={18}
-                                                    />
-
-                                                    {booking.status ||
-                                                        "Pending"}
-
-                                                </span>
-
-                                            )}
-
+                                            {
+                                                getStatusDisplay(
+                                                    booking.status
+                                                )
+                                            }
                                         </td>
 
                                     </tr>

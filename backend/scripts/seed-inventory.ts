@@ -6,7 +6,7 @@ import {
 } from "../src/generated/prisma/enums";
 
 // ======================================================
-// Types
+// TYPES
 // ======================================================
 
 type InventoryUnit = {
@@ -15,7 +15,7 @@ type InventoryUnit = {
 
     type: PropertyType;
 
-    phase: string;
+    phase?: string | null;
     block?: string | null;
     tower?: string | null;
     floor: string;
@@ -26,7 +26,7 @@ type InventoryUnit = {
 };
 
 // ======================================================
-// Helpers
+// HELPERS
 // ======================================================
 
 const units: InventoryUnit[] = [];
@@ -37,28 +37,102 @@ const addUnit = (
     units.push(unit);
 };
 
+const residentialUnitNumber = (
+    floor: number,
+    suffix: number
+) => {
+    return `${floor}${String(suffix).padStart(2, "0")}`;
+};
+
 // ======================================================
 // RESIDENTIAL
-//
-// B Block - Ekash
-//
-// Phase 1:
-// 101-104 ... 1001-1004
-//
-// Phase 2 / B1 Tower:
-// 105-108 ... 1005-1008
 // ======================================================
 
 const buildResidentialInventory = () => {
-    // ----------------------------------------------------
-    // B Block - Phase 1
-    // 10 Floors x 4 Flats = 40
-    // ----------------------------------------------------
 
-    for (let floor = 1; floor <= 10; floor++) {
-        for (let suffix = 1; suffix <= 4; suffix++) {
+    // ==================================================
+    // A BLOCK - AMOGH
+    //
+    // No Phase
+    // 10 Floors
+    // 10 Flats / Floor
+    // Total = 100
+    // ==================================================
+
+    for (
+        let floor = 1;
+        floor <= 10;
+        floor++
+    ) {
+        for (
+            let suffix = 1;
+            suffix <= 10;
+            suffix++
+        ) {
             const unitNumber =
-                `${floor}${String(suffix).padStart(2, "0")}`;
+                residentialUnitNumber(
+                    floor,
+                    suffix
+                );
+
+            addUnit({
+                propertyCode:
+                    `RES-A-${unitNumber}`,
+
+                name:
+                    `Flat ${unitNumber}`,
+
+                type:
+                    PropertyType.RESIDENTIAL,
+
+                phase:
+                    null,
+
+                block:
+                    "A Block",
+
+                tower:
+                    "Amogh",
+
+                floor:
+                    String(floor),
+
+                series:
+                    null,
+
+                unitNumber,
+
+                description:
+                    "A Block - Amogh",
+            });
+        }
+    }
+
+    // ==================================================
+    // B BLOCK - EKASH
+    //
+    // Internal Phase 1
+    // UI Label = B
+    //
+    // 10 Floors x 4 = 40
+    // 101-104 ... 1001-1004
+    // ==================================================
+
+    for (
+        let floor = 1;
+        floor <= 10;
+        floor++
+    ) {
+        for (
+            let suffix = 1;
+            suffix <= 4;
+            suffix++
+        ) {
+            const unitNumber =
+                residentialUnitNumber(
+                    floor,
+                    suffix
+                );
 
             addUnit({
                 propertyCode:
@@ -88,20 +162,36 @@ const buildResidentialInventory = () => {
                 unitNumber,
 
                 description:
-                    "B Block - Ekash - Phase 1",
+                    "B Block - Ekash - B",
             });
         }
     }
 
-    // ----------------------------------------------------
-    // B Block - Phase 2 / B1 Tower
-    // 10 Floors x 4 Flats = 40
-    // ----------------------------------------------------
+    // ==================================================
+    // B1
+    //
+    // Internal Phase 2
+    // UI Label = B1
+    //
+    // 10 Floors x 4 = 40
+    // 105-108 ... 1005-1008
+    // ==================================================
 
-    for (let floor = 1; floor <= 10; floor++) {
-        for (let suffix = 5; suffix <= 8; suffix++) {
+    for (
+        let floor = 1;
+        floor <= 10;
+        floor++
+    ) {
+        for (
+            let suffix = 5;
+            suffix <= 8;
+            suffix++
+        ) {
             const unitNumber =
-                `${floor}${String(suffix).padStart(2, "0")}`;
+                residentialUnitNumber(
+                    floor,
+                    suffix
+                );
 
             addUnit({
                 propertyCode:
@@ -131,7 +221,75 @@ const buildResidentialInventory = () => {
                 unitNumber,
 
                 description:
-                    "B Block - Phase 2 - B1 Tower",
+                    "B Block - Ekash - B1",
+            });
+        }
+    }
+
+    // ==================================================
+    // C1 TOWER - ISHAN
+    //
+    // No Phase
+    //
+    // Floor 1-5:
+    // 12 Flats x 5 = 60
+    //
+    // Floor 6-10:
+    // 6 Flats x 5 = 30
+    //
+    // Total = 90
+    // ==================================================
+
+    for (
+        let floor = 1;
+        floor <= 10;
+        floor++
+    ) {
+        const flatsOnFloor =
+            floor <= 5
+                ? 12
+                : 6;
+
+        for (
+            let suffix = 1;
+            suffix <= flatsOnFloor;
+            suffix++
+        ) {
+            const unitNumber =
+                residentialUnitNumber(
+                    floor,
+                    suffix
+                );
+
+            addUnit({
+                propertyCode:
+                    `RES-C1-${unitNumber}`,
+
+                name:
+                    `Flat ${unitNumber}`,
+
+                type:
+                    PropertyType.RESIDENTIAL,
+
+                phase:
+                    null,
+
+                block:
+                    "C1 Tower",
+
+                tower:
+                    "Ishan",
+
+                floor:
+                    String(floor),
+
+                series:
+                    null,
+
+                unitNumber,
+
+                description:
+                    "C1 Tower - Ishan",
             });
         }
     }
@@ -154,6 +312,7 @@ const addCommercialShop = ({
     series: string;
     shopNumber: string;
 }) => {
+
     const phaseCode =
         phase === "Phase 1"
             ? "P1"
@@ -184,7 +343,7 @@ const addCommercialShop = ({
             shopNumber,
 
         description:
-            `${tower} - ${phase} - ${floor}`,
+            `${tower} - ${floor}`,
     });
 };
 
@@ -196,24 +355,18 @@ const shopCode = (
 };
 
 // ======================================================
-// COMMERCIAL PHASE 1
+// COMMERCIAL
 //
-// Commercial Hub
+// Internal Phase 1
+// UI Label = Commercial
 //
-// Ground  A Series
-// First   B Series
-// Second  C Series
-// Third   D Series
-//
-// Each floor:
-// 01-40
-// 126-139
-//
-// 54 per floor
+// 54 Shops / Floor
+// 4 Floors
 // Total = 216
 // ======================================================
 
 const buildCommercialPhase1 = () => {
+
     const floors = [
         {
             floor: "Ground Floor",
@@ -233,18 +386,29 @@ const buildCommercialPhase1 = () => {
         },
     ];
 
-    for (const item of floors) {
-        // Main block 01-40
+    for (
+        const item of floors
+    ) {
+
+        // 01-40
         for (
             let number = 1;
             number <= 40;
             number++
         ) {
             addCommercialShop({
-                phase: "Phase 1",
-                tower: "Commercial Hub",
-                floor: item.floor,
-                series: item.series,
+                phase:
+                    "Phase 1",
+
+                tower:
+                    "Commercial",
+
+                floor:
+                    item.floor,
+
+                series:
+                    item.series,
+
                 shopNumber:
                     shopCode(
                         item.series,
@@ -253,17 +417,25 @@ const buildCommercialPhase1 = () => {
             });
         }
 
-        // Additional shops 126-139
+        // 126-139
         for (
             let number = 126;
             number <= 139;
             number++
         ) {
             addCommercialShop({
-                phase: "Phase 1",
-                tower: "Commercial Hub",
-                floor: item.floor,
-                series: item.series,
+                phase:
+                    "Phase 1",
+
+                tower:
+                    "Commercial",
+
+                floor:
+                    item.floor,
+
+                series:
+                    item.series,
+
                 shopNumber:
                     `${item.series}${number}`,
             });
@@ -272,38 +444,27 @@ const buildCommercialPhase1 = () => {
 };
 
 // ======================================================
-// COMMERCIAL PHASE 2
+// COMMERCIAL 1
 //
-// Commercial 1
+// Internal Phase 2
+// UI Label = Commercial 1
 //
-// Ground:
-// A41-A99
-// A101-A125
-// A100 DOES NOT EXIST
-// Total = 84
-//
-// First:
-// B41-B125
-// B140-B141
-// Total = 87
-//
-// Second:
-// C41-C125
-// C140-C141
-// Total = 87
-//
-// Third:
-// D41-D125
-// D140
-// Total = 86
+// Ground = 84
+// 1st = 87
+// 2nd = 87
+// 3rd = 86
 //
 // Total = 344
 // ======================================================
 
 const buildCommercialPhase2 = () => {
-    // ----------------------------------------------------
-    // Ground Floor - A Series
-    // ----------------------------------------------------
+
+    // --------------------------------------------------
+    // Ground Floor
+    // A41-A99
+    // A101-A125
+    // A100 does not exist
+    // --------------------------------------------------
 
     for (
         let number = 41;
@@ -311,16 +472,22 @@ const buildCommercialPhase2 = () => {
         number++
     ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "Ground Floor",
-            series: "A",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "Ground Floor",
+
+            series:
+                "A",
+
             shopNumber:
                 `A${number}`,
         });
     }
-
-    // A100 intentionally does NOT exist.
 
     for (
         let number = 101;
@@ -328,19 +495,27 @@ const buildCommercialPhase2 = () => {
         number++
     ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "Ground Floor",
-            series: "A",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "Ground Floor",
+
+            series:
+                "A",
+
             shopNumber:
                 `A${number}`,
         });
     }
 
-    // ----------------------------------------------------
-    // First Floor - B Series
+    // --------------------------------------------------
+    // First Floor
     // B41-B125 + B140-B141
-    // ----------------------------------------------------
+    // --------------------------------------------------
 
     for (
         let number = 41;
@@ -348,30 +523,51 @@ const buildCommercialPhase2 = () => {
         number++
     ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "1st Floor",
-            series: "B",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "1st Floor",
+
+            series:
+                "B",
+
             shopNumber:
                 `B${number}`,
         });
     }
 
-    for (const number of [140, 141]) {
+    for (
+        const number of [
+            140,
+            141,
+        ]
+    ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "1st Floor",
-            series: "B",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "1st Floor",
+
+            series:
+                "B",
+
             shopNumber:
                 `B${number}`,
         });
     }
 
-    // ----------------------------------------------------
-    // Second Floor - C Series
+    // --------------------------------------------------
+    // Second Floor
     // C41-C125 + C140-C141
-    // ----------------------------------------------------
+    // --------------------------------------------------
 
     for (
         let number = 41;
@@ -379,30 +575,51 @@ const buildCommercialPhase2 = () => {
         number++
     ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "2nd Floor",
-            series: "C",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "2nd Floor",
+
+            series:
+                "C",
+
             shopNumber:
                 `C${number}`,
         });
     }
 
-    for (const number of [140, 141]) {
+    for (
+        const number of [
+            140,
+            141,
+        ]
+    ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "2nd Floor",
-            series: "C",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "2nd Floor",
+
+            series:
+                "C",
+
             shopNumber:
                 `C${number}`,
         });
     }
 
-    // ----------------------------------------------------
-    // Third Floor - D Series
+    // --------------------------------------------------
+    // Third Floor
     // D41-D125 + D140
-    // ----------------------------------------------------
+    // --------------------------------------------------
 
     for (
         let number = 41;
@@ -410,26 +627,43 @@ const buildCommercialPhase2 = () => {
         number++
     ) {
         addCommercialShop({
-            phase: "Phase 2",
-            tower: "Commercial 1",
-            floor: "3rd Floor",
-            series: "D",
+            phase:
+                "Phase 2",
+
+            tower:
+                "Commercial 1",
+
+            floor:
+                "3rd Floor",
+
+            series:
+                "D",
+
             shopNumber:
                 `D${number}`,
         });
     }
 
     addCommercialShop({
-        phase: "Phase 2",
-        tower: "Commercial 1",
-        floor: "3rd Floor",
-        series: "D",
-        shopNumber: "D140",
+        phase:
+            "Phase 2",
+
+        tower:
+            "Commercial 1",
+
+        floor:
+            "3rd Floor",
+
+        series:
+            "D",
+
+        shopNumber:
+            "D140",
     });
 };
 
 // ======================================================
-// Build Inventory
+// BUILD INVENTORY
 // ======================================================
 
 buildResidentialInventory();
@@ -437,7 +671,7 @@ buildCommercialPhase1();
 buildCommercialPhase2();
 
 // ======================================================
-// Validation before database changes
+// GROUPS
 // ======================================================
 
 const residentialUnits =
@@ -454,50 +688,168 @@ const commercialUnits =
             PropertyType.COMMERCIAL
     );
 
+const residentialA =
+    residentialUnits.filter(
+        (unit) =>
+            unit.block ===
+            "A Block"
+    );
+
+const residentialB =
+    residentialUnits.filter(
+        (unit) =>
+            unit.block ===
+            "B Block"
+    );
+
+const residentialC1 =
+    residentialUnits.filter(
+        (unit) =>
+            unit.block ===
+            "C1 Tower"
+    );
+
+const residentialBSection =
+    residentialB.filter(
+        (unit) =>
+            unit.phase ===
+            "Phase 1"
+    );
+
+const residentialB1Section =
+    residentialB.filter(
+        (unit) =>
+            unit.phase ===
+            "Phase 2"
+    );
+
 const commercialPhase1 =
     commercialUnits.filter(
         (unit) =>
-            unit.phase === "Phase 1"
+            unit.phase ===
+            "Phase 1"
     );
 
 const commercialPhase2 =
     commercialUnits.filter(
         (unit) =>
-            unit.phase === "Phase 2"
+            unit.phase ===
+            "Phase 2"
     );
 
-// Expected active inventory:
+// ======================================================
+// VALIDATION
 //
-// Residential = 80
-// Commercial P1 = 216
-// Commercial P2 = 344
-// Total = 640
+// Residential:
+// A = 100
+// B = 40
+// B1 = 40
+// C1 = 90
+//
+// Total Residential = 270
+//
+// Commercial = 216
+// Commercial 1 = 344
+//
+// Total Commercial = 560
+//
+// Grand Total = 830
+// ======================================================
 
-if (residentialUnits.length !== 80) {
+if (
+    residentialA.length !==
+    100
+) {
     throw new Error(
-        `Residential inventory count incorrect. Expected 80, got ${residentialUnits.length}`
+        `A Block count incorrect. Expected 100, got ${residentialA.length}`
     );
 }
 
-if (commercialPhase1.length !== 216) {
+if (
+    residentialBSection.length !==
+    40
+) {
     throw new Error(
-        `Commercial Phase 1 count incorrect. Expected 216, got ${commercialPhase1.length}`
+        `B section count incorrect. Expected 40, got ${residentialBSection.length}`
     );
 }
 
-if (commercialPhase2.length !== 344) {
+if (
+    residentialB1Section.length !==
+    40
+) {
     throw new Error(
-        `Commercial Phase 2 count incorrect. Expected 344, got ${commercialPhase2.length}`
+        `B1 section count incorrect. Expected 40, got ${residentialB1Section.length}`
     );
 }
 
-if (units.length !== 640) {
+if (
+    residentialB.length !==
+    80
+) {
     throw new Error(
-        `Total inventory count incorrect. Expected 640, got ${units.length}`
+        `B Block count incorrect. Expected 80, got ${residentialB.length}`
     );
 }
 
-// Check duplicate property codes before DB
+if (
+    residentialC1.length !==
+    90
+) {
+    throw new Error(
+        `C1 Tower count incorrect. Expected 90, got ${residentialC1.length}`
+    );
+}
+
+if (
+    residentialUnits.length !==
+    270
+) {
+    throw new Error(
+        `Residential inventory count incorrect. Expected 270, got ${residentialUnits.length}`
+    );
+}
+
+if (
+    commercialPhase1.length !==
+    216
+) {
+    throw new Error(
+        `Commercial count incorrect. Expected 216, got ${commercialPhase1.length}`
+    );
+}
+
+if (
+    commercialPhase2.length !==
+    344
+) {
+    throw new Error(
+        `Commercial 1 count incorrect. Expected 344, got ${commercialPhase2.length}`
+    );
+}
+
+if (
+    commercialUnits.length !==
+    560
+) {
+    throw new Error(
+        `Commercial inventory count incorrect. Expected 560, got ${commercialUnits.length}`
+    );
+}
+
+if (
+    units.length !==
+    830
+) {
+    throw new Error(
+        `Total inventory count incorrect. Expected 830, got ${units.length}`
+    );
+}
+
+// ======================================================
+// DUPLICATE PROPERTY CODE CHECK
+// ======================================================
+
 const propertyCodes =
     units.map(
         (unit) =>
@@ -505,62 +857,182 @@ const propertyCodes =
     );
 
 const uniquePropertyCodes =
-    new Set(propertyCodes);
+    new Set(
+        propertyCodes
+    );
 
 if (
     uniquePropertyCodes.size !==
     propertyCodes.length
 ) {
     throw new Error(
-        "Duplicate propertyCode detected in seed inventory"
+        "Duplicate propertyCode detected in inventory"
     );
 }
 
 // ======================================================
-// Seed
+// SEED
 // ======================================================
 
-const seedInventory = async () => {
-    console.log(
-        "=========================================="
-    );
-    console.log(
-        "Emerald Heights Inventory Seed Starting"
-    );
+const seedInventory =
+    async () => {
+
     console.log(
         "=========================================="
     );
 
     console.log(
-        `Residential Units: ${residentialUnits.length}`
+        "Emerald Heights Final Inventory Seed"
     );
 
     console.log(
-        `Commercial Phase 1: ${commercialPhase1.length}`
+        "=========================================="
     );
 
     console.log(
-        `Commercial Phase 2: ${commercialPhase2.length}`
+        `A Block - Amogh: ${residentialA.length}`
     );
 
     console.log(
-        `Total Initial Units: ${units.length}`
+        `B: ${residentialBSection.length}`
+    );
+
+    console.log(
+        `B1: ${residentialB1Section.length}`
+    );
+
+    console.log(
+        `C1 Tower - Ishan: ${residentialC1.length}`
+    );
+
+    console.log(
+        `Residential Total: ${residentialUnits.length}`
+    );
+
+    console.log(
+        `Commercial: ${commercialPhase1.length}`
+    );
+
+    console.log(
+        `Commercial 1: ${commercialPhase2.length}`
+    );
+
+    console.log(
+        `Commercial Total: ${commercialUnits.length}`
+    );
+
+    console.log(
+        `Grand Total: ${units.length}`
     );
 
     console.log("");
 
+    // ==================================================
+    // REMOVE LEGACY C BLOCK
+    //
+    // Old provisional records:
+    // RES-C-*
+    //
+    // C1 uses RES-C1-* and is NOT affected.
+    // ==================================================
+
+    const legacyCProperties =
+        await prisma.property.findMany({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "RES-C-",
+                },
+            },
+
+            select: {
+                id:
+                    true,
+
+                propertyCode:
+                    true,
+
+                _count: {
+                    select: {
+                        bookings:
+                            true,
+                    },
+                },
+            },
+        });
+
+    const legacyCWithBookings =
+        legacyCProperties.filter(
+            (property) =>
+                property._count
+                    .bookings > 0
+        );
+
+    if (
+        legacyCWithBookings.length >
+        0
+    ) {
+
+        const codes =
+            legacyCWithBookings
+                .map(
+                    (property) =>
+                        property.propertyCode
+                )
+                .join(", ");
+
+        throw new Error(
+            `Cannot remove legacy C Block. Booking history exists for: ${codes}`
+        );
+    }
+
+    if (
+        legacyCProperties.length >
+        0
+    ) {
+
+        const deleted =
+            await prisma.property.deleteMany({
+                where: {
+                    propertyCode: {
+                        startsWith:
+                            "RES-C-",
+                    },
+                },
+            });
+
+        console.log(
+            `Removed legacy C Block properties: ${deleted.count}`
+        );
+
+        console.log("");
+    }
+
+    // ==================================================
+    // UPSERT FINAL INVENTORY
+    // ==================================================
+
     let processed = 0;
 
-    for (const unit of units) {
+    for (
+        const unit of units
+    ) {
+
         await prisma.property.upsert({
+
             where: {
                 propertyCode:
                     unit.propertyCode,
             },
 
-            // IMPORTANT:
-            // Do not reset Admin-controlled fields
-            // such as status or Fine Dine selection.
+            // Preserve:
+            // status
+            // Fine Dine
+            // area
+            // price
+            //
+            // Only hierarchy/master data updated.
+
             update: {
                 name:
                     unit.name,
@@ -569,25 +1041,30 @@ const seedInventory = async () => {
                     unit.type,
 
                 phase:
-                    unit.phase,
+                    unit.phase ??
+                    null,
 
                 block:
-                    unit.block ?? null,
+                    unit.block ??
+                    null,
 
                 tower:
-                    unit.tower ?? null,
+                    unit.tower ??
+                    null,
 
                 floor:
                     unit.floor,
 
                 series:
-                    unit.series ?? null,
+                    unit.series ??
+                    null,
 
                 unitNumber:
                     unit.unitNumber,
 
                 description:
-                    unit.description ?? null,
+                    unit.description ??
+                    null,
             },
 
             create: {
@@ -607,19 +1084,23 @@ const seedInventory = async () => {
                     false,
 
                 phase:
-                    unit.phase,
+                    unit.phase ??
+                    null,
 
                 block:
-                    unit.block ?? null,
+                    unit.block ??
+                    null,
 
                 tower:
-                    unit.tower ?? null,
+                    unit.tower ??
+                    null,
 
                 floor:
                     unit.floor,
 
                 series:
-                    unit.series ?? null,
+                    unit.series ??
+                    null,
 
                 unitNumber:
                     unit.unitNumber,
@@ -631,121 +1112,182 @@ const seedInventory = async () => {
                     null,
 
                 description:
-                    unit.description ?? null,
+                    unit.description ??
+                    null,
             },
         });
 
         processed++;
 
-        if (processed % 100 === 0) {
+        if (
+            processed % 100 ===
+            0
+        ) {
             console.log(
                 `Processed ${processed}/${units.length}`
             );
         }
     }
 
+    // ==================================================
+    // DATABASE VERIFICATION
+    // ==================================================
+
+    const dbA =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "RES-A-",
+                },
+            },
+        });
+
+    const dbB =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "RES-B-",
+                },
+            },
+        });
+
+    const dbC =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "RES-C-",
+                },
+            },
+        });
+
+    const dbC1 =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "RES-C1-",
+                },
+            },
+        });
+
+    const dbCommercial =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "COM-P1-",
+                },
+            },
+        });
+
+    const dbCommercial1 =
+        await prisma.property.count({
+            where: {
+                propertyCode: {
+                    startsWith:
+                        "COM-P2-",
+                },
+            },
+        });
+
+    const verifiedTotal =
+        dbA +
+        dbB +
+        dbC1 +
+        dbCommercial +
+        dbCommercial1;
+
     console.log("");
     console.log(
-        "Inventory seed completed."
-    );
-
-    // ----------------------------------------------------
-    // Database verification
-    // Only count seeded property-code prefixes
-    // ----------------------------------------------------
-
-    const residentialCount =
-        await prisma.property.count({
-            where: {
-                propertyCode: {
-                    startsWith: "RES-B-",
-                },
-            },
-        });
-
-    const commercialP1Count =
-        await prisma.property.count({
-            where: {
-                propertyCode: {
-                    startsWith: "COM-P1-",
-                },
-            },
-        });
-
-    const commercialP2Count =
-        await prisma.property.count({
-            where: {
-                propertyCode: {
-                    startsWith: "COM-P2-",
-                },
-            },
-        });
-
-    console.log("");
-    console.log(
-        "Database Verification"
+        "DATABASE VERIFICATION"
     );
 
     console.log(
-        `Residential: ${residentialCount}`
+        `A Block: ${dbA}`
     );
 
     console.log(
-        `Commercial Phase 1: ${commercialP1Count}`
+        `B Block: ${dbB}`
     );
 
     console.log(
-        `Commercial Phase 2: ${commercialP2Count}`
+        `Legacy C Block: ${dbC}`
     );
 
     console.log(
-        `Seeded Total: ${residentialCount +
-        commercialP1Count +
-        commercialP2Count
-        }`
+        `C1 Tower: ${dbC1}`
+    );
+
+    console.log(
+        `Commercial: ${dbCommercial}`
+    );
+
+    console.log(
+        `Commercial 1: ${dbCommercial1}`
+    );
+
+    console.log(
+        `Verified Total: ${verifiedTotal}`
     );
 
     if (
-        residentialCount !== 80 ||
-        commercialP1Count !== 216 ||
-        commercialP2Count !== 344
+        dbA !== 100 ||
+        dbB !== 80 ||
+        dbC !== 0 ||
+        dbC1 !== 90 ||
+        dbCommercial !== 216 ||
+        dbCommercial1 !== 344 ||
+        verifiedTotal !== 830
     ) {
+
         throw new Error(
-            "Database inventory verification failed"
+            "Database final inventory verification failed"
         );
     }
 
     console.log("");
     console.log(
-        "✅ INVENTORY VERIFIED SUCCESSFULLY"
+        "✅ FINAL INVENTORY VERIFIED"
     );
+
     console.log(
-        "Residential = 80"
+        "Residential = 270"
     );
+
     console.log(
-        "Commercial Phase 1 = 216"
+        "Commercial = 560"
     );
+
     console.log(
-        "Commercial Phase 2 = 344"
-    );
-    console.log(
-        "Total Initial Inventory = 640"
+        "Grand Total = 830"
     );
 };
 
 // ======================================================
-// Run
+// RUN
 // ======================================================
 
 seedInventory()
-    .catch((error) => {
-        console.error(
-            "❌ Inventory seed failed:",
+    .catch(
+        (
             error
-        );
+        ) => {
 
-        process.exitCode = 1;
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+            console.error(
+                "❌ Inventory seed failed:",
+                error
+            );
+
+            process.exitCode =
+                1;
+        }
+    )
+    .finally(
+        async () => {
+
+            await prisma.$disconnect();
+        }
+    );

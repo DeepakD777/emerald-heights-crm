@@ -1,5 +1,11 @@
-import { NavLink } from "react-router-dom";
-import type { ElementType } from "react";
+import {
+    NavLink,
+    useNavigate,
+} from "react-router-dom";
+
+import type {
+    ElementType,
+} from "react";
 
 import {
     LayoutDashboard,
@@ -15,15 +21,27 @@ import {
     LogOut,
     ChevronDown,
     X,
+    Building,
 } from "lucide-react";
 
-import { useBooking } from "../context/BookingContext";
+import {
+    useBooking,
+} from "../context/BookingContext";
+
+import {
+    useAuth,
+} from "../context/AuthContext";
+
+// ======================================================
+// Types
+// ======================================================
 
 interface MenuItem {
     title: string;
     path: string;
     icon: ElementType;
     hasArrow?: boolean;
+    adminOnly?: boolean;
 }
 
 interface SidebarProps {
@@ -32,7 +50,7 @@ interface SidebarProps {
 }
 
 // ======================================================
-// Menu Items
+// Menu
 // ======================================================
 
 const menuItems: MenuItem[] = [
@@ -54,14 +72,10 @@ const menuItems: MenuItem[] = [
         hasArrow: true,
     },
     {
-        title: "Notifications",
-        path: "/notifications",
-        icon: Bell,
-    },
-    {
-        title: "Sales Team",
-        path: "/sales-team",
-        icon: UsersRound,
+        title: "Properties",
+        path: "/properties",
+        icon: Building,
+        adminOnly: true,
     },
     {
         title: "Floor Map",
@@ -79,9 +93,19 @@ const menuItems: MenuItem[] = [
         icon: Users,
     },
     {
+        title: "Sales Team",
+        path: "/sales-team",
+        icon: UsersRound,
+    },
+    {
         title: "Reports",
         path: "/reports",
         icon: BarChart3,
+    },
+    {
+        title: "Notifications",
+        path: "/notifications",
+        icon: Bell,
     },
     {
         title: "Settings",
@@ -99,25 +123,32 @@ function Sidebar({
     onClose,
 }: SidebarProps) {
 
-    const { bookings } = useBooking();
+    const navigate =
+        useNavigate();
+
+    const {
+        bookings,
+    } = useBooking();
+
+    const {
+        user,
+        isAdmin,
+        logout,
+    } = useAuth();
 
     // ==================================================
     // Notification Count
-    // Same logic as Navbar
     // ==================================================
 
     let notificationCount = 0;
 
     bookings.forEach((booking) => {
 
-        // ----------------------------------------------
-        // Requisition Letter
-        // ----------------------------------------------
-
         const requisitionStatus =
             booking.documents
                 ?.requisitionLetter
-                ?.status ?? "pending";
+                ?.status ??
+            "pending";
 
         if (
             requisitionStatus !== "given" &&
@@ -126,14 +157,11 @@ function Sidebar({
             notificationCount++;
         }
 
-        // ----------------------------------------------
-        // Agreement To Sell
-        // ----------------------------------------------
-
         const agreementStatus =
             booking.documents
                 ?.agreementToSell
-                ?.status ?? "pending";
+                ?.status ??
+            "pending";
 
         if (
             agreementStatus !== "given" &&
@@ -141,10 +169,6 @@ function Sidebar({
         ) {
             notificationCount++;
         }
-
-        // ----------------------------------------------
-        // Tripartite Agreement
-        // ----------------------------------------------
 
         const tripartite =
             booking.documents
@@ -156,7 +180,8 @@ function Sidebar({
         const tripartiteStatus =
             tripartite
                 ?.document
-                ?.status ?? "pending";
+                ?.status ??
+            "pending";
 
         if (
             tripartiteRequired &&
@@ -164,14 +189,63 @@ function Sidebar({
         ) {
             notificationCount++;
         }
-
     });
+
+    // ==================================================
+    // Visible Menu
+    // ==================================================
+
+    const visibleMenuItems =
+        menuItems.filter(
+            (item) => {
+
+                if (
+                    item.adminOnly &&
+                    !isAdmin
+                ) {
+                    return false;
+                }
+
+                return true;
+            }
+        );
+
+    // ==================================================
+    // Logout
+    // ==================================================
+
+    const handleLogout = () => {
+
+        logout();
+
+        onClose?.();
+
+        navigate(
+            "/login",
+            {
+                replace: true,
+            }
+        );
+    };
+
+    // ==================================================
+    // Role Label
+    // ==================================================
+
+    const roleLabel =
+        isAdmin
+            ? "Administrator"
+            : user?.role
+                ? String(user.role)
+                    .replaceAll("_", " ")
+                : "Employee";
+
+    // ==================================================
+    // UI
+    // ==================================================
 
     return (
         <>
-            {/* ==================================================
-                MOBILE OVERLAY
-            ================================================== */}
 
             {isOpen && (
                 <div
@@ -186,21 +260,20 @@ function Sidebar({
                 />
             )}
 
-            {/* ==================================================
-                SIDEBAR
-            ================================================== */}
-
             <aside
                 className={`
                     fixed
                     inset-y-0
                     left-0
                     z-50
+
                     flex
                     w-64
                     flex-col
+
                     bg-green-900
                     text-white
+
                     transition-transform
                     duration-300
 
@@ -215,9 +288,7 @@ function Sidebar({
                 `}
             >
 
-                {/* ==================================================
-                    LOGO
-                ================================================== */}
+                {/* Logo */}
 
                 <div
                     className="
@@ -229,31 +300,17 @@ function Sidebar({
                         p-6
                     "
                 >
-
                     <div>
 
-                        <h1
-                            className="
-                                text-2xl
-                                font-bold
-                                tracking-wide
-                            "
-                        >
+                        <h1 className="text-2xl font-bold tracking-wide">
                             EMERALD
                         </h1>
 
-                        <p
-                            className="
-                                text-sm
-                                text-green-200
-                            "
-                        >
+                        <p className="text-sm text-green-200">
                             Heights & Residences
                         </p>
 
                     </div>
-
-                    {/* Mobile Close */}
 
                     <button
                         type="button"
@@ -271,9 +328,53 @@ function Sidebar({
 
                 </div>
 
-                {/* ==================================================
-                    MENU
-                ================================================== */}
+                {/* User */}
+
+                <div
+                    className="
+                        border-b
+                        border-green-800
+                        px-5
+                        py-4
+                    "
+                >
+                    <div className="flex items-center gap-3">
+
+                        <div
+                            className="
+                                flex
+                                h-10
+                                w-10
+                                items-center
+                                justify-center
+                                rounded-full
+                                bg-green-700
+                                font-bold
+                            "
+                        >
+                            {String(
+                                user?.name ?? "U"
+                            )
+                                .charAt(0)
+                                .toUpperCase()}
+                        </div>
+
+                        <div className="min-w-0">
+
+                            <p className="truncate text-sm font-semibold">
+                                {user?.name ?? "User"}
+                            </p>
+
+                            <p className="truncate text-xs capitalize text-green-300">
+                                {roleLabel.toLowerCase()}
+                            </p>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                {/* Menu */}
 
                 <nav
                     className="
@@ -283,13 +384,13 @@ function Sidebar({
                     "
                 >
 
-                    {menuItems.map((item) => {
+                    {visibleMenuItems.map((item) => {
 
-                        const Icon = item.icon;
+                        const Icon =
+                            item.icon;
 
                         const isNotification =
-                            item.path ===
-                            "/notifications";
+                            item.path === "/notifications";
 
                         return (
                             <NavLink
@@ -305,34 +406,26 @@ function Sidebar({
                                     isActive,
                                 }) =>
                                     `
-                                    mb-2
-                                    flex
-                                    w-full
-                                    items-center
-                                    justify-between
-                                    rounded-lg
-                                    px-4
-                                    py-3
-                                    transition-colors
+                                        mb-2
+                                        flex
+                                        w-full
+                                        items-center
+                                        justify-between
+                                        rounded-lg
+                                        px-4
+                                        py-3
+                                        transition-colors
 
-                                    ${
-                                        isActive
-                                            ? "bg-green-700 text-white"
-                                            : "text-green-100 hover:bg-green-800"
-                                    }
+                                        ${
+                                            isActive
+                                                ? "bg-green-700 text-white"
+                                                : "text-green-100 hover:bg-green-800"
+                                        }
                                     `
                                 }
                             >
 
-                                {/* Left */}
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-3
-                                    "
-                                >
+                                <div className="flex items-center gap-3">
 
                                     <Icon size={20} />
 
@@ -342,17 +435,7 @@ function Sidebar({
 
                                 </div>
 
-                                {/* Right */}
-
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        gap-2
-                                    "
-                                >
-
-                                    {/* Arrow */}
+                                <div className="flex items-center gap-2">
 
                                     {item.hasArrow && (
                                         <ChevronDown
@@ -360,31 +443,28 @@ function Sidebar({
                                         />
                                     )}
 
-                                    {/* Notification Badge */}
-
                                     {isNotification &&
-                                        notificationCount >
-                                            0 && (
-                                            <span
-                                                className="
-                                                    flex
-                                                    min-w-5
-                                                    h-5
-                                                    items-center
-                                                    justify-center
-                                                    rounded-full
-                                                    bg-red-500
-                                                    px-1.5
-                                                    text-[11px]
-                                                    font-bold
-                                                    text-white
-                                                "
-                                            >
-                                                {
-                                                    notificationCount
-                                                }
-                                            </span>
-                                        )}
+                                        notificationCount > 0 && (
+
+                                        <span
+                                            className="
+                                                flex
+                                                h-5
+                                                min-w-5
+                                                items-center
+                                                justify-center
+                                                rounded-full
+                                                bg-red-500
+                                                px-1.5
+                                                text-[11px]
+                                                font-bold
+                                                text-white
+                                            "
+                                        >
+                                            {notificationCount}
+                                        </span>
+
+                                    )}
 
                                 </div>
 
@@ -394,9 +474,30 @@ function Sidebar({
 
                 </nav>
 
-                {/* ==================================================
-                    LOGOUT
-                ================================================== */}
+                {!isAdmin && (
+                    <div className="px-4 pb-3">
+
+                        <div
+                            className="
+                                rounded-lg
+                                border
+                                border-green-700
+                                bg-green-800
+                                px-3
+                                py-2.5
+                                text-center
+                                text-xs
+                                font-semibold
+                                text-green-100
+                            "
+                        >
+                            View Only Access
+                        </div>
+
+                    </div>
+                )}
+
+                {/* Logout */}
 
                 <div
                     className="
@@ -405,9 +506,9 @@ function Sidebar({
                         p-4
                     "
                 >
-
                     <button
                         type="button"
+                        onClick={handleLogout}
                         className="
                             flex
                             w-full
@@ -430,10 +531,10 @@ function Sidebar({
                         </span>
 
                     </button>
-
                 </div>
 
             </aside>
+
         </>
     );
 }

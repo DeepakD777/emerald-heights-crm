@@ -1,30 +1,227 @@
-import { useMemo, useState } from "react";
-import { RotateCcw, Search } from "lucide-react";
+import {
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 import {
-    commercialShops,
-} from "../../data/commercialData";
+    RotateCcw,
+    Search,
+} from "lucide-react";
 
 import ShopModal from "../../components/dashboard/ShopModal";
 import BookingModal from "../../components/dashboard/BookingModal";
 
-import { useBooking } from "../../context/BookingContext";
+import {
+    getProperties,
+    updateProperty,
+} from "../../services/propertyService";
+
+import type {
+    Property,
+    PropertyStatus,
+} from "../../services/propertyService";
+
+import {
+    createBooking,
+} from "../../services/bookingService";
+import {
+    useAutoRefresh,
+} from "../../hooks/useAutoRefresh";
 
 // ======================================================
 // Types
 // ======================================================
 
-type Phase = 1 | 2;
+type CommercialSection =
+    | "Commercial"
+    | "Commercial 1";
 
-type Floor = 0 | 1 | 2 | 3;
+type Floor =
+    | "Ground Floor"
+    | "1st Floor"
+    | "2nd Floor"
+    | "3rd Floor";
 
-type FloorFilter = "all" | Floor;
+type FloorFilter =
+    | "all"
+    | Floor;
 
 type Status =
     | "all"
     | "available"
     | "hold"
-    | "booked";
+    | "booked"
+    | "sold"
+    | "finedine";
+
+// ======================================================
+// Constants
+// ======================================================
+
+const FLOORS: Floor[] = [
+    "Ground Floor",
+    "1st Floor",
+    "2nd Floor",
+    "3rd Floor",
+];
+
+// ======================================================
+// Helpers
+// ======================================================
+
+const getFrontendStatus = (
+    property: Property
+) => {
+    if (
+        property.isFineDine
+    ) {
+        return "finedine";
+    }
+
+    return String(
+        property.status
+    ).toLowerCase();
+};
+
+const naturalSort = (
+    a: Property,
+    b: Property
+) => {
+    return String(
+        a.unitNumber ?? ""
+    ).localeCompare(
+        String(
+            b.unitNumber ?? ""
+        ),
+        undefined,
+        {
+            numeric: true,
+            sensitivity: "base",
+        }
+    );
+};
+
+function chunkArray<T>(
+    items: T[],
+    size: number
+): T[][] {
+    const rows: T[][] = [];
+
+    for (
+        let index = 0;
+        index < items.length;
+        index += size
+    ) {
+        rows.push(
+            items.slice(
+                index,
+                index + size
+            )
+        );
+    }
+
+    return rows;
+}
+
+const getShopColor = (
+    status: string
+) => {
+
+    if (
+        status ===
+        "finedine"
+    ) {
+        return `
+            bg-purple-50
+            border-purple-500
+            text-purple-700
+            hover:bg-purple-100
+            hover:border-purple-600
+        `;
+    }
+
+    if (
+        status ===
+        "booked"
+    ) {
+        return `
+            bg-red-50
+            border-red-400
+            text-red-700
+            hover:bg-red-100
+            hover:border-red-500
+        `;
+    }
+
+    if (
+        status ===
+        "hold"
+    ) {
+        return `
+            bg-yellow-50
+            border-yellow-400
+            text-yellow-700
+            hover:bg-yellow-100
+            hover:border-yellow-500
+        `;
+    }
+
+    if (
+        status ===
+        "sold"
+    ) {
+        return `
+            bg-gray-100
+            border-gray-500
+            text-gray-700
+            hover:bg-gray-200
+        `;
+    }
+
+    return `
+        bg-green-50
+        border-green-400
+        text-green-700
+        hover:bg-green-100
+        hover:border-green-500
+    `;
+};
+
+const getStatusText = (
+    status: string
+) => {
+
+    if (
+        status ===
+        "finedine"
+    ) {
+        return "FINE DINE";
+    }
+
+    if (
+        status ===
+        "booked"
+    ) {
+        return "BOOKED";
+    }
+
+    if (
+        status ===
+        "hold"
+    ) {
+        return "HOLD";
+    }
+
+    if (
+        status ===
+        "sold"
+    ) {
+        return "SOLD";
+    }
+
+    return "AVAILABLE";
+};
 
 // ======================================================
 // Commercial
@@ -33,240 +230,242 @@ type Status =
 function Commercial() {
 
     // ==================================================
-    // Booking Context
+    // Backend Shops
     // ==================================================
 
-    const {
-        addBooking,
-    } = useBooking();
+    const [
+        properties,
+        setProperties,
+    ] = useState<Property[]>([]);
+
+    const [
+        loading,
+        setLoading,
+    ] = useState(true);
+
+    const [
+        error,
+        setError,
+    ] = useState("");
 
     // ==================================================
-    // Phase
+    // Navigation
     // ==================================================
 
-    const [selectedPhase, setSelectedPhase] =
-        useState<Phase>(1);
+    const [
+        selectedSection,
+        setSelectedSection,
+    ] = useState<CommercialSection>(
+        "Commercial"
+    );
+
+    const [
+        selectedFloor,
+        setSelectedFloor,
+    ] = useState<FloorFilter>(
+        "all"
+    );
 
     // ==================================================
-    // Floor
+    // Filters
     // ==================================================
 
-    const [selectedFloor, setSelectedFloor] =
-        useState<FloorFilter>("all");
+    const [
+        selectedStatus,
+        setSelectedStatus,
+    ] = useState<Status>(
+        "all"
+    );
 
-    // ==================================================
-    // Status
-    // ==================================================
-
-    const [selectedStatus, setSelectedStatus] =
-        useState<Status>("all");
-
-    // ==================================================
-    // Search
-    // ==================================================
-
-    const [search, setSearch] =
-        useState("");
-
-    // ==================================================
-    // Shops
-    // ==================================================
-    //
-    // IMPORTANT:
-    // any[] intentionally used here because the existing
-    // ShopModal / BookingModal have their own Shop type.
-    // This avoids breaking existing modal functionality.
-    //
-    // ==================================================
-
-    const [shops, setShops] =
-        useState<any[]>(() => {
-
-            const saved =
-                localStorage.getItem(
-                    "commercialShops"
-                );
-
-            if (!saved) {
-
-                return commercialShops;
-
-            }
-
-            try {
-
-                const parsed =
-                    JSON.parse(saved);
-
-                // --------------------------------------
-                // Old data protection
-                // --------------------------------------
-
-                const isNewData =
-                    Array.isArray(parsed) &&
-                    parsed.some(
-                        (shop: any) =>
-                            shop.phase === 1 ||
-                            shop.phase === 2
-                    );
-
-                if (isNewData) {
-
-                    return parsed;
-
-                }
-
-                return commercialShops;
-
-            } catch {
-
-                return commercialShops;
-
-            }
-
-        });
+    const [
+        search,
+        setSearch,
+    ] = useState("");
 
     // ==================================================
     // Selected Shop
     // ==================================================
 
-    const [selectedShop, setSelectedShop] =
-        useState<any>(null);
+    const [
+        selectedShop,
+        setSelectedShop,
+    ] = useState<any>(
+        null
+    );
 
     // ==================================================
-    // Modals
+    // Modal States
     // ==================================================
 
-    const [isShopModalOpen, setIsShopModalOpen] =
-        useState(false);
+    const [
+        isShopModalOpen,
+        setIsShopModalOpen,
+    ] = useState(false);
 
-    const [isBookingModalOpen, setIsBookingModalOpen] =
-        useState(false);
+    const [
+        isBookingModalOpen,
+        setIsBookingModalOpen,
+    ] = useState(false);
 
     // ==================================================
-    // Phase Name
+    // Backend Mapping
+    //
+    // UI Commercial   -> Phase 1
+    // UI Commercial 1 -> Phase 2
     // ==================================================
 
-    const getPhaseName = (
-        phase: Phase
-    ) => {
+    const backendPhase =
+        selectedSection ===
+        "Commercial"
+            ? "Phase 1"
+            : "Phase 2";
 
-        if (phase === 1) {
+    // ==================================================
+    // Load
+    // ==================================================
 
-            return "Phase 1 - Commercial Hub";
+    const loadProperties =
+        async () => {
 
+        try {
+
+            setLoading(true);
+            setError("");
+
+            const response =
+                await getProperties({
+                    type:
+                        "COMMERCIAL",
+                });
+
+            setProperties(
+                response.data
+            );
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Failed to load commercial inventory";
+
+            setError(
+                message
+            );
+
+        } finally {
+
+            setLoading(
+                false
+            );
         }
-
-        return "Phase 2 - Commercial 1";
-
     };
 
-    // ==================================================
-    // Floor Name
-    // ==================================================
-
-    const getFloorName = (
-        floor: number
-    ) => {
-
-        switch (floor) {
-
-            case 0:
-                return "Ground Floor";
-
-            case 1:
-                return "1st Floor";
-
-            case 2:
-                return "2nd Floor";
-
-            case 3:
-                return "3rd Floor";
-
-            default:
-                return "";
-
-        }
-
-    };
+    useEffect(() => {
+        loadProperties();
+    }, []);
+    useAutoRefresh(
+    loadProperties,
+    5000
+);
 
     // ==================================================
-    // Phase Total
+    // Current Section Shops
     // ==================================================
 
-    const phaseTotal =
+    const sectionShops =
         useMemo(() => {
 
-            return shops.filter(
-                (shop) =>
-                    shop.phase ===
-                    selectedPhase
-            ).length;
+            return properties
+                .filter(
+                    (property) =>
+                        property.type ===
+                            "COMMERCIAL" &&
+                        property.phase ===
+                            backendPhase
+                )
+                .sort(
+                    naturalSort
+                );
 
         }, [
-            shops,
-            selectedPhase,
+            properties,
+            backendPhase,
         ]);
 
     // ==================================================
-    // Phase Available
+    // Section Totals
     // ==================================================
 
-    const phaseAvailable =
-        useMemo(() => {
+    const commercialTotal =
+        properties.filter(
+            (property) =>
+                property.type ===
+                    "COMMERCIAL" &&
+                property.phase ===
+                    "Phase 1"
+        ).length;
 
-            return shops.filter(
-                (shop) =>
-                    shop.phase ===
-                        selectedPhase &&
-                    shop.status ===
-                        "available"
-            ).length;
-
-        }, [
-            shops,
-            selectedPhase,
-        ]);
-
-    // ==================================================
-    // Phase Booked
-    // ==================================================
-
-    const phaseBooked =
-        useMemo(() => {
-
-            return shops.filter(
-                (shop) =>
-                    shop.phase ===
-                        selectedPhase &&
-                    shop.status ===
-                        "booked"
-            ).length;
-
-        }, [
-            shops,
-            selectedPhase,
-        ]);
+    const commercial1Total =
+        properties.filter(
+            (property) =>
+                property.type ===
+                    "COMMERCIAL" &&
+                property.phase ===
+                    "Phase 2"
+        ).length;
 
     // ==================================================
-    // Phase Hold
+    // Section Status Counts
     // ==================================================
 
-    const phaseHold =
-        useMemo(() => {
+    const sectionTotal =
+        sectionShops.length;
 
-            return shops.filter(
-                (shop) =>
-                    shop.phase ===
-                        selectedPhase &&
-                    shop.status ===
-                        "hold"
-            ).length;
+    const sectionAvailable =
+        sectionShops.filter(
+            (property) =>
+                getFrontendStatus(
+                    property
+                ) ===
+                "available"
+        ).length;
 
-        }, [
-            shops,
-            selectedPhase,
-        ]);
+    const sectionBooked =
+        sectionShops.filter(
+            (property) =>
+                getFrontendStatus(
+                    property
+                ) ===
+                "booked"
+        ).length;
+
+    const sectionHold =
+        sectionShops.filter(
+            (property) =>
+                getFrontendStatus(
+                    property
+                ) ===
+                "hold"
+        ).length;
+
+    const sectionSold =
+        sectionShops.filter(
+            (property) =>
+                getFrontendStatus(
+                    property
+                ) ===
+                "sold"
+        ).length;
+
+    const sectionFineDine =
+        sectionShops.filter(
+            (property) =>
+                getFrontendStatus(
+                    property
+                ) ===
+                "finedine"
+        ).length;
 
     // ==================================================
     // Floor Total
@@ -276,14 +475,11 @@ function Commercial() {
         floor: Floor
     ) => {
 
-        return shops.filter(
-            (shop) =>
-                shop.phase ===
-                    selectedPhase &&
-                shop.floor ===
-                    floor
+        return sectionShops.filter(
+            (property) =>
+                property.floor ===
+                floor
         ).length;
-
     };
 
     // ==================================================
@@ -298,160 +494,142 @@ function Commercial() {
                     .trim()
                     .toLowerCase();
 
-            return shops.filter(
-                (shop) => {
-
-                    // ----------------------------------
-                    // Phase
-                    // ----------------------------------
-
-                    if (
-                        shop.phase !==
-                        selectedPhase
-                    ) {
-
-                        return false;
-
-                    }
-
-                    // ----------------------------------
-                    // Floor
-                    // ----------------------------------
+            return sectionShops.filter(
+                (property) => {
 
                     if (
                         selectedFloor !==
                             "all" &&
-                        shop.floor !==
+                        property.floor !==
                             selectedFloor
                     ) {
-
                         return false;
-
                     }
 
-                    // ----------------------------------
-                    // Status
-                    // ----------------------------------
+                    const frontendStatus =
+                        getFrontendStatus(
+                            property
+                        );
 
                     if (
                         selectedStatus !==
                             "all" &&
-                        shop.status !==
+                        frontendStatus !==
                             selectedStatus
                     ) {
-
                         return false;
-
                     }
-
-                    // ----------------------------------
-                    // Search
-                    // ----------------------------------
 
                     if (
                         searchText &&
                         !String(
-                            shop.number
+                            property.unitNumber ??
+                            ""
                         )
                             .toLowerCase()
                             .includes(
                                 searchText
                             )
                     ) {
-
                         return false;
-
                     }
 
                     return true;
-
                 }
             );
 
         }, [
-            shops,
-            selectedPhase,
+            sectionShops,
             selectedFloor,
             selectedStatus,
             search,
         ]);
 
     // ==================================================
-    // Shop Color
+    // Zig-Zag
     // ==================================================
 
-    const getShopColor = (
-        status: string
+    const zigZagRows =
+        useMemo(() => {
+
+            return chunkArray(
+                filteredShops,
+                4
+            );
+
+        }, [
+            filteredShops,
+        ]);
+
+    // ==================================================
+    // Property -> Modal Shape
+    // ==================================================
+
+    const mapPropertyToShop = (
+        property: Property
     ) => {
 
-        if (
-            status ===
-            "booked"
-        ) {
+        return {
+            id:
+                property.id,
 
-            return `
-                bg-red-50
-                border-red-400
-                text-red-700
-                hover:bg-red-100
-                hover:border-red-500
-            `;
+            propertyId:
+                property.id,
 
-        }
+            propertyCode:
+                property.propertyCode,
 
-        if (
-            status ===
-            "hold"
-        ) {
+            number:
+                property.unitNumber ??
+                "",
 
-            return `
-                bg-yellow-50
-                border-yellow-400
-                text-yellow-700
-                hover:bg-yellow-100
-                hover:border-yellow-500
-            `;
+            unitNumber:
+                property.unitNumber ??
+                "",
 
-        }
+            phase:
+                property.phase ===
+                "Phase 1"
+                    ? 1
+                    : 2,
 
-        return `
-            bg-green-50
-            border-green-400
-            text-green-700
-            hover:bg-green-100
-            hover:border-green-500
-        `;
+            phaseName:
+                property.phase,
 
-    };
+            sectionName:
+                property.phase ===
+                "Phase 1"
+                    ? "Commercial"
+                    : "Commercial 1",
 
-    // ==================================================
-    // Status Text
-    // ==================================================
+            floor:
+                property.floor,
 
-    const getStatusText = (
-        status: string
-    ) => {
+            series:
+                property.series,
 
-        if (
-            status ===
-            "booked"
-        ) {
+            tower:
+                property.tower,
 
-            return "BOOKED";
+            area:
+                property.area
+                    ? `${property.area} sqft`
+                    : "Area not set",
 
-        }
+            price:
+                property.price,
 
-        if (
-            status ===
-            "hold"
-        ) {
+            status:
+                getFrontendStatus(
+                    property
+                ),
 
-            return "HOLD";
+            isFineDine:
+                property.isFineDine,
 
-        }
-
-        return "AVAILABLE";
-
+            type:
+                "Commercial",
+        };
     };
 
     // ==================================================
@@ -459,101 +637,95 @@ function Commercial() {
     // ==================================================
 
     const handleShopClick = (
-        shop: any
+        property: Property
     ) => {
 
         setSelectedShop(
-            shop
+            mapPropertyToShop(
+                property
+            )
         );
 
         setIsShopModalOpen(
             true
         );
-
     };
 
     // ==================================================
-    // Update Shop Status
+    // Status Change
     // ==================================================
 
-    const handleStatusChange = (
-        shopId: string | number,
-        newStatus: string
-    ) => {
+    const handleStatusChange =
+        async (
+            shopId:
+                string | number,
+            newStatus: string
+        ) => {
 
-        setShops(
-            (previousShops) => {
+        try {
 
-                const updatedShops =
-                    previousShops.map(
-                        (shop) => {
-
-                            if (
-                                String(
-                                    shop.id
-                                ) !==
-                                String(
-                                    shopId
-                                )
-                            ) {
-
-                                return shop;
-
-                            }
-
-                            return {
-
-                                ...shop,
-
-                                status:
-                                    newStatus,
-
-                            };
-
-                        }
-                    );
-
-                // --------------------------------------
-                // Save
-                // --------------------------------------
-
-                localStorage.setItem(
-                    "commercialShops",
-                    JSON.stringify(
-                        updatedShops
-                    )
+            const id =
+                String(
+                    shopId
                 );
 
-                // --------------------------------------
-                // Update selected shop
-                // --------------------------------------
+            const normalized =
+                String(
+                    newStatus
+                ).toLowerCase();
 
-                const updatedShop =
-                    updatedShops.find(
-                        (shop) =>
-                            String(
-                                shop.id
-                            ) ===
-                            String(
-                                shopId
-                            )
-                    );
+            // Fine Dine is controlled by isFineDine.
+            if (
+                normalized ===
+                "finedine"
+            ) {
 
-                if (
-                    updatedShop
-                ) {
+                await updateProperty(
+                    id,
+                    {
+                        isFineDine:
+                            true,
+                    }
+                );
 
-                    setSelectedShop(
-                        updatedShop
-                    );
+            } else {
 
-                }
+                const status =
+                    normalized
+                        .toUpperCase() as
+                        PropertyStatus;
 
-                return updatedShops;
-
+                await updateProperty(
+                    id,
+                    {
+                        status,
+                        isFineDine:
+                            false,
+                    }
+                );
             }
-        );
 
+            await loadProperties();
+
+            setIsShopModalOpen(
+                false
+            );
+
+            setSelectedShop(
+                null
+            );
+
+        } catch (err) {
+
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Failed to update shop";
+
+            alert(
+                message
+            );
+        }
     };
 
     // ==================================================
@@ -565,12 +737,26 @@ function Commercial() {
     ) => {
 
         if (
-            shop?.status ===
-            "booked"
+            !shop ||
+            shop.status ===
+                "booked" ||
+            shop.status ===
+                "sold" ||
+            shop.status ===
+                "hold"
+        ) {
+            return;
+        }
+
+        if (
+            shop.isFineDine
         ) {
 
-            return;
+            alert(
+                "This shop is reserved for Fine Dine and cannot be booked."
+            );
 
+            return;
         }
 
         setSelectedShop(
@@ -584,107 +770,89 @@ function Commercial() {
         setIsBookingModalOpen(
             true
         );
-
     };
 
     // ==================================================
     // Confirm Booking
     // ==================================================
 
-    const handleConfirmBooking = (
-        bookingData: any
-    ) => {
+    const handleConfirmBooking =
+        async (
+            bookingData: any
+        ) => {
 
         if (
             !selectedShop
         ) {
-
             return;
-
         }
 
-        // ----------------------------------------------
-        // Add booking
-        // ----------------------------------------------
+        try {
 
-        addBooking({
+            await createBooking({
+                propertyId:
+                    selectedShop.id,
 
-            ...bookingData,
+                customerName:
+                    bookingData.customerName,
 
-            flatNumber:
-                selectedShop.number,
+                mobile:
+                    bookingData.mobile,
 
-            tower:
-                "Commercial",
+                email:
+                    bookingData.email,
 
-            floor:
-                selectedShop.floor,
+                address:
+                    bookingData.address,
 
-            status:
-                "booked",
+                aadhar:
+                    bookingData.aadhar,
 
-        });
+                pan:
+                    bookingData.pan,
 
-        // ----------------------------------------------
-        // Update shop
-        // ----------------------------------------------
+                bookingAmount:
+                    bookingData.bookingAmount,
 
-        setShops(
-            (previousShops) => {
+                paymentMode:
+                    bookingData.paymentMode,
 
-                const updatedShops =
-                    previousShops.map(
-                        (shop) => {
+                bookingDate:
+                    bookingData.bookingDate,
 
-                            if (
-                                shop.id !==
-                                selectedShop.id
-                            ) {
+                remarks:
+                    bookingData.remarks,
 
-                                return shop;
+                status:
+                    bookingData.status ??
+                    "CONFIRMED",
+            });
 
-                            }
+            await loadProperties();
 
-                            return {
+            setIsBookingModalOpen(
+                false
+            );
 
-                                ...shop,
+            setSelectedShop(
+                null
+            );
 
-                                status:
-                                    "booked",
+        } catch (err) {
 
-                            };
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Booking failed";
 
-                        }
-                    );
-
-                localStorage.setItem(
-                    "commercialShops",
-                    JSON.stringify(
-                        updatedShops
-                    )
-                );
-
-                return updatedShops;
-
-            }
-        );
-
-        // ----------------------------------------------
-        // Close
-        // ----------------------------------------------
-
-        setIsBookingModalOpen(
-            false
-        );
-
-        setSelectedShop(
-            null
-        );
-
+            alert(
+                message
+            );
+        }
     };
 
     // ==================================================
-    // Reset Filters
+    // Reset
     // ==================================================
 
     const resetFilters = () => {
@@ -698,75 +866,124 @@ function Commercial() {
         );
 
         setSearch("");
-
     };
 
     // ==================================================
-    // Phase Change
+    // Change Section
     // ==================================================
 
-    const handlePhaseChange = (
-        phase: Phase
+    const handleSectionChange = (
+        section:
+            CommercialSection
     ) => {
 
-        setSelectedPhase(
-            phase
+        setSelectedSection(
+            section
         );
 
         resetFilters();
-
     };
+
+    // ==================================================
+    // Heading
+    // ==================================================
+
+    const currentHeading =
+        selectedFloor ===
+        "all"
+            ? selectedSection
+            : `${selectedSection} - ${selectedFloor}`;
+
+    // ==================================================
+    // Loading
+    // ==================================================
+
+    if (
+        loading
+    ) {
+        return (
+            <div className="rounded-2xl bg-white p-8 shadow">
+
+                <p className="text-gray-600">
+                    Loading commercial inventory...
+                </p>
+
+            </div>
+        );
+    }
+
+    // ==================================================
+    // Error
+    // ==================================================
+
+    if (
+        error
+    ) {
+        return (
+            <div className="rounded-2xl bg-white p-8 shadow">
+
+                <p className="font-medium text-red-600">
+                    {error}
+                </p>
+
+                <button
+                    type="button"
+                    onClick={
+                        loadProperties
+                    }
+                    className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
+                >
+                    Retry
+                </button>
+
+            </div>
+        );
+    }
 
     // ==================================================
     // Render
     // ==================================================
 
     return (
-
         <div className="space-y-6">
 
-            {/* ==================================================
+            {/* ==========================================
                 Header
-            ================================================== */}
+            ========================================== */}
 
             <div>
 
                 <h1 className="text-2xl font-bold text-gray-800">
-
                     Commercial
-
                 </h1>
 
                 <p className="mt-1 text-gray-500">
-
                     Commercial Shop Inventory
-
                 </p>
 
             </div>
 
-
-            {/* ==================================================
-                Phase Selector
-            ================================================== */}
+            {/* ==========================================
+                Commercial Section
+            ========================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                <p className="mb-3 text-sm font-medium text-gray-600">
+                <h2 className="text-lg font-bold text-gray-800">
+                    Select Commercial Section
+                </h2>
 
-                    Select Phase
-
+                <p className="mb-4 mt-1 text-sm text-gray-500">
+                    Select Commercial or Commercial 1
                 </p>
 
                 <div className="flex flex-wrap gap-3">
 
-                    {/* Phase 1 */}
-
                     <button
                         type="button"
                         onClick={() =>
-                            handlePhaseChange(
-                                1
+                            handleSectionChange(
+                                "Commercial"
                             )
                         }
                         className={`
@@ -776,11 +993,10 @@ function Commercial() {
                             py-3
                             font-semibold
                             transition-all
-                            duration-200
 
                             ${
-                                selectedPhase ===
-                                1
+                                selectedSection ===
+                                "Commercial"
                                     ? `
                                         border-green-600
                                         bg-green-600
@@ -798,24 +1014,19 @@ function Commercial() {
                         `}
                     >
 
-                        Phase 1
+                        Commercial
 
                         <span className="ml-2 text-xs opacity-80">
-
-                            Commercial Hub · 216 Shops
-
+                            {commercialTotal} Shops
                         </span>
 
                     </button>
 
-
-                    {/* Phase 2 */}
-
                     <button
                         type="button"
                         onClick={() =>
-                            handlePhaseChange(
-                                2
+                            handleSectionChange(
+                                "Commercial 1"
                             )
                         }
                         className={`
@@ -825,11 +1036,10 @@ function Commercial() {
                             py-3
                             font-semibold
                             transition-all
-                            duration-200
 
                             ${
-                                selectedPhase ===
-                                2
+                                selectedSection ===
+                                "Commercial 1"
                                     ? `
                                         border-green-600
                                         bg-green-600
@@ -847,12 +1057,10 @@ function Commercial() {
                         `}
                     >
 
-                        Phase 2
+                        Commercial 1
 
                         <span className="ml-2 text-xs opacity-80">
-
-                            Commercial 1 · 344 Shops
-
+                            {commercial1Total} Shops
                         </span>
 
                     </button>
@@ -861,106 +1069,97 @@ function Commercial() {
 
             </div>
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Summary
-            ================================================== */}
+            ========================================== */}
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-
-                {/* Total */}
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
 
                 <div className="rounded-2xl bg-white p-5 shadow">
 
                     <p className="text-sm text-gray-500">
-
                         Total Shops
-
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-gray-800">
-
-                        {phaseTotal}
-
+                        {sectionTotal}
                     </p>
 
                 </div>
-
-
-                {/* Available */}
 
                 <div className="rounded-2xl bg-green-50 p-5">
 
                     <p className="text-sm text-green-700">
-
                         Available
-
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-green-700">
-
-                        {phaseAvailable}
-
+                        {sectionAvailable}
                     </p>
 
                 </div>
-
-
-                {/* Booked */}
 
                 <div className="rounded-2xl bg-red-50 p-5">
 
                     <p className="text-sm text-red-700">
-
                         Booked
-
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-red-700">
-
-                        {phaseBooked}
-
+                        {sectionBooked}
                     </p>
 
                 </div>
 
-
-                {/* Hold */}
-
                 <div className="rounded-2xl bg-yellow-50 p-5">
 
                     <p className="text-sm text-yellow-700">
-
                         Hold
-
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-yellow-700">
+                        {sectionHold}
+                    </p>
 
-                        {phaseHold}
+                </div>
 
+                <div className="rounded-2xl bg-gray-100 p-5">
+
+                    <p className="text-sm text-gray-600">
+                        Sold
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-gray-700">
+                        {sectionSold}
+                    </p>
+
+                </div>
+
+                <div className="rounded-2xl bg-purple-50 p-5">
+
+                    <p className="text-sm text-purple-700">
+                        Fine Dine
+                    </p>
+
+                    <p className="mt-1 text-3xl font-bold text-purple-700">
+                        {sectionFineDine}
                     </p>
 
                 </div>
 
             </div>
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Floor Selector
-            ================================================== */}
+            ========================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
                 <p className="mb-3 text-sm font-medium text-gray-600">
-
                     Select Floor
-
                 </p>
 
                 <div className="flex flex-wrap gap-3">
-
-                    {/* All */}
 
                     <button
                         type="button"
@@ -994,21 +1193,16 @@ function Commercial() {
                             }
                         `}
                     >
-
                         All Floors
-
                     </button>
 
-
-                    {/* Floors */}
-
-                    {(
-                        [0, 1, 2, 3] as Floor[]
-                    ).map(
+                    {FLOORS.map(
                         (floor) => (
 
                             <button
-                                key={floor}
+                                key={
+                                    floor
+                                }
                                 type="button"
                                 onClick={() =>
                                     setSelectedFloor(
@@ -1041,16 +1235,12 @@ function Commercial() {
                                 `}
                             >
 
-                                {getFloorName(
-                                    floor
-                                )}
+                                {floor}
 
                                 <span className="ml-2 text-xs opacity-80">
-
                                     {getFloorTotal(
                                         floor
                                     )}
-
                                 </span>
 
                             </button>
@@ -1062,23 +1252,18 @@ function Commercial() {
 
             </div>
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Search / Status
-            ================================================== */}
+            ========================================== */}
 
             <div className="rounded-2xl bg-white p-5 shadow">
 
                 <div className="flex flex-col gap-4 md:flex-row md:items-end">
 
-                    {/* Search */}
-
                     <div className="flex-1">
 
                         <label className="mb-1 block text-sm font-medium text-gray-600">
-
                             Search Shop
-
                         </label>
 
                         <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
@@ -1093,7 +1278,9 @@ function Commercial() {
                                 value={
                                     search
                                 }
-                                onChange={(event) =>
+                                onChange={(
+                                    event
+                                ) =>
                                     setSearch(
                                         event.target.value
                                     )
@@ -1106,59 +1293,55 @@ function Commercial() {
 
                     </div>
 
-
-                    {/* Status */}
-
                     <div className="w-full md:w-52">
 
                         <label className="mb-1 block text-sm font-medium text-gray-600">
-
                             Status
-
                         </label>
 
                         <select
                             value={
                                 selectedStatus
                             }
-                            onChange={(event) =>
+                            onChange={(
+                                event
+                            ) =>
                                 setSelectedStatus(
-                                    event.target.value as Status
+                                    event.target
+                                        .value as
+                                        Status
                                 )
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
 
                             <option value="all">
-
                                 All Status
-
                             </option>
 
                             <option value="available">
-
                                 Available
-
                             </option>
 
                             <option value="hold">
-
                                 Hold
-
                             </option>
 
                             <option value="booked">
-
                                 Booked
+                            </option>
 
+                            <option value="sold">
+                                Sold
+                            </option>
+
+                            <option value="finedine">
+                                Fine Dine
                             </option>
 
                         </select>
 
                     </div>
-
-
-                    {/* Reset */}
 
                     <button
                         type="button"
@@ -1180,188 +1363,242 @@ function Commercial() {
 
             </div>
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Shop Map
-            ================================================== */}
+            ========================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
                 <div className="mb-6 text-center">
 
                     <h2 className="text-xl font-bold text-gray-800">
-
-                        {selectedFloor ===
-                            "all"
-                            ? getPhaseName(
-                                selectedPhase
-                            )
-                            : `${getPhaseName(
-                                selectedPhase
-                            )} - ${getFloorName(
-                                selectedFloor
-                            )}`}
-
+                        {currentHeading}
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-500">
-
                         {filteredShops.length} Shops
-
                     </p>
 
                 </div>
 
+                {filteredShops.length ===
+                0 ? (
 
-                {/* ==================================================
-                    Shop Grid
-                ================================================== */}
+                    <div className="rounded-xl border border-dashed p-12 text-center">
 
-                <div className="overflow-x-auto rounded-2xl border bg-gray-50 p-6">
+                        <p className="text-lg font-semibold text-gray-700">
+                            No Shops Found
+                        </p>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                            Try changing your filters.
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={
+                                resetFilters
+                            }
+                            className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white"
+                        >
+                            Reset Filters
+                        </button>
+
+                    </div>
+
+                ) : (
 
                     <div
                         className="
-                            mx-auto
-                            flex
-                            max-w-[1200px]
-                            flex-wrap
-                            justify-center
-                            gap-4
+                            max-h-[650px]
+                            overflow-auto
+                            rounded-2xl
+                            border
+                            bg-gray-50
+                            px-6
+                            py-8
                         "
                     >
 
-                        {filteredShops.map(
-                            (shop) => (
+                        <div
+                            className="
+                                mx-auto
+                                w-[760px]
+                                min-w-[760px]
+                                space-y-4
+                            "
+                        >
 
-                                <button
-                                    key={
-                                        shop.id
-                                    }
-                                    type="button"
-                                    onClick={() =>
-                                        handleShopClick(
-                                            shop
-                                        )
-                                    }
-                                    className={`
-                                        h-[110px]
-                                        w-[150px]
-                                        min-w-[150px]
-                                        max-w-[150px]
+                            {zigZagRows.map(
+                                (
+                                    row,
+                                    rowIndex
+                                ) => (
 
-                                        flex
-                                        flex-col
-                                        items-center
-                                        justify-center
-
-                                        rounded-xl
-                                        border-2
-                                        p-3
-                                        text-center
-
-                                        cursor-pointer
-
-                                        transition-all
-                                        duration-200
-                                        ease-out
-
-                                        hover:-translate-y-1
-                                        hover:scale-[1.03]
-                                        hover:shadow-lg
-
-                                        focus:outline-none
-                                        focus:ring-2
-                                        focus:ring-green-400
-                                        focus:ring-offset-2
-
-                                        ${getShopColor(
-                                            shop.status
-                                        )}
-                                    `}
-                                >
-
-                                    <span className="text-base font-bold">
-
-                                        {
-                                            shop.number
+                                    <div
+                                        key={
+                                            rowIndex
                                         }
+                                        className="
+                                            relative
+                                            h-[110px]
+                                            w-full
+                                        "
+                                    >
 
-                                    </span>
+                                        {row.map(
+                                            (
+                                                property,
+                                                columnIndex
+                                            ) => {
 
+                                                const status =
+                                                    getFrontendStatus(
+                                                        property
+                                                    );
 
-                                    <span className="mt-2 text-xs">
+                                                const baseLeft =
+                                                    columnIndex *
+                                                    171;
 
-                                        {
-                                            shop.area
-                                        }
+                                                const rowOffset =
+                                                    rowIndex %
+                                                        2 ===
+                                                    1
+                                                        ? 86
+                                                        : 0;
 
-                                    </span>
+                                                const left =
+                                                    baseLeft +
+                                                    rowOffset;
 
+                                                return (
 
-                                    <span className="mt-2 text-xs font-bold uppercase">
+                                                    <button
+                                                        key={
+                                                            property.id
+                                                        }
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleShopClick(
+                                                                property
+                                                            )
+                                                        }
+                                                        style={{
+                                                            left:
+                                                                `${left}px`,
+                                                        }}
+                                                        className={`
+                                                            absolute
+                                                            top-0
 
-                                        {getStatusText(
-                                            shop.status
+                                                            flex
+                                                            h-[110px]
+                                                            w-[155px]
+
+                                                            flex-col
+                                                            items-center
+                                                            justify-center
+
+                                                            rounded-xl
+                                                            border-2
+                                                            p-3
+                                                            text-center
+
+                                                            transition-all
+                                                            duration-200
+
+                                                            hover:-translate-y-1
+                                                            hover:scale-[1.02]
+                                                            hover:shadow-lg
+
+                                                            focus:outline-none
+                                                            focus:ring-2
+                                                            focus:ring-green-400
+                                                            focus:ring-offset-2
+
+                                                            ${getShopColor(
+                                                                status
+                                                            )}
+                                                        `}
+                                                    >
+
+                                                        <span className="text-base font-bold">
+                                                            {
+                                                                property.unitNumber
+                                                            }
+                                                        </span>
+
+                                                        <span className="mt-2 text-xs">
+                                                            {property.area
+                                                                ? `${property.area} sqft`
+                                                                : "Area not set"}
+                                                        </span>
+
+                                                        <span className="mt-2 text-xs font-bold uppercase">
+                                                            {getStatusText(
+                                                                status
+                                                            )}
+                                                        </span>
+
+                                                    </button>
+
+                                                );
+                                            }
                                         )}
 
-                                    </span>
+                                    </div>
 
-                                </button>
+                                )
+                            )}
 
-                            )
-                        )}
+                        </div>
 
                     </div>
 
-                </div>
+                )}
 
+                {/* Legend */}
 
-                {/* ==================================================
-                    Legend
-                ================================================== */}
-
-                <div className="mt-6 flex flex-wrap gap-6 border-t pt-5 text-sm">
+                <div className="mt-6 flex flex-wrap justify-center gap-6 border-t pt-5 text-sm">
 
                     <div className="flex items-center gap-2">
-
                         <div className="h-4 w-4 rounded bg-green-500" />
-
                         Available
-
                     </div>
 
-
                     <div className="flex items-center gap-2">
-
                         <div className="h-4 w-4 rounded bg-yellow-400" />
-
                         Hold
-
                     </div>
 
+                    <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 rounded bg-red-500" />
+                        Booked
+                    </div>
 
                     <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 rounded bg-gray-500" />
+                        Sold
+                    </div>
 
-                        <div className="h-4 w-4 rounded bg-red-500" />
-
-                        Booked
-
+                    <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 rounded bg-purple-500" />
+                        Fine Dine
                     </div>
 
                 </div>
 
             </div>
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Shop Modal
-            ================================================== */}
+            ========================================== */}
 
             <ShopModal
                 isOpen={
                     isShopModalOpen
                 }
-
                 onClose={() => {
 
                     setIsShopModalOpen(
@@ -1371,32 +1608,26 @@ function Commercial() {
                     setSelectedShop(
                         null
                     );
-
                 }}
-
                 shop={
-                    selectedShop as any
+                    selectedShop
                 }
-
                 onBook={
                     handleBookShop
                 }
-
                 onStatusChange={
                     handleStatusChange
                 }
             />
 
-
-            {/* ==================================================
+            {/* ==========================================
                 Booking Modal
-            ================================================== */}
+            ========================================== */}
 
             <BookingModal
                 isOpen={
                     isBookingModalOpen
                 }
-
                 onClose={() => {
 
                     setIsBookingModalOpen(
@@ -1406,40 +1637,33 @@ function Commercial() {
                     setSelectedShop(
                         null
                     );
-
                 }}
-
                 onConfirm={
                     handleConfirmBooking
                 }
-
                 flat={
                     selectedShop
                         ? {
-
                             number:
                                 selectedShop.number,
 
                             tower:
-                                "Commercial",
+                                selectedShop.tower ??
+                                selectedSection,
 
                             floor:
                                 selectedShop.floor,
 
                             status:
                                 selectedShop.status,
-
                         }
                         : null
                 }
-
                 mode="create"
             />
 
         </div>
-
     );
-
 }
 
 export default Commercial;

@@ -1,23 +1,36 @@
-import { Router, Response } from "express";
+import {
+    Router,
+} from "express";
 
 import {
-  login,
+    login,
+    getCurrentUser,
 } from "../controllers/auth.controller";
 
 import {
-  authenticate,
-  AuthRequest,
+    authenticate,
 } from "../middleware/auth.middleware";
 
-const router = Router();
+const router =
+    Router();
 
-router.post("/login", login);
+// ======================================================
+// Public
+// ======================================================
 
-router.get("/me", authenticate, (req: AuthRequest, res: Response) => {
-  res.json({
-    success: true,
-    user: req.user,
-  });
-});
+router.post(
+    "/login",
+    login
+);
+
+// ======================================================
+// Protected
+// ======================================================
+
+router.get(
+    "/me",
+    authenticate,
+    getCurrentUser
+);
 
 export default router;

@@ -1,155 +1,159 @@
-// =========================================================
-// Inventory Chart Component
-// =========================================================
-
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
+    Legend,
 } from "recharts";
 
-import { residentialFlats } from "../../data/floorData";
-import { commercialShops } from "../../data/commercialData";
-
-import { useFlat } from "../../context/FlatContext";
-
-function InventoryChart() {
-  const { flatStatuses } = useFlat();
-
-  // =====================================================
-  // Residential Flats with Actual Saved Status
-  // =====================================================
-
-  const residentialWithStatus = residentialFlats.map((flat) => {
-    const savedStatus = flatStatuses.find(
-      (item) => item.number === flat.number
-    );
-
-    return {
-      ...flat,
-      status: savedStatus?.status ?? flat.status,
+type InventoryChartProps = {
+    residential: {
+        available: number;
+        hold: number;
+        booked: number;
+        sold: number;
     };
-  });
 
-  // =====================================================
-  // Residential Inventory
-  // =====================================================
+    commercial: {
+        available: number;
+        hold: number;
+        booked: number;
+        sold: number;
+    };
+};
 
-  const residentialAvailable = residentialWithStatus.filter(
-    (flat) => flat.status === "available"
-  ).length;
+function InventoryChart({
+    residential,
+    commercial,
+}: InventoryChartProps) {
+    const data = [
+        {
+            category: "Residential",
+            available:
+                residential.available,
+            hold:
+                residential.hold,
+            booked:
+                residential.booked,
+            sold:
+                residential.sold,
+        },
+        {
+            category: "Commercial",
+            available:
+                commercial.available,
+            hold:
+                commercial.hold,
+            booked:
+                commercial.booked,
+            sold:
+                commercial.sold,
+        },
+    ];
 
-  const residentialBooked = residentialWithStatus.filter(
-    (flat) => flat.status === "booked"
-  ).length;
+    return (
+        <div className="rounded-2xl bg-white p-6 shadow">
 
-  const residentialHold = residentialWithStatus.filter(
-    (flat) => flat.status === "hold"
-  ).length;
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-800">
+                    Inventory Overview
+                </h2>
 
-  // =====================================================
-  // Commercial Inventory
-  // =====================================================
+                <p className="mt-1 text-sm text-gray-500">
+                    Live property inventory status
+                </p>
+            </div>
 
-  const commercialAvailable = commercialShops.filter(
-    (shop) => shop.status === "available"
-  ).length;
+            <div className="h-80">
 
-  const commercialBooked = commercialShops.filter(
-    (shop) => shop.status === "booked"
-  ).length;
+                <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                >
 
-  const commercialHold = commercialShops.filter(
-    (shop) => shop.status === "hold"
-  ).length;
+                    <BarChart
+                        data={data}
+                        margin={{
+                            top: 10,
+                            right: 10,
+                            left: 0,
+                            bottom: 10,
+                        }}
+                    >
 
-  // =====================================================
-  // Chart Data
-  // =====================================================
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                        />
 
-  const data = [
-    {
-      category: "Residential",
-      available: residentialAvailable,
-      hold: residentialHold,
-      booked: residentialBooked,
-    },
-    {
-      category: "Commercial",
-      available: commercialAvailable,
-      hold: commercialHold,
-      booked: commercialBooked,
-    },
-  ];
+                        <XAxis
+                            dataKey="category"
+                        />
 
-  return (
-    <div className="rounded-2xl bg-white p-6 shadow">
-      {/* Heading */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-800">
-          Inventory Overview
-        </h2>
+                        <YAxis />
 
-        <p className="mt-1 text-sm text-gray-500">
-          Available vs Booked vs Hold Units
-        </p>
-      </div>
+                        <Tooltip />
 
-      {/* Chart */}
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{
-              top: 10,
-              right: 10,
-              left: 0,
-              bottom: 10,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
+                        <Legend />
 
-            <XAxis dataKey="category" />
+                        <Bar
+                            dataKey="available"
+                            fill="#16a34a"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Available"
+                        />
 
-            <YAxis />
+                        <Bar
+                            dataKey="hold"
+                            fill="#f59e0b"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Hold"
+                        />
 
-            <Tooltip />
+                        <Bar
+                            dataKey="booked"
+                            fill="#ef4444"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Booked"
+                        />
 
-            <Legend />
+                        <Bar
+                            dataKey="sold"
+                            fill="#6b7280"
+                            radius={[
+                                8,
+                                8,
+                                0,
+                                0,
+                            ]}
+                            name="Sold"
+                        />
 
-            {/* Available */}
-            <Bar
-              dataKey="available"
-              fill="#16a34a"
-              radius={[8, 8, 0, 0]}
-              name="Available"
-            />
+                    </BarChart>
 
-            {/* Hold */}
-            <Bar
-              dataKey="hold"
-              fill="#f59e0b"
-              radius={[8, 8, 0, 0]}
-              name="Hold"
-            />
+                </ResponsiveContainer>
 
-            {/* Booked */}
-            <Bar
-              dataKey="booked"
-              fill="#ef4444"
-              radius={[8, 8, 0, 0]}
-              name="Booked"
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
+            </div>
+
+        </div>
+    );
 }
 
 export default InventoryChart;

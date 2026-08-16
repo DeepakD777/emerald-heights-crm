@@ -1,20 +1,29 @@
-// ======================================================
-// Dashboard Page
-// ======================================================
-
-import { useState } from "react";
+import {
+    useEffect,
+    useState,
+} from "react";
 
 import StatsCard from "../../components/dashboard/StatsCard";
 import InventoryChart from "../../components/dashboard/InventoryChart";
-import FloorPreview from "../../components/dashboard/FloorPreview";
 import QuickActions from "../../components/dashboard/QuickActions";
 import RecentBookings from "../../components/dashboard/RecentBookings";
-import FloorMap from "../../components/dashboard/Floormap";
+import DashboardQuickInventory from "../../components/dashboard/DashboardQuickInventory";
 
-import { useFlat } from "../../context/FlatContext";
+import {
+    getDashboardSummary,
+} from "../../services/dashboardService";
 
-import { residentialFlats } from "../../data/floorData";
-import { commercialShops } from "../../data/commercialData";
+import type {
+    DashboardSummary,
+} from "../../services/dashboardService";
+
+import {
+    getBookings,
+} from "../../services/bookingService";
+
+import type {
+    Booking,
+} from "../../services/bookingService";
 
 import {
     Building2,
@@ -25,248 +34,247 @@ import {
 
 function Dashboard() {
 
-    const { flatStatuses } = useFlat();
+    const [
+        summary,
+        setSummary,
+    ] = useState<DashboardSummary | null>(
+        null
+    );
+
+    const [
+        bookings,
+        setBookings,
+    ] = useState<Booking[]>([]);
+
+    const [
+        loading,
+        setLoading,
+    ] = useState(true);
+
+    const [
+        error,
+        setError,
+    ] = useState("");
 
     // ======================================================
-    // Commercial Shops
-    // Read saved status from localStorage
+    // Load Dashboard
     // ======================================================
 
-    const [savedCommercialShops] = useState(() => {
+    const loadDashboard =
+        async () => {
 
-        const savedShops =
-            localStorage.getItem("commercialShops");
-
-        if (savedShops) {
             try {
-                return JSON.parse(savedShops);
-            } catch (error) {
-                console.error(
-                    "Failed to load commercial shops:",
-                    error
+
+                setLoading(true);
+                setError("");
+
+                const [
+                    summaryResponse,
+                    bookingsResponse,
+                ] = await Promise.all([
+                    getDashboardSummary(),
+                    getBookings(),
+                ]);
+
+                setSummary(
+                    summaryResponse.data
+                );
+
+                setBookings(
+                    bookingsResponse.data
+                );
+
+            } catch (err) {
+
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load dashboard";
+
+                setError(
+                    message
+                );
+
+            } finally {
+
+                setLoading(
+                    false
                 );
             }
-        }
+        };
 
-        return commercialShops;
-    });
+    useEffect(() => {
+        loadDashboard();
+    }, []);
 
     // ======================================================
-    // Residential Units
+    // Loading
+    // ======================================================
+
+    if (loading) {
+
+        return (
+            <div className="rounded-2xl bg-white p-8 shadow">
+
+                <p className="text-gray-600">
+                    Loading dashboard...
+                </p>
+
+            </div>
+        );
+    }
+
+    // ======================================================
+    // Error
+    // ======================================================
+
+    if (
+        error ||
+        !summary
+    ) {
+
+        return (
+            <div className="rounded-2xl bg-white p-8 shadow">
+
+                <p className="font-medium text-red-600">
+                    {error || "Dashboard data not available"}
+                </p>
+
+                <button
+                    type="button"
+                    onClick={
+                        loadDashboard
+                    }
+                    className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
+                >
+                    Retry
+                </button>
+
+            </div>
+        );
+    }
+
+    // ======================================================
+    // Values
     // ======================================================
 
     const residentialUnits =
-        residentialFlats.length;
-
-    // ======================================================
-    // Commercial Units
-    // ======================================================
+        summary.properties
+            .residential.total;
 
     const commercialUnits =
-        savedCommercialShops.length;
-
-    // ======================================================
-    // Total Units
-    // ======================================================
-
-    const totalUnits =
-        residentialUnits +
-        commercialUnits;
-
-    // ======================================================
-    // Residential Status
-    // ======================================================
-
-    const residentialWithStatus =
-        residentialFlats.map((flat) => {
-
-            const savedStatus =
-                flatStatuses.find(
-                    (item) =>
-                        item.number === flat.number
-                );
-
-            return {
-                ...flat,
-                status:
-                    savedStatus?.status ??
-                    flat.status,
-            };
-        });
-
-    // ======================================================
-    // Residential Booked
-    // ======================================================
-
-    const residentialBooked =
-        residentialWithStatus.filter(
-            (flat) =>
-                flat.status === "booked"
-        ).length;
-
-    // ======================================================
-    // Residential Hold
-    // ======================================================
-
-    const residentialHold =
-        residentialWithStatus.filter(
-            (flat) =>
-                flat.status === "hold"
-        ).length;
-
-    // ======================================================
-    // Commercial Booked
-    // ======================================================
-
-    const commercialBooked =
-        savedCommercialShops.filter(
-            (shop: any) =>
-                shop.status === "booked"
-        ).length;
-
-    // ======================================================
-    // Commercial Hold
-    // ======================================================
-
-    const commercialHold =
-        savedCommercialShops.filter(
-            (shop: any) =>
-                shop.status === "hold"
-        ).length;
-
-    // ======================================================
-    // Total Booked Units
-    // ======================================================
-
-    const bookedUnits =
-        residentialBooked +
-        commercialBooked;
-
-    // ======================================================
-    // Total Hold Units
-    // ======================================================
-
-    const holdUnits =
-        residentialHold +
-        commercialHold;
-
-    // ======================================================
-    // Total Available Units
-    // ======================================================
+        summary.properties
+            .commercial.total;
 
     const availableUnits =
-        totalUnits -
-        bookedUnits -
-        holdUnits;
+        summary.properties
+            .available;
+
+    const bookedUnits =
+        summary.properties
+            .booked;
 
     // ======================================================
-    // UI
+    // Render
     // ======================================================
 
     return (
         <div className="space-y-6">
 
-            {/* ==================================================
+            {/* ==========================================
                 Statistics Cards
-            ================================================== */}
+            ========================================== */}
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
 
-                {/* ==================================================
-                    Residential Units
-                ================================================== */}
-
                 <StatsCard
                     title="Residential Units"
-                    value={residentialUnits}
+                    value={
+                        residentialUnits
+                    }
                     subtitle="Total Residential Units"
                     icon={
-                        <Building2 size={28} />
+                        <Building2
+                            size={28}
+                        />
                     }
                     color="bg-green-600"
                 />
 
-                {/* ==================================================
-                    Commercial Units
-                ================================================== */}
-
                 <StatsCard
                     title="Commercial Units"
-                    value={commercialUnits}
+                    value={
+                        commercialUnits
+                    }
                     subtitle="Total Commercial Units"
                     icon={
-                        <Store size={28} />
+                        <Store
+                            size={28}
+                        />
                     }
                     color="bg-blue-600"
                 />
 
-                {/* ==================================================
-                    Available Units
-                ================================================== */}
-
                 <StatsCard
                     title="Total Available Units"
-                    value={availableUnits}
+                    value={
+                        availableUnits
+                    }
                     subtitle="Ready for Booking"
                     icon={
-                        <Home size={28} />
+                        <Home
+                            size={28}
+                        />
                     }
                     color="bg-green-600"
                 />
 
-                {/* ==================================================
-                    Booked Units
-                ================================================== */}
-
                 <StatsCard
                     title="Total Booked Units"
-                    value={bookedUnits}
+                    value={
+                        bookedUnits
+                    }
                     subtitle="Currently Booked"
                     icon={
-                        <CheckCircle size={28} />
+                        <CheckCircle
+                            size={28}
+                        />
                     }
                     color="bg-red-500"
                 />
 
             </div>
 
-            {/* ==================================================
-                Inventory + Floor Preview
-            ================================================== */}
+            {/* ==========================================
+                Inventory Overview
+            ========================================== */}
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            <InventoryChart
+                residential={
+                    summary.properties
+                        .residential
+                }
+                commercial={
+                    summary.properties
+                        .commercial
+                }
+            />
 
-                <div className="xl:col-span-2">
-
-                    <InventoryChart />
-
-                </div>
-
-                <div>
-
-                    <FloorPreview />
-
-                </div>
-
-            </div>
-
-            {/* ==================================================
+            {/* ==========================================
                 Quick Actions
-            ================================================== */}
+            ========================================== */}
 
             <QuickActions />
 
-            {/* ==================================================
-                Recent Bookings
-            ================================================== */}
+            <DashboardQuickInventory
+                onInventoryChanged={
+                    loadDashboard
+                }
+            />
 
-            <RecentBookings />
-
-            {/* ==================================================
-                Floor Map
-            ================================================== */}
-
-            <FloorMap />
+            <RecentBookings
+                bookings={bookings}
+            />
 
         </div>
     );
