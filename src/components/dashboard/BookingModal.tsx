@@ -1,12 +1,32 @@
-import { useEffect, useState } from "react";
+import {
+    useEffect,
+    useState,
+} from "react";
+
 import Modal from "./Modal";
+
+import {
+    getAuthToken,
+} from "../../services/api";
+
+// ======================================================
+// Types
+// ======================================================
 
 interface BookingModalProps {
     isOpen: boolean;
-    onClose: () => void;
-    onConfirm: (bookingData: any) => void;
+
+    onClose:
+        () => void;
+
+    onConfirm:
+        (bookingData: any) => void;
+
     booking?: any;
-    mode?: "create" | "edit";
+
+    mode?:
+        | "create"
+        | "edit";
 
     flat: {
         number: string;
@@ -16,6 +36,90 @@ interface BookingModalProps {
     } | null;
 }
 
+interface SalesMember {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+}
+
+// ======================================================
+// API
+// ======================================================
+
+const EMPLOYEES_API =
+    "http://localhost:5000/api/employees";
+
+// ======================================================
+// Empty Form
+// ======================================================
+
+const createEmptyForm = () => ({
+    customerName: "",
+    mobile: "",
+    email: "",
+    address: "",
+
+    aadhar: "",
+    pan: "",
+
+    // Client Customer Fields
+    dob: "",
+    doa: "",
+    profile: "",
+
+    // Financial Details
+    totalAmount: "",
+    discount: "",
+    afterDiscountAmount: "",
+
+    plan: "",
+
+    bookingAmount: "",
+    paymentMode: "Cash",
+
+    chequeNo: "",
+    bankName: "",
+
+    finance: "",
+    customerNeed: "",
+
+    bookingDate: "",
+    remarks: "",
+
+    employeeId: "",
+});
+
+// ======================================================
+// Role Label
+// ======================================================
+
+const getRoleLabel = (
+    role: string
+) => {
+
+    switch (role) {
+
+        case "SALES_MANAGER":
+            return "Sales Manager";
+
+        case "TEAM_LEADER":
+            return "Team Leader";
+
+        case "SALES_EXECUTIVE":
+        case "EMPLOYEE":
+            return "Sales Executive";
+
+        default:
+            return role;
+    }
+};
+
+// ======================================================
+// Component
+// ======================================================
+
 function BookingModal({
     isOpen,
     onClose,
@@ -24,265 +128,1184 @@ function BookingModal({
     booking,
     mode = "create",
 }: BookingModalProps) {
-    if (!flat) return null;
 
-    const [formData, setFormData] = useState({
-        customerName: "",
-        mobile: "",
-        email: "",
-        address: "",
-        aadhar: "",
-        pan: "",
-        bookingAmount: "",
-        paymentMode: "Cash",
-        bookingDate: "",
-        remarks: "",
-    });
+    const [
+        formData,
+        setFormData,
+    ] = useState(
+        createEmptyForm()
+    );
+
+    const [
+        salesMembers,
+        setSalesMembers,
+    ] = useState<
+        SalesMember[]
+    >([]);
+
+    const [
+        loadingEmployees,
+        setLoadingEmployees,
+    ] = useState(false);
+
+    const [
+        employeeError,
+        setEmployeeError,
+    ] = useState<
+        string | null
+    >(null);
+
+    // ==================================================
+    // Load Sales Members
+    // ==================================================
+
     useEffect(() => {
 
-        if (mode === "edit" && booking) {
-
-            setFormData({
-                customerName: booking.customerName,
-                mobile: booking.mobile,
-                email: booking.email,
-                address: booking.address,
-                aadhar: booking.aadhar,
-                pan: booking.pan,
-                bookingAmount: booking.bookingAmount,
-                paymentMode: booking.paymentMode,
-                bookingDate: booking.bookingDate,
-                remarks: booking.remarks,
-            });
-
+        if (!isOpen) {
+            return;
         }
 
-    }, [booking, mode]);
+        const fetchSalesMembers =
+            async () => {
+
+                try {
+
+                    setLoadingEmployees(
+                        true
+                    );
+
+                    setEmployeeError(
+                        null
+                    );
+
+                    const token =
+                        getAuthToken();
+
+                    const response =
+                        await fetch(
+                            EMPLOYEES_API,
+                            {
+                                headers:
+                                    token
+                                        ? {
+                                            Authorization:
+                                                `Bearer ${token}`,
+                                        }
+                                        : {},
+                            }
+                        );
+
+                    const result =
+                        await response.json();
+
+                    if (
+                        !response.ok ||
+                        !result.success
+                    ) {
+
+                        throw new Error(
+                            result.message ||
+                            "Failed to load sales members"
+                        );
+                    }
+
+                    const employees =
+                        Array.isArray(
+                            result.data
+                        )
+                            ? result.data
+                            : [];
+
+                    setSalesMembers(
+                        employees.map(
+                            (
+                                employee: any
+                            ) => ({
+                                id:
+                                    employee.id,
+
+                                name:
+                                    employee.name,
+
+                                email:
+                                    employee.email,
+
+                                role:
+                                    employee.role,
+
+                                status:
+                                    employee.status,
+                            })
+                        )
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Load sales members error:",
+                        error
+                    );
+
+                    setEmployeeError(
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to load sales members"
+                    );
+
+                } finally {
+
+                    setLoadingEmployees(
+                        false
+                    );
+                }
+            };
+
+        void fetchSalesMembers();
+
+    }, [
+        isOpen,
+    ]);
+
+    // ==================================================
+    // Fill Form
+    // ==================================================
+
+    useEffect(() => {
+
+        if (!isOpen) {
+            return;
+        }
+
+        // ==============================================
+        // Edit Booking
+        // ==============================================
+
+        if (
+            mode === "edit" &&
+            booking
+        ) {
+
+            setFormData({
+
+                customerName:
+                    booking.customerName ??
+                    "",
+
+                mobile:
+                    booking.mobile ??
+                    "",
+
+                email:
+                    booking.email ??
+                    "",
+
+                address:
+                    booking.address ??
+                    "",
+
+                aadhar:
+                    booking.aadhar ??
+                    "",
+
+                pan:
+                    booking.pan ??
+                    "",
+
+                dob:
+                    booking.dob ??
+                    "",
+
+                doa:
+                    booking.doa ??
+                    "",
+
+                profile:
+                    booking.profile ??
+                    "",
+
+                totalAmount:
+                    booking.totalAmount ??
+                    "",
+
+                discount:
+                    booking.discount ??
+                    "",
+
+                afterDiscountAmount:
+                    booking.afterDiscountAmount ??
+                    "",
+
+                plan:
+                    booking.plan ??
+                    "",
+
+                bookingAmount:
+                    booking.bookingAmount ??
+                    "",
+
+                paymentMode:
+                    booking.paymentMode ??
+                    "Cash",
+
+                chequeNo:
+                    booking.chequeNo ??
+                    "",
+
+                bankName:
+                    booking.bankName ??
+                    "",
+
+                finance:
+                    booking.finance ??
+                    "",
+
+                customerNeed:
+                    booking.customerNeed ??
+                    "",
+
+                bookingDate:
+                    booking.bookingDate ??
+                    "",
+
+                remarks:
+                    booking.remarks ??
+                    "",
+
+                employeeId:
+                    booking.employeeId ??
+                    booking.assignedEmployee
+                        ?.id ??
+                    "",
+            });
+
+            return;
+        }
+
+        // ==============================================
+        // New Booking
+        // ==============================================
+
+        setFormData(
+            createEmptyForm()
+        );
+
+    }, [
+        booking,
+        mode,
+        isOpen,
+    ]);
+
+    // ==================================================
+    // Handle Change
+    // ==================================================
 
     const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+        event:
+            React.ChangeEvent<
+                HTMLInputElement |
+                HTMLTextAreaElement |
+                HTMLSelectElement
+            >
     ) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+
+        const {
+            name,
+            value,
+        } =
+            event.target;
+
+        setFormData(
+            (
+                previous
+            ) => {
+
+                const nextData = {
+                    ...previous,
+
+                    [name]:
+                        value,
+                };
+
+                // ==========================================
+                // Automatic After Discount Amount
+                // ==========================================
+
+                if (
+                    name ===
+                        "totalAmount" ||
+                    name ===
+                        "discount"
+                ) {
+
+                    const total =
+                        Number(
+                            name ===
+                                "totalAmount"
+                                ? value
+                                : previous
+                                    .totalAmount
+                        );
+
+                    const discount =
+                        Number(
+                            name ===
+                                "discount"
+                                ? value
+                                : previous
+                                    .discount
+                        );
+
+                    const safeTotal =
+                        Number.isFinite(
+                            total
+                        )
+                            ? total
+                            : 0;
+
+                    const safeDiscount =
+                        Number.isFinite(
+                            discount
+                        )
+                            ? discount
+                            : 0;
+
+                    nextData.afterDiscountAmount =
+                        String(
+                            Math.max(
+                                safeTotal -
+                                safeDiscount,
+                                0
+                            )
+                        );
+                }
+
+                return nextData;
+            }
+        );
     };
 
+    // ==================================================
+    // Submit
+    // ==================================================
+
+    const handleConfirm =
+        () => {
+
+            if (!flat) {
+                return;
+            }
+
+            if (
+                !formData
+                    .customerName
+                    .trim() ||
+                !formData
+                    .mobile
+                    .trim()
+            ) {
+
+                alert(
+                    "Customer Name and Mobile Number are required."
+                );
+
+                return;
+            }
+
+            onConfirm({
+
+                id:
+                    booking?.id ??
+                    crypto.randomUUID(),
+
+                bookingCode:
+                    booking
+                        ?.bookingCode,
+
+                ...formData,
+
+                employeeId:
+                    formData.employeeId ||
+                    null,
+
+                flatNumber:
+                    flat.number,
+
+                tower:
+                    flat.tower,
+
+                floor:
+                    flat.floor,
+
+                status:
+                    mode === "edit"
+                        ? booking?.status ??
+                        "booked"
+                        : "booked",
+
+                documents:
+                    booking?.documents,
+
+                assignedEmployee:
+                    booking
+                        ?.assignedEmployee,
+            });
+
+            onClose();
+        };
+
+    // ==================================================
+    // No Flat
+    // ==================================================
+
+    if (!flat) {
+        return null;
+    }
+
+    // ==================================================
+    // Render
+    // ==================================================
+
     return (
+
         <Modal
-            isOpen={isOpen}
-            onClose={onClose}
+            isOpen={
+                isOpen
+            }
+            onClose={
+                onClose
+            }
             title={
                 mode === "edit"
                     ? `Edit Booking - ${flat.number}`
                     : `Booking - ${flat.number}`
             }
         >
-            <div className="space-y-5">
 
-                {/* Flat Info */}
-                <div className="rounded-lg bg-gray-100 p-4">
-                    <p><strong>Flat:</strong> {flat.number}</p>
-                    <p><strong>Tower:</strong> {flat.tower}</p>
-                    <p><strong>Floor:</strong> {flat.floor}</p>
+            <div className="space-y-6">
+
+                {/* ======================================
+                    Flat Details
+                ====================================== */}
+
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+
+                    <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                        Flat Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+
+                        <div>
+                            <p className="text-xs text-gray-500">
+                                Flat No.
+                            </p>
+
+                            <p className="font-semibold text-gray-800">
+                                {flat.number}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-gray-500">
+                                Block / Tower
+                            </p>
+
+                            <p className="font-semibold text-gray-800">
+                                {flat.tower}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-xs text-gray-500">
+                                Floor
+                            </p>
+
+                            <p className="font-semibold text-gray-800">
+                                {flat.floor}
+                            </p>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                {/* Customer Name */}
+                {/* ======================================
+                    Relationship Manager
+                ====================================== */}
+
                 <div>
+
                     <label className="mb-1 block text-sm font-medium">
-                        Customer Name
+                        Relationship Manager / Assigned Sales Member
                     </label>
-                    <input
-                        type="text"
-                        name="customerName"
-                        value={formData.customerName}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border p-2"
-                    />
+
+                    <select
+                        name="employeeId"
+                        value={
+                            formData.employeeId
+                        }
+                        onChange={
+                            handleChange
+                        }
+                        disabled={
+                            loadingEmployees
+                        }
+                        className="w-full rounded-lg border p-2 disabled:bg-gray-100 disabled:text-gray-500"
+                    >
+
+                        <option value="">
+                            {
+                                loadingEmployees
+                                    ? "Loading sales members..."
+                                    : "Unassigned"
+                            }
+                        </option>
+
+                        {
+                            salesMembers.map(
+                                (
+                                    member
+                                ) => (
+
+                                    <option
+                                        key={
+                                            member.id
+                                        }
+                                        value={
+                                            member.id
+                                        }
+                                        disabled={
+                                            member.status !==
+                                                "ACTIVE" &&
+                                            member.id !==
+                                                formData.employeeId
+                                        }
+                                    >
+
+                                        {member.name}
+                                        {" — "}
+                                        {
+                                            getRoleLabel(
+                                                member.role
+                                            )
+                                        }
+
+                                        {
+                                            member.status !==
+                                                "ACTIVE"
+                                                ? " (Inactive)"
+                                                : ""
+                                        }
+
+                                    </option>
+                                )
+                            )
+                        }
+
+                    </select>
+
+                    {
+                        employeeError
+                            ? (
+
+                                <p className="mt-1 text-xs text-red-600">
+                                    {employeeError}
+                                </p>
+
+                            )
+                            : (
+
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Select the relationship manager responsible for this booking.
+                                </p>
+
+                            )
+                    }
+
                 </div>
 
-                {/* Mobile */}
-                <div>
-                    <label className="mb-1 block text-sm font-medium">
-                        Mobile Number
-                    </label>
-                    <input
-                        type="text"
-                        name="mobile"
-                        value={formData.mobile}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border p-2"
-                    />
+                {/* ======================================
+                    Customer Details
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Customer Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Customer Name *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="customerName"
+                                value={
+                                    formData.customerName
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Mobile Number *
+                            </label>
+
+                            <input
+                                type="text"
+                                name="mobile"
+                                value={
+                                    formData.mobile
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Email ID
+                            </label>
+
+                            <input
+                                type="email"
+                                name="email"
+                                value={
+                                    formData.email
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Profile
+                            </label>
+
+                            <input
+                                type="text"
+                                name="profile"
+                                value={
+                                    formData.profile
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                placeholder="Customer profile"
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                DOB
+                            </label>
+
+                            <input
+                                type="date"
+                                name="dob"
+                                value={
+                                    formData.dob
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                DOA
+                            </label>
+
+                            <input
+                                type="date"
+                                name="doa"
+                                value={
+                                    formData.doa
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                    </div>
+
+                    <div className="mt-4">
+
+                        <label className="mb-1 block text-sm font-medium">
+                            Address
+                        </label>
+
+                        <textarea
+                            name="address"
+                            value={
+                                formData.address
+                            }
+                            onChange={
+                                handleChange
+                            }
+                            className="w-full rounded-lg border p-2"
+                            rows={
+                                3
+                            }
+                        />
+
+                    </div>
+
                 </div>
 
-                {/* Email */}
-                <div>
-                    <label className="mb-1 block text-sm font-medium">
-                        Email
-                    </label>
-                    <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border p-2"
-                    />
+                {/* ======================================
+                    Identity Details
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Identity Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Aadhar Number
+                            </label>
+
+                            <input
+                                type="text"
+                                name="aadhar"
+                                value={
+                                    formData.aadhar
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                PAN Number
+                            </label>
+
+                            <input
+                                type="text"
+                                name="pan"
+                                value={
+                                    formData.pan
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                {/* Address */}
-                <div>
-                    <label className="mb-1 block text-sm font-medium">
-                        Address
-                    </label>
-                    <textarea
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border p-2"
-                        rows={3}
-                    />
+                {/* ======================================
+                    Amount Details
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Amount Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Total Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="totalAmount"
+                                min="0"
+                                value={
+                                    formData.totalAmount
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Discount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="discount"
+                                min="0"
+                                value={
+                                    formData.discount
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                After Discount Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="afterDiscountAmount"
+                                value={
+                                    formData.afterDiscountAmount
+                                }
+                                readOnly
+                                className="w-full rounded-lg border bg-gray-100 p-2 text-gray-700"
+                            />
+
+                            <p className="mt-1 text-xs text-gray-500">
+                                Automatically calculated from Total Amount − Discount.
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Booking Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="bookingAmount"
+                                min="0"
+                                value={
+                                    formData.bookingAmount
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                {/* Aadhar & PAN */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* ======================================
+                    Plan & Payment Details
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Plan & Payment Details
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Plan
+                            </label>
+
+                            <input
+                                type="text"
+                                name="plan"
+                                value={
+                                    formData.plan
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                placeholder="Payment / booking plan"
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Payment Mode
+                            </label>
+
+                            <select
+                                name="paymentMode"
+                                value={
+                                    formData.paymentMode
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            >
+
+                                <option value="Cash">
+                                    Cash
+                                </option>
+
+                                <option value="UPI">
+                                    UPI
+                                </option>
+
+                                <option value="Cheque">
+                                    Cheque
+                                </option>
+
+                                <option value="Bank Transfer">
+                                    Bank Transfer
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Cheque No.
+                            </label>
+
+                            <input
+                                type="text"
+                                name="chequeNo"
+                                value={
+                                    formData.chequeNo
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Bank Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="bankName"
+                                value={
+                                    formData.bankName
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {/* ======================================
+                    Finance & Customer Requirement
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Finance & Customer Requirement
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Finance
+                            </label>
+
+                            <input
+                                type="text"
+                                name="finance"
+                                value={
+                                    formData.finance
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                placeholder="Finance details"
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Customer Need
+                            </label>
+
+                            <input
+                                type="text"
+                                name="customerNeed"
+                                value={
+                                    formData.customerNeed
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                placeholder="Customer requirement"
+                                className="w-full rounded-lg border p-2"
+                            />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {/* ======================================
+                    Booking Date
+                ====================================== */}
+
+                <div className="border-t pt-5">
+
+                    <h3 className="mb-4 text-base font-semibold text-gray-800">
+                        Booking Details
+                    </h3>
 
                     <div>
+
                         <label className="mb-1 block text-sm font-medium">
-                            Aadhar Number
+                            Booking Date
                         </label>
 
                         <input
-                            type="text"
-                            name="aadhar"
-                            value={formData.aadhar}
-                            onChange={handleChange}
+                            type="date"
+                            name="bookingDate"
+                            value={
+                                formData.bookingDate
+                            }
+                            onChange={
+                                handleChange
+                            }
                             className="w-full rounded-lg border p-2"
                         />
-                    </div>
 
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            PAN Number
-                        </label>
-
-                        <input
-                            type="text"
-                            name="pan"
-                            value={formData.pan}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
                     </div>
 
                 </div>
 
-                {/* Amount & Payment */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* ======================================
+                    Remarks
+                ====================================== */}
 
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Booking Amount
-                        </label>
-
-                        <input
-                            type="number"
-                            name="bookingAmount"
-                            value={formData.bookingAmount}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Payment Mode
-                        </label>
-
-                        <select
-                            name="paymentMode"
-                            value={formData.paymentMode}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-2"
-                        >
-                            <option>Cash</option>
-                            <option>UPI</option>
-                            <option>Cheque</option>
-                            <option>Bank Transfer</option>
-                        </select>
-                    </div>
-
-                </div>
-
-                {/* Booking Date */}
                 <div>
-                    <label className="mb-1 block text-sm font-medium">
-                        Booking Date
-                    </label>
 
-                    <input
-                        type="date"
-                        name="bookingDate"
-                        value={formData.bookingDate}
-                        onChange={handleChange}
-                        className="w-full rounded-lg border p-2"
-                    />
-                </div>
-
-                {/* Remarks */}
-                <div>
                     <label className="mb-1 block text-sm font-medium">
                         Remarks
                     </label>
 
                     <textarea
                         name="remarks"
-                        value={formData.remarks}
-                        onChange={handleChange}
+                        value={
+                            formData.remarks
+                        }
+                        onChange={
+                            handleChange
+                        }
                         className="w-full rounded-lg border p-2"
-                        rows={3}
+                        rows={
+                            3
+                        }
                     />
+
                 </div>
 
-                {/* Buttons */}
+                {/* ======================================
+                    Buttons
+                ====================================== */}
+
                 <div className="flex justify-end gap-3 border-t pt-4">
 
                     <button
-                        onClick={onClose}
-                        className="rounded-lg bg-gray-500 px-5 py-2 text-white"
+                        type="button"
+                        onClick={
+                            onClose
+                        }
+                        className="rounded-lg bg-gray-500 px-5 py-2 text-white hover:bg-gray-600"
                     >
                         Cancel
                     </button>
 
                     <button
-                        onClick={() => {
-
-                            if (!formData.customerName || !formData.mobile) {
-                                alert("Customer Name and Mobile Number are required.");
-                                return;
-                            }
-
-                            onConfirm({
-                                id: booking?.id ?? crypto.randomUUID(),
-                                ...formData,
-                                flatNumber: flat.number,
-                                tower: flat.tower,
-                                floor: flat.floor,
-                                status: "booked",
-                            });
-
-                            onClose();
-
-                        }}
+                        type="button"
+                        onClick={
+                            handleConfirm
+                        }
                         className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
                     >
-                        {mode === "edit"
-                            ? "Update Booking"
-                            : "Confirm Booking"}
+
+                        {
+                            mode === "edit"
+                                ? "Update Booking"
+                                : "Confirm Booking"
+                        }
+
                     </button>
 
                 </div>
 
             </div>
+
         </Modal>
     );
 }

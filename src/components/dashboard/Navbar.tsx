@@ -5,10 +5,25 @@ import {
     AlertTriangle,
 } from "lucide-react";
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+    useState,
+} from "react";
 
-import { useBooking } from "../../context/BookingContext";
+import {
+    useNavigate,
+} from "react-router-dom";
+
+import {
+    useBooking,
+} from "../../context/BookingContext";
+
+import {
+    useAuth,
+} from "../../context/AuthContext";
+
+// ======================================================
+// Types
+// ======================================================
 
 interface NavbarProps {
     onMenuClick?: () => void;
@@ -16,24 +31,41 @@ interface NavbarProps {
 
 interface NotificationItem {
     id: string;
+
     bookingId: string;
+
     customerName: string;
+
     flatNumber: string;
+
     type:
-    | "requisition"
-    | "agreement"
-    | "tripartite";
+        | "requisition"
+        | "agreement"
+        | "tripartite";
+
     title: string;
+
     status: string;
 }
+
+// ======================================================
+// Navbar
+// ======================================================
 
 function Navbar({
     onMenuClick,
 }: NavbarProps) {
 
-    const navigate = useNavigate();
+    const navigate =
+        useNavigate();
 
-    const { bookings } = useBooking();
+    const {
+        bookings,
+    } = useBooking();
+
+    const {
+        user,
+    } = useAuth();
 
     const [
         isNotificationsOpen,
@@ -41,138 +73,170 @@ function Navbar({
     ] = useState(false);
 
     // ======================================================
+    // Current Logged-In User
+    // ======================================================
+
+    const displayName =
+        user?.name?.trim() ||
+        "User";
+
+    const displayRole =
+        user?.role?.trim() ||
+        (
+            user?.userType ===
+            "ADMIN"
+                ? "Administrator"
+                : "Employee"
+        );
+
+    const avatarLetter =
+        displayName
+            .charAt(0)
+            .toUpperCase() ||
+        "U";
+
+    // ======================================================
     // Build Notifications
     // ======================================================
 
-    const notifications: NotificationItem[] = [];
+    const notifications:
+        NotificationItem[] = [];
 
-    bookings.forEach((booking) => {
+    bookings.forEach(
+        (booking) => {
 
-        // ==================================================
-        // Requisition Letter
-        // ==================================================
+            // ==============================================
+            // Requisition Letter
+            // ==============================================
 
-        const requisitionStatus =
-            booking.documents
-                ?.requisitionLetter
-                ?.status ?? "pending";
+            const requisitionStatus =
+                booking.documents
+                    ?.requisitionLetter
+                    ?.status ??
+                "pending";
 
-        if (
-            requisitionStatus !== "given" &&
-            requisitionStatus !== "completed"
-        ) {
+            if (
+                requisitionStatus !==
+                    "given" &&
+                requisitionStatus !==
+                    "completed"
+            ) {
 
-            notifications.push({
+                notifications.push({
+                    id:
+                        `${booking.id}-requisition`,
 
-                id: `${booking.id}-requisition`,
+                    bookingId:
+                        booking.id,
 
-                bookingId: booking.id,
+                    customerName:
+                        booking.customerName,
 
-                customerName:
-                    booking.customerName,
+                    flatNumber:
+                        booking.flatNumber,
 
-                flatNumber:
-                    booking.flatNumber,
+                    type:
+                        "requisition",
 
-                type: "requisition",
+                    title:
+                        "Requisition Letter Pending",
 
-                title:
-                    "Requisition Letter Pending",
+                    status:
+                        requisitionStatus,
+                });
+            }
 
-                status:
-                    requisitionStatus,
+            // ==============================================
+            // Agreement To Sell
+            // ==============================================
 
-            });
+            const agreementStatus =
+                booking.documents
+                    ?.agreementToSell
+                    ?.status ??
+                "pending";
 
+            if (
+                agreementStatus !==
+                    "given" &&
+                agreementStatus !==
+                    "completed"
+            ) {
+
+                notifications.push({
+                    id:
+                        `${booking.id}-agreement`,
+
+                    bookingId:
+                        booking.id,
+
+                    customerName:
+                        booking.customerName,
+
+                    flatNumber:
+                        booking.flatNumber,
+
+                    type:
+                        "agreement",
+
+                    title:
+                        "Agreement to Sell Pending",
+
+                    status:
+                        agreementStatus,
+                });
+            }
+
+            // ==============================================
+            // Tripartite Agreement
+            // ==============================================
+
+            const tripartite =
+                booking.documents
+                    ?.tripartiteAgreement;
+
+            const tripartiteRequired =
+                tripartite
+                    ?.required ===
+                true;
+
+            const tripartiteStatus =
+                tripartite
+                    ?.document
+                    ?.status ??
+                "pending";
+
+            if (
+                tripartiteRequired &&
+                tripartiteStatus !==
+                    "completed"
+            ) {
+
+                notifications.push({
+                    id:
+                        `${booking.id}-tripartite`,
+
+                    bookingId:
+                        booking.id,
+
+                    customerName:
+                        booking.customerName,
+
+                    flatNumber:
+                        booking.flatNumber,
+
+                    type:
+                        "tripartite",
+
+                    title:
+                        "Tripartite Agreement Pending",
+
+                    status:
+                        tripartiteStatus,
+                });
+            }
         }
-
-        // ==================================================
-        // Agreement To Sell
-        // ==================================================
-
-        const agreementStatus =
-            booking.documents
-                ?.agreementToSell
-                ?.status ?? "pending";
-
-        if (
-            agreementStatus !== "given" &&
-            agreementStatus !== "completed"
-        ) {
-
-            notifications.push({
-
-                id: `${booking.id}-agreement`,
-
-                bookingId: booking.id,
-
-                customerName:
-                    booking.customerName,
-
-                flatNumber:
-                    booking.flatNumber,
-
-                type: "agreement",
-
-                title:
-                    "Agreement to Sell Pending",
-
-                status:
-                    agreementStatus,
-
-            });
-
-        }
-
-        // ==================================================
-        // Tripartite Agreement
-        // ==================================================
-
-        const tripartite =
-            booking.documents?.tripartiteAgreement;
-
-        const tripartiteRequired =
-            tripartite?.required === true;
-
-        const tripartiteStatus =
-            tripartite?.document?.status ?? "pending";
-
-        // Tripartite notification tabhi aayegi
-        // jab agreement Required ho aur Completed na ho.
-
-        if (
-            tripartiteRequired &&
-            tripartiteStatus !== "completed"
-        ) {
-
-            notifications.push({
-
-                id:
-                    `${booking.id}-tripartite`,
-
-                bookingId:
-                    booking.id,
-
-                customerName:
-                    booking.customerName,
-
-                flatNumber:
-                    booking.flatNumber,
-
-                type:
-                    "tripartite",
-
-                title:
-                    "Tripartite Agreement Pending",
-
-                status:
-                    tripartiteStatus,
-
-            });
-
-        }
-
-    });
+    );
 
     // ======================================================
     // Notification Count
@@ -189,83 +253,92 @@ function Navbar({
         bookingId: string
     ) => {
 
-        setIsNotificationsOpen(false);
+        setIsNotificationsOpen(
+            false
+        );
 
         navigate(
             `/bookings?bookingId=${bookingId}`
         );
-
     };
 
     // ======================================================
     // Notification Icon
     // ======================================================
 
-    const getNotificationIcon =
-        (type: NotificationItem["type"]) => {
+    const getNotificationIcon = (
+        type:
+            NotificationItem["type"]
+    ) => {
 
-            switch (type) {
+        switch (type) {
 
-                case "requisition":
-                    return (
-                        <AlertTriangle
-                            size={20}
-                            className="text-orange-600"
-                        />
-                    );
+            case "requisition":
+                return (
+                    <AlertTriangle
+                        size={20}
+                        className="text-orange-600"
+                    />
+                );
 
-                case "agreement":
-                    return (
-                        <AlertTriangle
-                            size={20}
-                            className="text-yellow-600"
-                        />
-                    );
+            case "agreement":
+                return (
+                    <AlertTriangle
+                        size={20}
+                        className="text-yellow-600"
+                    />
+                );
 
-                case "tripartite":
-                    return (
-                        <AlertTriangle
-                            size={20}
-                            className="text-blue-600"
-                        />
-                    );
+            case "tripartite":
+                return (
+                    <AlertTriangle
+                        size={20}
+                        className="text-blue-600"
+                    />
+                );
 
-                default:
-                    return (
-                        <AlertTriangle
-                            size={20}
-                            className="text-yellow-600"
-                        />
-                    );
-
-            }
-
-        };
+            default:
+                return (
+                    <AlertTriangle
+                        size={20}
+                        className="text-yellow-600"
+                    />
+                );
+        }
+    };
 
     // ======================================================
     // Notification Background
     // ======================================================
 
-    const getNotificationBackground =
-        (type: NotificationItem["type"]) => {
+    const getNotificationBackground = (
+        type:
+            NotificationItem["type"]
+    ) => {
 
-            switch (type) {
+        switch (type) {
 
-                case "requisition":
-                    return "bg-orange-100";
+            case "requisition":
+                return (
+                    "bg-orange-100"
+                );
 
-                case "agreement":
-                    return "bg-yellow-100";
+            case "agreement":
+                return (
+                    "bg-yellow-100"
+                );
 
-                case "tripartite":
-                    return "bg-blue-100";
+            case "tripartite":
+                return (
+                    "bg-blue-100"
+                );
 
-                default:
-                    return "bg-yellow-100";
-
-            }
-
-        };
+            default:
+                return (
+                    "bg-yellow-100"
+                );
+        }
+    };
 
     // ======================================================
     // Component
@@ -288,9 +361,9 @@ function Navbar({
             "
         >
 
-            {/* ==================================================
+            {/* ==============================================
                 LEFT SECTION
-            ================================================== */}
+            ============================================== */}
 
             <div className="flex items-center gap-3">
 
@@ -298,7 +371,9 @@ function Navbar({
 
                 <button
                     type="button"
-                    onClick={onMenuClick}
+                    onClick={
+                        onMenuClick
+                    }
                     className="
                         rounded-lg
                         p-2
@@ -308,7 +383,9 @@ function Navbar({
                     "
                     aria-label="Open menu"
                 >
-                    <Menu size={22} />
+                    <Menu
+                        size={22}
+                    />
                 </button>
 
                 {/* Brand */}
@@ -341,9 +418,9 @@ function Navbar({
 
             </div>
 
-            {/* ==================================================
+            {/* ==============================================
                 RIGHT SECTION
-            ================================================== */}
+            ============================================== */}
 
             <div
                 className="
@@ -354,9 +431,9 @@ function Navbar({
                 "
             >
 
-                {/* ==================================================
+                {/* ==========================================
                     SEARCH
-                ================================================== */}
+                ========================================== */}
 
                 <div
                     className="
@@ -390,19 +467,19 @@ function Navbar({
 
                 </div>
 
-                {/* ==================================================
+                {/* ==========================================
                     NOTIFICATIONS
-                ================================================== */}
+                ========================================== */}
 
                 <div className="relative">
-
-                    {/* Notification Button */}
 
                     <button
                         type="button"
                         onClick={() =>
                             setIsNotificationsOpen(
-                                (previous) =>
+                                (
+                                    previous
+                                ) =>
                                     !previous
                             )
                         }
@@ -428,9 +505,8 @@ function Navbar({
                             className="text-gray-700"
                         />
 
-                        {/* Notification Count */}
-
-                        {notificationCount > 0 && (
+                        {notificationCount >
+                            0 && (
 
                             <span
                                 className="
@@ -450,16 +526,17 @@ function Navbar({
                                     text-white
                                 "
                             >
-                                {notificationCount}
+                                {
+                                    notificationCount
+                                }
                             </span>
-
                         )}
 
                     </button>
 
-                    {/* ==================================================
+                    {/* ======================================
                         NOTIFICATION DROPDOWN
-                    ================================================== */}
+                    ====================================== */}
 
                     {isNotificationsOpen && (
 
@@ -480,9 +557,7 @@ function Navbar({
                             "
                         >
 
-                            {/* ==================================================
-                                HEADER
-                            ================================================== */}
+                            {/* Header */}
 
                             <div
                                 className="
@@ -512,11 +587,16 @@ function Navbar({
                                             text-gray-500
                                         "
                                     >
-                                        {notificationCount}{" "}
+                                        {
+                                            notificationCount
+                                        }{" "}
                                         pending item
-                                        {notificationCount !== 1
-                                            ? "s"
-                                            : ""}
+                                        {
+                                            notificationCount !==
+                                            1
+                                                ? "s"
+                                                : ""
+                                        }
                                     </p>
 
                                 </div>
@@ -528,11 +608,12 @@ function Navbar({
 
                             </div>
 
-                            {/* ==================================================
+                            {/* ==================================
                                 NO NOTIFICATIONS
-                            ================================================== */}
+                            ================================== */}
 
-                            {notificationCount === 0 ? (
+                            {notificationCount ===
+                            0 ? (
 
                                 <div
                                     className="
@@ -586,10 +667,6 @@ function Navbar({
 
                             ) : (
 
-                                /* ==================================================
-                                    PENDING DOCUMENTS
-                                ================================================== */
-
                                 <div
                                     className="
                                         max-h-[420px]
@@ -598,7 +675,9 @@ function Navbar({
                                 >
 
                                     {notifications.map(
-                                        (notification) => (
+                                        (
+                                            notification
+                                        ) => (
 
                                             <div
                                                 key={
@@ -631,15 +710,20 @@ function Navbar({
                                                             items-center
                                                             justify-center
                                                             rounded-full
-                                                            ${getNotificationBackground(
-                                                            notification.type
-                                                        )}
+
+                                                            ${
+                                                                getNotificationBackground(
+                                                                    notification.type
+                                                                )
+                                                            }
                                                         `}
                                                     >
 
-                                                        {getNotificationIcon(
-                                                            notification.type
-                                                        )}
+                                                        {
+                                                            getNotificationIcon(
+                                                                notification.type
+                                                            )
+                                                        }
 
                                                     </div>
 
@@ -681,6 +765,7 @@ function Navbar({
                                                                     notification.customerName
                                                                 }
                                                             </span>
+
                                                         </p>
 
                                                         <p
@@ -700,6 +785,7 @@ function Navbar({
                                                                     notification.flatNumber
                                                                 }
                                                             </span>
+
                                                         </p>
 
                                                         <p
@@ -721,9 +807,8 @@ function Navbar({
                                                                     notification.status
                                                                 }
                                                             </span>
-                                                        </p>
 
-                                                        {/* View Booking */}
+                                                        </p>
 
                                                         <button
                                                             type="button"
@@ -752,23 +837,20 @@ function Navbar({
                                                 </div>
 
                                             </div>
-
                                         )
                                     )}
 
                                 </div>
-
                             )}
 
                         </div>
-
                     )}
 
                 </div>
 
-                {/* ==================================================
-                    USER
-                ================================================== */}
+                {/* ==========================================
+                    CURRENT USER
+                ========================================== */}
 
                 <div
                     className="
@@ -791,7 +873,7 @@ function Navbar({
                             text-white
                         "
                     >
-                        D
+                        {avatarLetter}
                     </div>
 
                     <div className="hidden sm:block">
@@ -802,7 +884,7 @@ function Navbar({
                                 text-gray-800
                             "
                         >
-                            Deepak Dubey
+                            {displayName}
                         </h3>
 
                         <p
@@ -811,7 +893,7 @@ function Navbar({
                                 text-gray-500
                             "
                         >
-                            Administrator
+                            {displayRole}
                         </p>
 
                     </div>

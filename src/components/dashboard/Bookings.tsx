@@ -1,7 +1,19 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import {
+    useEffect,
+    useState,
+} from "react";
 
-import { useBooking } from "../../context/BookingContext";
+import {
+    useSearchParams,
+} from "react-router-dom";
+
+import {
+    useBooking,
+} from "../../context/BookingContext";
+
+import {
+    useAuth,
+} from "../../context/AuthContext";
 
 import BookingDetailsModal from "./BookingDetailsModal";
 import BookingModal from "./BookingModal";
@@ -14,13 +26,14 @@ function DocumentStatusBadge({
     status,
 }: {
     status:
-    | "pending"
-    | "generated"
-    | "uploaded"
-    | "given"
-    | "completed"
-    | "not-required";
+        | "pending"
+        | "generated"
+        | "uploaded"
+        | "given"
+        | "completed"
+        | "not-required";
 }) {
+
     if (status === "given") {
         return (
             <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
@@ -73,6 +86,7 @@ function DocumentStatusBadge({
 // ======================================================
 
 function Bookings() {
+
     const {
         bookings,
         updateBooking,
@@ -81,49 +95,118 @@ function Bookings() {
         error,
     } = useBooking();
 
-    const [selectedBooking, setSelectedBooking] =
-        useState<any>(null);
+    const {
+        isAdmin,
+    } = useAuth();
 
-    const [isBookingModalOpen, setIsBookingModalOpen] =
-        useState(false);
+    const [
+        selectedBooking,
+        setSelectedBooking,
+    ] = useState<any>(null);
 
-    const [isDetailsOpen, setIsDetailsOpen] =
-        useState(false);
+    const [
+        isBookingModalOpen,
+        setIsBookingModalOpen,
+    ] = useState(false);
 
-    const [search, setSearch] =
-        useState("");
+    const [
+        isDetailsOpen,
+        setIsDetailsOpen,
+    ] = useState(false);
 
-    const [searchParams] =
-        useSearchParams();
+    const [
+        search,
+        setSearch,
+    ] = useState("");
+
+    const [
+        searchParams,
+        setSearchParams,
+    ] = useSearchParams();
 
     // ==================================================
-    // Open booking from URL
+    // Clear Booking Query Parameter
+    // ==================================================
+
+    const clearBookingQueryParam =
+        () => {
+
+        if (
+            !searchParams.has(
+                "bookingId"
+            )
+        ) {
+            return;
+        }
+
+        const nextParams =
+            new URLSearchParams(
+                searchParams
+            );
+
+        nextParams.delete(
+            "bookingId"
+        );
+
+        setSearchParams(
+            nextParams,
+            {
+                replace:
+                    true,
+            }
+        );
+    };
+
+    // ==================================================
+    // Open Booking From URL
     // ==================================================
 
     useEffect(() => {
-        const bookingId =
-            searchParams.get("bookingId");
 
-        if (!bookingId) return;
+        const bookingId =
+            searchParams.get(
+                "bookingId"
+            );
+
+        if (!bookingId) {
+            return;
+        }
 
         const booking =
             bookings.find(
                 (item) =>
-                    item.id === bookingId
+                    item.id ===
+                    bookingId
             );
 
-        if (!booking) return;
+        if (!booking) {
+            return;
+        }
 
-        setSelectedBooking(booking);
-        setIsDetailsOpen(true);
-    }, [searchParams, bookings]);
+        setSelectedBooking(
+            booking
+        );
+
+        setIsDetailsOpen(
+            true
+        );
+
+    }, [
+        searchParams,
+        bookings,
+    ]);
 
     // ==================================================
-    // Keep selected booking synced
+    // Keep Selected Booking Synced
     // ==================================================
 
     useEffect(() => {
-        if (!selectedBooking?.id) return;
+
+        if (
+            !selectedBooking?.id
+        ) {
+            return;
+        }
 
         const latestBooking =
             bookings.find(
@@ -133,48 +216,77 @@ function Bookings() {
             );
 
         if (latestBooking) {
+
             setSelectedBooking(
                 latestBooking
             );
         }
-    }, [bookings, selectedBooking?.id]);
+
+    }, [
+        bookings,
+        selectedBooking?.id,
+    ]);
 
     // ==================================================
     // Search
     // ==================================================
 
     const filteredBookings =
-        bookings.filter((booking) => {
-            const searchText =
-                search.toLowerCase();
+        bookings.filter(
+            (booking) => {
 
-            return (
-                String(
-                    booking.flatNumber ?? ""
-                )
-                    .toLowerCase()
-                    .includes(searchText) ||
+                const searchText =
+                    search.toLowerCase();
 
-                String(
-                    booking.customerName ?? ""
-                )
-                    .toLowerCase()
-                    .includes(searchText) ||
+                return (
+                    String(
+                        booking.flatNumber ??
+                        ""
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
 
-                String(
-                    booking.mobile ?? ""
-                ).includes(search)
-            );
-        });
+                    String(
+                        booking.customerName ??
+                        ""
+                    )
+                        .toLowerCase()
+                        .includes(
+                            searchText
+                        ) ||
+
+                    String(
+                        booking.mobile ??
+                        ""
+                    ).includes(
+                        search
+                    )
+                );
+            }
+        );
 
     // ==================================================
     // Update Booking
     // ==================================================
 
-    const handleUpdateBooking = async (
-        updatedBooking: any
-    ) => {
+    const handleUpdateBooking =
+        async (
+            updatedBooking: any
+        ) => {
+
+        if (!isAdmin) {
+
+            alert(
+                "View only access — booking changes can only be made by an administrator."
+            );
+
+            return;
+        }
+
         try {
+
             await updateBooking(
                 updatedBooking
             );
@@ -186,7 +298,9 @@ function Bookings() {
             setIsBookingModalOpen(
                 false
             );
+
         } catch (error) {
+
             console.error(
                 "Booking update failed:",
                 error
@@ -204,27 +318,57 @@ function Bookings() {
     // Delete Booking
     // ==================================================
 
-    const handleDeleteBooking = async (
-        id: string
-    ) => {
+    const handleDeleteBooking =
+        async (
+            id: string
+        ) => {
+
+        if (!isAdmin) {
+
+            alert(
+                "View only access — bookings can only be deleted by an administrator."
+            );
+
+            return;
+        }
+
         const confirmDelete =
             window.confirm(
                 "Are you sure you want to delete this booking?"
             );
 
-        if (!confirmDelete) return;
+        if (!confirmDelete) {
+            return;
+        }
 
         try {
-            await deleteBooking(id);
+
+            await deleteBooking(
+                id
+            );
 
             if (
-                selectedBooking?.id === id
+                selectedBooking?.id ===
+                id
             ) {
-                setSelectedBooking(null);
-                setIsDetailsOpen(false);
-                setIsBookingModalOpen(false);
+
+                setSelectedBooking(
+                    null
+                );
+
+                setIsDetailsOpen(
+                    false
+                );
+
+                setIsBookingModalOpen(
+                    false
+                );
+
+                clearBookingQueryParam();
             }
+
         } catch (error) {
+
             console.error(
                 "Booking delete failed:",
                 error
@@ -239,15 +383,96 @@ function Bookings() {
     };
 
     // ==================================================
+    // Open View Modal
+    // ==================================================
+
+    const handleOpenDetails = (
+        booking: any
+    ) => {
+
+        setIsBookingModalOpen(
+            false
+        );
+
+        setSelectedBooking(
+            booking
+        );
+
+        setIsDetailsOpen(
+            true
+        );
+    };
+
+    // ==================================================
+    // Close View Modal
+    // ==================================================
+
+    const handleCloseDetails =
+        () => {
+
+        setIsDetailsOpen(
+            false
+        );
+
+        clearBookingQueryParam();
+    };
+
+    // ==================================================
+    // Open Edit Modal
+    // ==================================================
+
+    const handleOpenEdit = (
+        booking: any
+    ) => {
+
+        if (!isAdmin) {
+            return;
+        }
+
+        // Important:
+        // Remove bookingId from URL so updating the
+        // booking does not automatically reopen Details.
+
+        clearBookingQueryParam();
+
+        setIsDetailsOpen(
+            false
+        );
+
+        setSelectedBooking(
+            booking
+        );
+
+        setIsBookingModalOpen(
+            true
+        );
+    };
+
+    // ==================================================
+    // Close Edit Modal
+    // ==================================================
+
+    const handleCloseEdit =
+        () => {
+
+        setIsBookingModalOpen(
+            false
+        );
+    };
+
+    // ==================================================
     // Loading
     // ==================================================
 
     if (loading) {
+
         return (
             <div className="rounded-2xl bg-white p-10 shadow">
+
                 <div className="text-center text-gray-500">
                     Loading bookings...
                 </div>
+
             </div>
         );
     }
@@ -258,23 +483,41 @@ function Bookings() {
 
     return (
         <>
+
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                {/* Header */}
+                {/* ======================================
+                    Header
+                ====================================== */}
 
                 <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-                    <h1 className="text-3xl font-bold">
-                        Bookings
-                    </h1>
+                    <div>
+
+                        <h1 className="text-3xl font-bold">
+                            Bookings
+                        </h1>
+
+                        {!isAdmin && (
+
+                            <p className="mt-1 text-sm text-gray-500">
+                                View only access
+                            </p>
+                        )}
+
+                    </div>
 
                     <input
                         type="text"
                         placeholder="Search Booking..."
-                        value={search}
-                        onChange={(e) =>
+                        value={
+                            search
+                        }
+                        onChange={(
+                            event
+                        ) =>
                             setSearch(
-                                e.target.value
+                                event.target.value
                             )
                         }
                         className="w-full rounded-lg border px-4 py-2 md:w-72"
@@ -282,15 +525,20 @@ function Bookings() {
 
                 </div>
 
-                {/* API Error */}
+                {/* ======================================
+                    API Error
+                ====================================== */}
 
                 {error && (
+
                     <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                         {error}
                     </div>
                 )}
 
-                {/* Table */}
+                {/* ======================================
+                    Table
+                ====================================== */}
 
                 <div className="overflow-x-auto">
 
@@ -342,12 +590,15 @@ function Bookings() {
 
                         <tbody>
 
-                            {filteredBookings.length === 0 ? (
+                            {filteredBookings.length ===
+                            0 ? (
 
                                 <tr>
 
                                     <td
-                                        colSpan={9}
+                                        colSpan={
+                                            9
+                                        }
                                         className="p-10 text-center text-gray-500"
                                     >
                                         No Bookings Found
@@ -358,7 +609,9 @@ function Bookings() {
                             ) : (
 
                                 filteredBookings.map(
-                                    (booking) => {
+                                    (
+                                        booking
+                                    ) => {
 
                                         const agreementStatus =
                                             booking.documents
@@ -376,13 +629,14 @@ function Bookings() {
                                                     tripartite
                                                         .document
                                                         ?.status ===
-                                                        "completed"
+                                                    "completed"
                                                         ? "completed"
                                                         : "pending"
                                                 )
                                                 : "not-required";
 
                                         return (
+
                                             <tr
                                                 key={
                                                     booking.id
@@ -390,15 +644,11 @@ function Bookings() {
                                                 className="hover:bg-gray-50"
                                             >
 
-                                                {/* Flat */}
-
                                                 <td className="border p-3">
                                                     {
                                                         booking.flatNumber
                                                     }
                                                 </td>
-
-                                                {/* Customer */}
 
                                                 <td className="border p-3 font-medium">
                                                     {
@@ -406,15 +656,11 @@ function Bookings() {
                                                     }
                                                 </td>
 
-                                                {/* Mobile */}
-
                                                 <td className="border p-3">
                                                     {
                                                         booking.mobile
                                                     }
                                                 </td>
-
-                                                {/* Amount */}
 
                                                 <td className="border p-3">
                                                     ₹{" "}
@@ -424,15 +670,11 @@ function Bookings() {
                                                     }
                                                 </td>
 
-                                                {/* Payment */}
-
                                                 <td className="border p-3">
                                                     {
                                                         booking.paymentMode
                                                     }
                                                 </td>
-
-                                                {/* Date */}
 
                                                 <td className="border p-3">
                                                     {
@@ -441,81 +683,71 @@ function Bookings() {
                                                     }
                                                 </td>
 
-                                                {/* Agreement */}
-
                                                 <td className="border p-3">
+
                                                     <DocumentStatusBadge
                                                         status={
                                                             agreementStatus as any
                                                         }
                                                     />
+
                                                 </td>
 
-                                                {/* Tripartite */}
-
                                                 <td className="border p-3">
+
                                                     <DocumentStatusBadge
                                                         status={
                                                             tripartiteStatus as any
                                                         }
                                                     />
-                                                </td>
 
-                                                {/* Actions */}
+                                                </td>
 
                                                 <td className="border p-3">
 
                                                     <div className="flex justify-center gap-2">
 
-                                                        {/* View */}
-
                                                         <button
                                                             type="button"
-                                                            onClick={() => {
-                                                                setSelectedBooking(
+                                                            onClick={() =>
+                                                                handleOpenDetails(
                                                                     booking
-                                                                );
-
-                                                                setIsDetailsOpen(
-                                                                    true
-                                                                );
-                                                            }}
+                                                                )
+                                                            }
                                                             className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
                                                         >
                                                             View
                                                         </button>
 
-                                                        {/* Edit */}
+                                                        {isAdmin && (
+                                                            <>
 
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedBooking(
-                                                                    booking
-                                                                );
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleOpenEdit(
+                                                                            booking
+                                                                        )
+                                                                    }
+                                                                    className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
+                                                                >
+                                                                    Edit
+                                                                </button>
 
-                                                                setIsBookingModalOpen(
-                                                                    true
-                                                                );
-                                                            }}
-                                                            className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
-                                                        >
-                                                            Edit
-                                                        </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        handleDeleteBooking(
+                                                                            booking.id
+                                                                        )
+                                                                    }
+                                                                    className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                                                                >
+                                                                    Delete
+                                                                </button>
 
-                                                        {/* Delete */}
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleDeleteBooking(
-                                                                    booking.id
-                                                                )
-                                                            }
-                                                            className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
-                                                        >
-                                                            Delete
-                                                        </button>
+                                                            </>
+                                                        )}
 
                                                     </div>
 
@@ -535,16 +767,16 @@ function Bookings() {
 
             </div>
 
-            {/* Booking Details */}
+            {/* ==========================================
+                Booking Details
+            ========================================== */}
 
             <BookingDetailsModal
                 isOpen={
                     isDetailsOpen
                 }
-                onClose={() =>
-                    setIsDetailsOpen(
-                        false
-                    )
+                onClose={
+                    handleCloseDetails
                 }
                 booking={
                     selectedBooking
@@ -554,42 +786,49 @@ function Bookings() {
                 }
             />
 
-            {/* Booking Edit */}
+            {/* ==========================================
+                Booking Edit
+            ========================================== */}
 
-            <BookingModal
-                isOpen={
-                    isBookingModalOpen
-                }
-                onClose={() =>
-                    setIsBookingModalOpen(
-                        false
-                    )
-                }
-                onConfirm={
-                    handleUpdateBooking
-                }
-                flat={
-                    selectedBooking
-                        ? {
-                            number:
-                                selectedBooking.flatNumber,
+            {isAdmin && (
 
-                            tower:
-                                selectedBooking.tower,
+                <BookingModal
+                    isOpen={
+                        isBookingModalOpen
+                    }
+                    onClose={
+                        handleCloseEdit
+                    }
+                    onConfirm={
+                        handleUpdateBooking
+                    }
+                    flat={
+                        selectedBooking
+                            ? {
+                                number:
+                                    selectedBooking
+                                        .flatNumber,
 
-                            floor:
-                                selectedBooking.floor,
+                                tower:
+                                    selectedBooking
+                                        .tower,
 
-                            status:
-                                selectedBooking.status,
-                        }
-                        : null
-                }
-                booking={
-                    selectedBooking
-                }
-                mode="edit"
-            />
+                                floor:
+                                    selectedBooking
+                                        .floor,
+
+                                status:
+                                    selectedBooking
+                                        .status,
+                            }
+                            : null
+                    }
+                    booking={
+                        selectedBooking
+                    }
+                    mode="edit"
+                />
+            )}
 
         </>
     );

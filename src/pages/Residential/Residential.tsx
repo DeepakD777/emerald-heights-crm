@@ -271,11 +271,16 @@ function Residential() {
     // ==================================================
 
     const loadProperties =
-        async () => {
+        async (
+            showLoading = false
+        ) => {
 
             try {
-                setLoading(true);
-                setError("");
+
+                if (showLoading) {
+                    setLoading(true);
+                    setError("");
+                }
 
                 const response =
                     await getProperties({
@@ -287,6 +292,8 @@ function Residential() {
                     response.data
                 );
 
+                setError("");
+
             } catch (err) {
 
                 const message =
@@ -294,18 +301,29 @@ function Residential() {
                         ? err.message
                         : "Failed to load residential inventory";
 
-                setError(message);
+                if (showLoading) {
+                    setError(message);
+                } else {
+                    console.error(
+                        "Residential auto refresh failed:",
+                        err
+                    );
+                }
 
             } finally {
-                setLoading(false);
+
+                if (showLoading) {
+                    setLoading(false);
+                }
             }
         };
 
     useEffect(() => {
-        loadProperties();
+        void loadProperties(true);
     }, []);
+
     useAutoRefresh(
-        loadProperties,
+        () => loadProperties(false),
         5000
     );
 
@@ -832,6 +850,10 @@ function Residential() {
                     remarks:
                         bookingData.remarks,
 
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
+
                     status:
                         bookingData.status ??
                         "CONFIRMED",
@@ -886,9 +908,9 @@ function Residential() {
 
                 <button
                     type="button"
-                    onClick={
-                        loadProperties
-                    }
+                    onClick={() => {
+                        void loadProperties(true);
+                    }}
                     className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
                 >
                     Retry

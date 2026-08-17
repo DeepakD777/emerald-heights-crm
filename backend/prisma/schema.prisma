@@ -108,6 +108,11 @@ model Customer {
   pan     String?
   notes   String?
 
+  // Client booking form customer details
+  dob     DateTime?
+  doa     DateTime?
+  profile String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -163,8 +168,23 @@ model Booking {
   employeeId  String?
   status      BookingStatus @default(PENDING)
   bookingDate DateTime      @default(now())
-  amount      Float?
-  notes       String?
+
+  // Existing booking amount
+  amount Float?
+
+  // Client booking form financial details
+  totalAmount         Float?
+  discount            Float?
+  afterDiscountAmount Float?
+  plan                String?
+  chequeNo            String?
+  bankName            String?
+  finance             String?
+  customerNeed        String?
+
+  notes String?
+
+  cancelledAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -178,6 +198,7 @@ model Booking {
   @@index([customerId])
   @@index([propertyId])
   @@index([employeeId])
+  @@index([status])
   @@map("bookings")
 }
 

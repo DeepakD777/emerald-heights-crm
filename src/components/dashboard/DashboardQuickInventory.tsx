@@ -26,13 +26,10 @@ import type {
 import {
     createBooking,
 } from "../../services/bookingService";
+
 import {
     useAutoRefresh,
 } from "../../hooks/useAutoRefresh";
-
-// ======================================================
-// TYPES
-// ======================================================
 
 type InventoryType =
     | "residential"
@@ -62,10 +59,6 @@ type DashboardQuickInventoryProps = {
         void | Promise<void>;
 };
 
-// ======================================================
-// CONSTANTS
-// ======================================================
-
 const RESIDENTIAL_BLOCKS: {
     value: ResidentialBlock;
     label: string;
@@ -91,10 +84,6 @@ const COMMERCIAL_FLOORS:
         "2nd Floor",
         "3rd Floor",
     ];
-
-// ======================================================
-// HELPERS
-// ======================================================
 
 function chunkArray<T>(
     items: T[],
@@ -229,17 +218,9 @@ function getStatusLabel(
     }
 }
 
-// ======================================================
-// COMPONENT
-// ======================================================
-
 function DashboardQuickInventory({
     onInventoryChanged,
 }: DashboardQuickInventoryProps) {
-
-    // ==================================================
-    // BACKEND INVENTORY
-    // ==================================================
 
     const [
         properties,
@@ -256,20 +237,12 @@ function DashboardQuickInventory({
         setError,
     ] = useState("");
 
-    // ==================================================
-    // MAIN TYPE
-    // ==================================================
-
     const [
         inventoryType,
         setInventoryType,
     ] = useState<InventoryType>(
         "residential"
     );
-
-    // ==================================================
-    // RESIDENTIAL STATE
-    // ==================================================
 
     const [
         residentialBlock,
@@ -290,10 +263,6 @@ function DashboardQuickInventory({
         setResidentialFloor,
     ] = useState(1);
 
-    // ==================================================
-    // COMMERCIAL STATE
-    // ==================================================
-
     const [
         commercialSection,
         setCommercialSection,
@@ -307,10 +276,6 @@ function DashboardQuickInventory({
     ] = useState<CommercialFloor>(
         "Ground Floor"
     );
-
-    // ==================================================
-    // SELECTED PROPERTY
-    // ==================================================
 
     const [
         selectedProperty,
@@ -333,10 +298,6 @@ function DashboardQuickInventory({
         null
     );
 
-    // ==================================================
-    // MODALS
-    // ==================================================
-
     const [
         flatModalOpen,
         setFlatModalOpen,
@@ -352,14 +313,20 @@ function DashboardQuickInventory({
         setCommercialBookingOpen,
     ] = useState(false);
 
-    // ==================================================
-    // LOAD INVENTORY
-    // ==================================================
-
     const loadInventory =
-        async () => {
+        async (
+            showLoading = false
+        ) => {
             try {
-                setLoading(true);
+
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        true
+                    );
+                }
+
                 setError("");
 
                 const response =
@@ -368,31 +335,43 @@ function DashboardQuickInventory({
                 setProperties(
                     response.data
                 );
+
             } catch (err) {
+
                 setError(
                     err instanceof Error
                         ? err.message
                         : "Failed to load inventory"
                 );
+
             } finally {
-                setLoading(false);
+
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        false
+                    );
+                }
             }
         };
 
     useEffect(() => {
-        loadInventory();
+
+        void loadInventory(
+            true
+        );
+
     }, []);
+
     useAutoRefresh(
         loadInventory,
         5000
     );
 
-    // ==================================================
-    // REFRESH EVERYTHING
-    // ==================================================
-
     const refreshEverything =
         async () => {
+
             await loadInventory();
 
             if (
@@ -402,12 +381,9 @@ function DashboardQuickInventory({
             }
         };
 
-    // ==================================================
-    // RESIDENTIAL COUNTS
-    // ==================================================
-
     const residentialBlockCounts =
         useMemo(() => {
+
             return {
                 "A Block":
                     properties.filter(
@@ -436,17 +412,10 @@ function DashboardQuickInventory({
                             "C1 Tower"
                     ).length,
             };
+
         }, [
             properties,
         ]);
-
-    // ==================================================
-    // B / B1 COUNTS
-    //
-    // Backend internally:
-    // B  = Phase 1
-    // B1 = Phase 2
-    // ==================================================
 
     const bCount =
         properties.filter(
@@ -470,26 +439,20 @@ function DashboardQuickInventory({
                 "Phase 2"
         ).length;
 
-    // ==================================================
-    // INTERNAL B PHASE
-    // ==================================================
-
     const selectedBPhase =
         residentialSection ===
             "B"
             ? "Phase 1"
             : "Phase 2";
 
-    // ==================================================
-    // RESIDENTIAL FLOORS
-    // ==================================================
-
     const residentialFloors =
         useMemo(() => {
+
             const values =
                 properties
                     .filter(
                         (property) => {
+
                             if (
                                 property.type !==
                                 "RESIDENTIAL"
@@ -536,21 +499,20 @@ function DashboardQuickInventory({
                 (a, b) =>
                     a - b
             );
+
         }, [
             properties,
             residentialBlock,
             selectedBPhase,
         ]);
 
-    // ==================================================
-    // RESIDENTIAL DISPLAYED PROPERTIES
-    // ==================================================
-
     const residentialProperties =
         useMemo(() => {
+
             return properties
                 .filter(
                     (property) => {
+
                         if (
                             property.type !==
                             "RESIDENTIAL"
@@ -590,6 +552,7 @@ function DashboardQuickInventory({
                 .sort(
                     naturalSort
                 );
+
         }, [
             properties,
             residentialBlock,
@@ -597,19 +560,11 @@ function DashboardQuickInventory({
             selectedBPhase,
         ]);
 
-    // ==================================================
-    // COMMERCIAL INTERNAL PHASE
-    // ==================================================
-
     const selectedCommercialPhase =
         commercialSection ===
             "Commercial"
             ? "Phase 1"
             : "Phase 2";
-
-    // ==================================================
-    // COMMERCIAL COUNTS
-    // ==================================================
 
     const commercialCount =
         properties.filter(
@@ -629,12 +584,9 @@ function DashboardQuickInventory({
                 "Phase 2"
         ).length;
 
-    // ==================================================
-    // COMMERCIAL PROPERTIES
-    // ==================================================
-
     const commercialProperties =
         useMemo(() => {
+
             return properties
                 .filter(
                     (property) =>
@@ -648,19 +600,17 @@ function DashboardQuickInventory({
                 .sort(
                     naturalSort
                 );
+
         }, [
             properties,
             selectedCommercialPhase,
             commercialFloor,
         ]);
 
-    // ==================================================
-    // COMMERCIAL FLOOR COUNT
-    // ==================================================
-
     const getCommercialFloorCount = (
         floor: CommercialFloor
     ) => {
+
         return properties.filter(
             (property) =>
                 property.type ===
@@ -672,33 +622,23 @@ function DashboardQuickInventory({
         ).length;
     };
 
-    // ==================================================
-    // CURRENT DISPLAY
-    // ==================================================
-
     const displayedProperties =
         inventoryType ===
             "residential"
             ? residentialProperties
             : commercialProperties;
 
-    // ==================================================
-    // ZIG-ZAG ROWS
-    // ==================================================
-
     const zigZagRows =
         useMemo(() => {
+
             return chunkArray(
                 displayedProperties,
                 4
             );
+
         }, [
             displayedProperties,
         ]);
-
-    // ==================================================
-    // LABELS
-    // ==================================================
 
     const selectedBlockData =
         RESIDENTIAL_BLOCKS.find(
@@ -715,10 +655,6 @@ function DashboardQuickInventory({
 
     const commercialHeading =
         `${commercialSection} - ${commercialFloor}`;
-
-    // ==================================================
-    // MAP RESIDENTIAL FLAT
-    // ==================================================
 
     const mapResidentialFlat = (
         property: Property
@@ -778,10 +714,6 @@ function DashboardQuickInventory({
             property.isFineDine,
     });
 
-    // ==================================================
-    // MAP COMMERCIAL SHOP
-    // ==================================================
-
     const mapCommercialShop = (
         property: Property
     ) => ({
@@ -840,13 +772,10 @@ function DashboardQuickInventory({
             "Commercial",
     });
 
-    // ==================================================
-    // UNIT CLICK
-    // ==================================================
-
     const handleUnitClick = (
         property: Property
     ) => {
+
         setSelectedProperty(
             property
         );
@@ -855,6 +784,7 @@ function DashboardQuickInventory({
             property.type ===
             "RESIDENTIAL"
         ) {
+
             setSelectedFlat(
                 mapResidentialFlat(
                     property
@@ -879,15 +809,13 @@ function DashboardQuickInventory({
         );
     };
 
-    // ==================================================
-    // RESIDENTIAL STATUS SAVE
-    // ==================================================
-
     const handleResidentialSave =
         async (
             updatedFlat: any
         ) => {
+
             try {
+
                 const status =
                     String(
                         updatedFlat.status
@@ -914,7 +842,9 @@ function DashboardQuickInventory({
                 setSelectedProperty(
                     null
                 );
+
             } catch (err) {
+
                 alert(
                     err instanceof Error
                         ? err.message
@@ -923,14 +853,11 @@ function DashboardQuickInventory({
             }
         };
 
-    // ==================================================
-    // RESIDENTIAL BOOKING
-    // ==================================================
-
     const handleResidentialBooking =
         async (
             bookingData: any
         ) => {
+
             if (
                 !selectedProperty
             ) {
@@ -938,6 +865,7 @@ function DashboardQuickInventory({
             }
 
             try {
+
                 await createBooking({
                     propertyId:
                         selectedProperty.id,
@@ -972,6 +900,10 @@ function DashboardQuickInventory({
                     remarks:
                         bookingData.remarks,
 
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
+
                     status:
                         bookingData.status ??
                         "CONFIRMED",
@@ -990,7 +922,9 @@ function DashboardQuickInventory({
                 setSelectedProperty(
                     null
                 );
+
             } catch (err) {
+
                 alert(
                     err instanceof Error
                         ? err.message
@@ -1001,22 +935,22 @@ function DashboardQuickInventory({
             }
         };
 
-    // ==================================================
-    // COMMERCIAL STATUS CHANGE
-    // ==================================================
-
     const handleCommercialStatusChange =
         async (
             shopId:
                 string | number,
             newStatus: string
         ) => {
+
             try {
+
                 const property =
                     properties.find(
                         (item) =>
                             item.id ===
-                            String(shopId)
+                            String(
+                                shopId
+                            )
                     );
 
                 if (
@@ -1034,6 +968,7 @@ function DashboardQuickInventory({
                     normalized ===
                     "finedine"
                 ) {
+
                     await updateProperty(
                         property.id,
                         {
@@ -1041,7 +976,9 @@ function DashboardQuickInventory({
                                 true,
                         }
                     );
+
                 } else {
+
                     await updateProperty(
                         property.id,
                         {
@@ -1069,7 +1006,9 @@ function DashboardQuickInventory({
                 setSelectedProperty(
                     null
                 );
+
             } catch (err) {
+
                 alert(
                     err instanceof Error
                         ? err.message
@@ -1078,13 +1017,10 @@ function DashboardQuickInventory({
             }
         };
 
-    // ==================================================
-    // COMMERCIAL BOOK
-    // ==================================================
-
     const handleCommercialBook = (
         shop: any
     ) => {
+
         if (
             !selectedProperty
         ) {
@@ -1092,9 +1028,9 @@ function DashboardQuickInventory({
         }
 
         if (
-            selectedProperty
-                .isFineDine
+            selectedProperty.isFineDine
         ) {
+
             alert(
                 "This shop is reserved for Fine Dine and cannot be booked."
             );
@@ -1103,8 +1039,7 @@ function DashboardQuickInventory({
         }
 
         if (
-            selectedProperty
-                .status !==
+            selectedProperty.status !==
             "AVAILABLE"
         ) {
             return;
@@ -1123,14 +1058,11 @@ function DashboardQuickInventory({
         );
     };
 
-    // ==================================================
-    // COMMERCIAL BOOKING
-    // ==================================================
-
     const handleCommercialBooking =
         async (
             bookingData: any
         ) => {
+
             if (
                 !selectedProperty
             ) {
@@ -1138,6 +1070,7 @@ function DashboardQuickInventory({
             }
 
             try {
+
                 await createBooking({
                     propertyId:
                         selectedProperty.id,
@@ -1172,6 +1105,10 @@ function DashboardQuickInventory({
                     remarks:
                         bookingData.remarks,
 
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
+
                     status:
                         bookingData.status ??
                         "CONFIRMED",
@@ -1190,7 +1127,9 @@ function DashboardQuickInventory({
                 setSelectedProperty(
                     null
                 );
+
             } catch (err) {
+
                 alert(
                     err instanceof Error
                         ? err.message
@@ -1199,15 +1138,13 @@ function DashboardQuickInventory({
             }
         };
 
-    // ==================================================
-    // LOADING
-    // ==================================================
-
     if (
         loading
     ) {
+
         return (
             <div className="rounded-2xl bg-white p-6 shadow">
+
                 <h2 className="text-xl font-bold text-gray-800">
                     Quick Inventory
                 </h2>
@@ -1215,19 +1152,18 @@ function DashboardQuickInventory({
                 <p className="mt-4 text-gray-500">
                     Loading inventory...
                 </p>
+
             </div>
         );
     }
 
-    // ==================================================
-    // ERROR
-    // ==================================================
-
     if (
         error
     ) {
+
         return (
             <div className="rounded-2xl bg-white p-6 shadow">
+
                 <h2 className="text-xl font-bold text-gray-800">
                     Quick Inventory
                 </h2>
@@ -1238,29 +1174,29 @@ function DashboardQuickInventory({
 
                 <button
                     type="button"
-                    onClick={
-                        loadInventory
-                    }
+                    onClick={() => {
+
+                        void loadInventory(
+                            true
+                        );
+
+                    }}
                     className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
                 >
                     Retry
                 </button>
+
             </div>
         );
     }
-
-    // ==================================================
-    // UI
-    // ==================================================
 
     return (
         <>
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
-                {/* Header */}
-
                 <div className="mb-6">
+
                     <h2 className="text-xl font-bold text-gray-800">
                         Quick Inventory
                     </h2>
@@ -1268,9 +1204,8 @@ function DashboardQuickInventory({
                     <p className="mt-1 text-sm text-gray-500">
                         View, manage and book units directly from dashboard
                     </p>
-                </div>
 
-                {/* Residential / Commercial */}
+                </div>
 
                 <div className="mb-6 flex flex-wrap gap-3">
 
@@ -1304,11 +1239,13 @@ function DashboardQuickInventory({
                             }
                         `}
                     >
+
                         <Building2
                             size={18}
                         />
 
                         Residential
+
                     </button>
 
                     <button
@@ -1341,25 +1278,21 @@ function DashboardQuickInventory({
                             }
                         `}
                     >
+
                         <Store
                             size={18}
                         />
 
                         Commercial
+
                     </button>
 
                 </div>
-
-                {/* ==================================================
-                    RESIDENTIAL
-                ================================================== */}
 
                 {inventoryType ===
                     "residential" && (
 
                         <>
-
-                            {/* Block */}
 
                             <div className="mb-5">
 
@@ -1378,6 +1311,7 @@ function DashboardQuickInventory({
                                                 }
                                                 type="button"
                                                 onClick={() => {
+
                                                     setResidentialBlock(
                                                         item.value
                                                     );
@@ -1390,44 +1324,49 @@ function DashboardQuickInventory({
                                                         item.value ===
                                                         "B Block"
                                                     ) {
+
                                                         setResidentialSection(
                                                             "B"
                                                         );
                                                     }
                                                 }}
                                                 className={`
-                                                rounded-lg
-                                                border
-                                                px-4 py-2
-                                                text-sm
-                                                font-semibold
-                                                transition
+                                                    rounded-lg
+                                                    border
+                                                    px-4 py-2
+                                                    text-sm
+                                                    font-semibold
+                                                    transition
 
-                                                ${residentialBlock ===
+                                                    ${residentialBlock ===
                                                         item.value
                                                         ? `
-                                                            border-green-600
-                                                            bg-green-600
-                                                            text-white
-                                                          `
+                                                                border-green-600
+                                                                bg-green-600
+                                                                text-white
+                                                              `
                                                         : `
-                                                            border-gray-300
-                                                            bg-white
-                                                            text-gray-700
-                                                            hover:bg-green-50
-                                                          `
+                                                                border-gray-300
+                                                                bg-white
+                                                                text-gray-700
+                                                                hover:bg-green-50
+                                                              `
                                                     }
-                                            `}
+                                                `}
                                             >
+
                                                 {item.label}
 
                                                 <span className="ml-2 text-xs opacity-80">
+
                                                     {
                                                         residentialBlockCounts[
                                                         item.value
                                                         ]
                                                     }
+
                                                 </span>
+
                                             </button>
                                         )
                                     )}
@@ -1435,8 +1374,6 @@ function DashboardQuickInventory({
                                 </div>
 
                             </div>
-
-                            {/* B / B1 */}
 
                             {residentialBlock ===
                                 "B Block" && (
@@ -1452,6 +1389,7 @@ function DashboardQuickInventory({
                                             <button
                                                 type="button"
                                                 onClick={() => {
+
                                                     setResidentialSection(
                                                         "B"
                                                     );
@@ -1459,35 +1397,39 @@ function DashboardQuickInventory({
                                                     setResidentialFloor(
                                                         1
                                                     );
+
                                                 }}
                                                 className={`
-                                            rounded-lg
-                                            border
-                                            px-5 py-2
-                                            text-sm
-                                            font-semibold
+                                                    rounded-lg
+                                                    border
+                                                    px-5 py-2
+                                                    text-sm
+                                                    font-semibold
 
-                                            ${residentialSection ===
+                                                    ${residentialSection ===
                                                         "B"
                                                         ? `
-                                                        border-green-600
-                                                        bg-green-600
-                                                        text-white
-                                                      `
+                                                                border-green-600
+                                                                bg-green-600
+                                                                text-white
+                                                              `
                                                         : `
-                                                        border-gray-300
-                                                        bg-white
-                                                        text-gray-700
-                                                      `
+                                                                border-gray-300
+                                                                bg-white
+                                                                text-gray-700
+                                                              `
                                                     }
-                                        `}
+                                                `}
                                             >
+
                                                 B · {bCount}
+
                                             </button>
 
                                             <button
                                                 type="button"
                                                 onClick={() => {
+
                                                     setResidentialSection(
                                                         "B1"
                                                     );
@@ -1495,38 +1437,39 @@ function DashboardQuickInventory({
                                                     setResidentialFloor(
                                                         1
                                                     );
+
                                                 }}
                                                 className={`
-                                            rounded-lg
-                                            border
-                                            px-5 py-2
-                                            text-sm
-                                            font-semibold
+                                                    rounded-lg
+                                                    border
+                                                    px-5 py-2
+                                                    text-sm
+                                                    font-semibold
 
-                                            ${residentialSection ===
+                                                    ${residentialSection ===
                                                         "B1"
                                                         ? `
-                                                        border-green-600
-                                                        bg-green-600
-                                                        text-white
-                                                      `
+                                                                border-green-600
+                                                                bg-green-600
+                                                                text-white
+                                                              `
                                                         : `
-                                                        border-gray-300
-                                                        bg-white
-                                                        text-gray-700
-                                                      `
+                                                                border-gray-300
+                                                                bg-white
+                                                                text-gray-700
+                                                              `
                                                     }
-                                        `}
+                                                `}
                                             >
+
                                                 B1 · {b1Count}
+
                                             </button>
 
                                         </div>
 
                                     </div>
                                 )}
-
-                            {/* Floors */}
 
                             <div className="mb-6">
 
@@ -1550,28 +1493,30 @@ function DashboardQuickInventory({
                                                     )
                                                 }
                                                 className={`
-                                                rounded-lg
-                                                border
-                                                px-4 py-2
-                                                text-sm
-                                                font-medium
+                                                    rounded-lg
+                                                    border
+                                                    px-4 py-2
+                                                    text-sm
+                                                    font-medium
 
-                                                ${residentialFloor ===
+                                                    ${residentialFloor ===
                                                         floor
                                                         ? `
-                                                            border-blue-600
-                                                            bg-blue-600
-                                                            text-white
-                                                          `
+                                                                border-blue-600
+                                                                bg-blue-600
+                                                                text-white
+                                                              `
                                                         : `
-                                                            border-gray-300
-                                                            bg-white
-                                                            text-gray-700
-                                                          `
+                                                                border-gray-300
+                                                                bg-white
+                                                                text-gray-700
+                                                              `
                                                     }
-                                            `}
+                                                `}
                                             >
+
                                                 Floor {floor}
+
                                             </button>
                                         )
                                     )}
@@ -1581,12 +1526,7 @@ function DashboardQuickInventory({
                             </div>
 
                         </>
-
                     )}
-
-                {/* ==================================================
-                    COMMERCIAL
-                ================================================== */}
 
                 {inventoryType ===
                     "commercial" && (
@@ -1604,6 +1544,7 @@ function DashboardQuickInventory({
                                     <button
                                         type="button"
                                         onClick={() => {
+
                                             setCommercialSection(
                                                 "Commercial"
                                             );
@@ -1611,35 +1552,39 @@ function DashboardQuickInventory({
                                             setCommercialFloor(
                                                 "Ground Floor"
                                             );
+
                                         }}
                                         className={`
-                                        rounded-lg
-                                        border
-                                        px-4 py-2
-                                        text-sm
-                                        font-semibold
+                                            rounded-lg
+                                            border
+                                            px-4 py-2
+                                            text-sm
+                                            font-semibold
 
-                                        ${commercialSection ===
+                                            ${commercialSection ===
                                                 "Commercial"
                                                 ? `
-                                                    border-green-600
-                                                    bg-green-600
-                                                    text-white
-                                                  `
+                                                        border-green-600
+                                                        bg-green-600
+                                                        text-white
+                                                      `
                                                 : `
-                                                    border-gray-300
-                                                    bg-white
-                                                    text-gray-700
-                                                  `
+                                                        border-gray-300
+                                                        bg-white
+                                                        text-gray-700
+                                                      `
                                             }
-                                    `}
+                                        `}
                                     >
+
                                         Commercial · {commercialCount}
+
                                     </button>
 
                                     <button
                                         type="button"
                                         onClick={() => {
+
                                             setCommercialSection(
                                                 "Commercial 1"
                                             );
@@ -1647,37 +1592,38 @@ function DashboardQuickInventory({
                                             setCommercialFloor(
                                                 "Ground Floor"
                                             );
+
                                         }}
                                         className={`
-                                        rounded-lg
-                                        border
-                                        px-4 py-2
-                                        text-sm
-                                        font-semibold
+                                            rounded-lg
+                                            border
+                                            px-4 py-2
+                                            text-sm
+                                            font-semibold
 
-                                        ${commercialSection ===
+                                            ${commercialSection ===
                                                 "Commercial 1"
                                                 ? `
-                                                    border-green-600
-                                                    bg-green-600
-                                                    text-white
-                                                  `
+                                                        border-green-600
+                                                        bg-green-600
+                                                        text-white
+                                                      `
                                                 : `
-                                                    border-gray-300
-                                                    bg-white
-                                                    text-gray-700
-                                                  `
+                                                        border-gray-300
+                                                        bg-white
+                                                        text-gray-700
+                                                      `
                                             }
-                                    `}
+                                        `}
                                     >
+
                                         Commercial 1 · {commercial1Count}
+
                                     </button>
 
                                 </div>
 
                             </div>
-
-                            {/* Commercial Floors */}
 
                             <div className="mb-6">
 
@@ -1701,38 +1647,41 @@ function DashboardQuickInventory({
                                                     )
                                                 }
                                                 className={`
-                                                rounded-lg
-                                                border
-                                                px-4 py-2
-                                                text-sm
-                                                font-medium
+                                                    rounded-lg
+                                                    border
+                                                    px-4 py-2
+                                                    text-sm
+                                                    font-medium
 
-                                                ${commercialFloor ===
+                                                    ${commercialFloor ===
                                                         floor
                                                         ? `
-                                                            border-blue-600
-                                                            bg-blue-600
-                                                            text-white
-                                                          `
+                                                                border-blue-600
+                                                                bg-blue-600
+                                                                text-white
+                                                              `
                                                         : `
-                                                            border-gray-300
-                                                            bg-white
-                                                            text-gray-700
-                                                          `
+                                                                border-gray-300
+                                                                bg-white
+                                                                text-gray-700
+                                                              `
                                                     }
-                                            `}
+                                                `}
                                             >
 
                                                 {floor}
 
                                                 <span className="ml-2 text-xs opacity-80">
-                                                    {getCommercialFloorCount(
-                                                        floor
-                                                    )}
+
+                                                    {
+                                                        getCommercialFloorCount(
+                                                            floor
+                                                        )
+                                                    }
+
                                                 </span>
 
                                             </button>
-
                                         )
                                     )}
 
@@ -1741,31 +1690,28 @@ function DashboardQuickInventory({
                             </div>
 
                         </>
-
                     )}
-
-                {/* ==================================================
-                    HEADING
-                ================================================== */}
 
                 <div className="mb-5 border-t pt-5 text-center">
 
                     <h3 className="text-lg font-bold text-gray-800">
-                        {inventoryType ===
-                            "residential"
-                            ? residentialHeading
-                            : commercialHeading}
+
+                        {
+                            inventoryType ===
+                                "residential"
+                                ? residentialHeading
+                                : commercialHeading
+                        }
+
                     </h3>
 
                     <p className="mt-1 text-sm text-gray-500">
+
                         {displayedProperties.length} Units
+
                     </p>
 
                 </div>
-
-                {/* ==================================================
-                    FIXED ALIGNED ZIG-ZAG
-                ================================================== */}
 
                 <div
                     className="
@@ -1790,11 +1736,11 @@ function DashboardQuickInventory({
 
                         <div
                             className="
-                                mx-auto
-                                w-[760px]
-                                min-w-[760px]
-                                space-y-4
-                            "
+                                    mx-auto
+                                    w-[760px]
+                                    min-w-[760px]
+                                    space-y-4
+                                "
                         >
 
                             {zigZagRows.map(
@@ -1808,10 +1754,10 @@ function DashboardQuickInventory({
                                             rowIndex
                                         }
                                         className="
-                                            relative
-                                            h-[110px]
-                                            w-full
-                                        "
+                                                relative
+                                                h-[110px]
+                                                w-full
+                                            "
                                     >
 
                                         {row.map(
@@ -1852,119 +1798,134 @@ function DashboardQuickInventory({
                                                                 `${left}px`,
                                                         }}
                                                         className={`
-                                                            absolute
-                                                            top-0
+                                                                absolute
+                                                                top-0
 
-                                                            flex
-                                                            h-[110px]
-                                                            w-[155px]
+                                                                flex
+                                                                h-[110px]
+                                                                w-[155px]
 
-                                                            flex-col
-                                                            items-center
-                                                            justify-center
+                                                                flex-col
+                                                                items-center
+                                                                justify-center
 
-                                                            rounded-xl
-                                                            border-2
-                                                            p-3
-                                                            text-center
+                                                                rounded-xl
+                                                                border-2
+                                                                p-3
+                                                                text-center
 
-                                                            transition-all
-                                                            duration-200
+                                                                transition-all
+                                                                duration-200
 
-                                                            hover:-translate-y-1
-                                                            hover:scale-[1.02]
-                                                            hover:shadow-lg
+                                                                hover:-translate-y-1
+                                                                hover:scale-[1.02]
+                                                                hover:shadow-lg
 
-                                                            ${getUnitColor(
+                                                                ${getUnitColor(
                                                             property
-                                                        )}
-                                                        `}
+                                                        )
+                                                            }
+                                                            `}
                                                     >
 
                                                         <span className="text-base font-bold">
+
                                                             {
                                                                 property.unitNumber
                                                             }
+
                                                         </span>
 
                                                         <span className="mt-2 text-xs">
-                                                            {property.area
-                                                                ? `${property.area} sqft`
-                                                                : "Area not set"}
+
+                                                            {
+                                                                property.area
+                                                                    ? `${property.area} sqft`
+                                                                    : "Area not set"
+                                                            }
+
                                                         </span>
 
                                                         <span className="mt-2 text-xs font-bold">
-                                                            {getStatusLabel(
-                                                                property
-                                                            )}
+
+                                                            {
+                                                                getStatusLabel(
+                                                                    property
+                                                                )
+                                                            }
+
                                                         </span>
 
                                                     </button>
-
                                                 );
                                             }
                                         )}
 
                                     </div>
-
                                 )
                             )}
 
                         </div>
-
                     )}
 
                 </div>
 
-                {/* ==================================================
-                    LEGEND
-                ================================================== */}
-
                 <div className="mt-5 flex flex-wrap justify-center gap-6 border-t pt-4 text-sm">
 
                     <span className="flex items-center gap-2">
+
                         <span className="h-3 w-3 rounded bg-green-500" />
+
                         Available
+
                     </span>
 
                     <span className="flex items-center gap-2">
+
                         <span className="h-3 w-3 rounded bg-yellow-400" />
+
                         Hold
+
                     </span>
 
                     <span className="flex items-center gap-2">
+
                         <span className="h-3 w-3 rounded bg-red-500" />
+
                         Booked
+
                     </span>
 
                     <span className="flex items-center gap-2">
+
                         <span className="h-3 w-3 rounded bg-gray-500" />
+
                         Sold
+
                     </span>
 
                     {inventoryType ===
                         "commercial" && (
 
                             <span className="flex items-center gap-2">
-                                <span className="h-3 w-3 rounded bg-purple-500" />
-                                Fine Dine
-                            </span>
 
+                                <span className="h-3 w-3 rounded bg-purple-500" />
+
+                                Fine Dine
+
+                            </span>
                         )}
 
                 </div>
 
             </div>
 
-            {/* ==================================================
-                RESIDENTIAL MODAL
-            ================================================== */}
-
             <FlatModal
                 isOpen={
                     flatModalOpen
                 }
                 onClose={() => {
+
                     setFlatModalOpen(
                         false
                     );
@@ -1976,6 +1937,7 @@ function DashboardQuickInventory({
                     setSelectedProperty(
                         null
                     );
+
                 }}
                 flat={
                     selectedFlat
@@ -1988,15 +1950,12 @@ function DashboardQuickInventory({
                 }
             />
 
-            {/* ==================================================
-                COMMERCIAL SHOP MODAL
-            ================================================== */}
-
             <ShopModal
                 isOpen={
                     shopModalOpen
                 }
                 onClose={() => {
+
                     setShopModalOpen(
                         false
                     );
@@ -2008,6 +1967,7 @@ function DashboardQuickInventory({
                     setSelectedProperty(
                         null
                     );
+
                 }}
                 shop={
                     selectedShop
@@ -2020,15 +1980,12 @@ function DashboardQuickInventory({
                 }
             />
 
-            {/* ==================================================
-                COMMERCIAL BOOKING MODAL
-            ================================================== */}
-
             <BookingModal
                 isOpen={
                     commercialBookingOpen
                 }
                 onClose={() => {
+
                     setCommercialBookingOpen(
                         false
                     );
@@ -2040,6 +1997,7 @@ function DashboardQuickInventory({
                     setSelectedProperty(
                         null
                     );
+
                 }}
                 onConfirm={
                     handleCommercialBooking

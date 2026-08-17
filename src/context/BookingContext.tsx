@@ -5,7 +5,13 @@ import {
     useState,
 } from "react";
 
-import type { ReactNode } from "react";
+import type {
+    ReactNode,
+} from "react";
+
+import {
+    getAuthToken,
+} from "../services/api";
 
 // ======================================================
 // Agreement / Document
@@ -13,11 +19,11 @@ import type { ReactNode } from "react";
 
 interface AgreementDocument {
     status:
-    | "pending"
-    | "generated"
-    | "uploaded"
-    | "given"
-    | "completed";
+        | "pending"
+        | "generated"
+        | "uploaded"
+        | "given"
+        | "completed";
 
     fileName?: string;
     fileUrl?: string;
@@ -33,14 +39,31 @@ interface AgreementDocument {
 // ======================================================
 
 interface BookingDocuments {
-    requisitionLetter: AgreementDocument;
+    requisitionLetter:
+        AgreementDocument;
 
-    agreementToSell: AgreementDocument;
+    agreementToSell:
+        AgreementDocument;
 
     tripartiteAgreement: {
         required: boolean;
-        document: AgreementDocument;
+
+        document:
+            AgreementDocument;
     };
+}
+
+// ======================================================
+// Assigned Employee
+// ======================================================
+
+interface AssignedEmployee {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    role: string;
+    status: string;
 }
 
 // ======================================================
@@ -62,15 +85,57 @@ interface Booking {
     aadhar: string;
     pan: string;
 
+    // ==================================================
+    // Client Customer Fields
+    // ==================================================
+
+    dob?: string;
+    doa?: string;
+    profile?: string;
+
+    // ==================================================
+    // Existing Booking Fields
+    // ==================================================
+
     bookingAmount: string;
     paymentMode: string;
     bookingDate: string;
+
+    cancelledAt:
+        string | null;
 
     remarks: string;
 
     status: string;
 
-    documents: BookingDocuments;
+    // ==================================================
+    // Client Booking Fields
+    // ==================================================
+
+    totalAmount?: string;
+    discount?: string;
+    afterDiscountAmount?: string;
+
+    plan?: string;
+
+    chequeNo?: string;
+    bankName?: string;
+
+    finance?: string;
+    customerNeed?: string;
+
+    // ==================================================
+    // Employee Assignment
+    // ==================================================
+
+    employeeId?:
+        string | null;
+
+    assignedEmployee?:
+        AssignedEmployee | null;
+
+    documents:
+        BookingDocuments;
 
     bookingCode?: string;
 }
@@ -80,11 +145,14 @@ interface Booking {
 // ======================================================
 
 interface BookingContextType {
-    bookings: Booking[];
+    bookings:
+        Booking[];
 
-    loading: boolean;
+    loading:
+        boolean;
 
-    error: string | null;
+    error:
+        string | null;
 
     addBooking: (
         booking: Booking
@@ -98,7 +166,8 @@ interface BookingContextType {
         id: string
     ) => Promise<void>;
 
-    refreshBookings: () => Promise<void>;
+    refreshBookings:
+        () => Promise<void>;
 }
 
 // ======================================================
@@ -109,24 +178,65 @@ const API_URL =
     "http://localhost:5000/api/bookings";
 
 // ======================================================
+// Auth Headers
+// ======================================================
+
+const getRequestHeaders = (
+    includeJson = false
+): HeadersInit => {
+
+    const token =
+        getAuthToken();
+
+    const headers:
+        Record<string, string> = {};
+
+    if (
+        includeJson
+    ) {
+
+        headers[
+            "Content-Type"
+        ] =
+            "application/json";
+    }
+
+    if (
+        token
+    ) {
+
+        headers.Authorization =
+            `Bearer ${token}`;
+    }
+
+    return headers;
+};
+
+// ======================================================
 // Default Documents
 // ======================================================
 
 const createDefaultDocuments =
     (): BookingDocuments => ({
+
         requisitionLetter: {
-            status: "pending",
+            status:
+                "pending",
         },
 
         agreementToSell: {
-            status: "pending",
+            status:
+                "pending",
         },
 
         tripartiteAgreement: {
-            required: false,
+
+            required:
+                false,
 
             document: {
-                status: "pending",
+                status:
+                    "pending",
             },
         },
     });
@@ -138,7 +248,9 @@ const createDefaultDocuments =
 const normalizeDocument = (
     document: any
 ): AgreementDocument => {
+
     return {
+
         status:
             document?.status ??
             "pending",
@@ -170,17 +282,63 @@ const normalizeDocument = (
 };
 
 // ======================================================
+// Normalize Assigned Employee
+// ======================================================
+
+const normalizeAssignedEmployee = (
+    employee: any
+): AssignedEmployee | null => {
+
+    if (
+        !employee
+    ) {
+        return null;
+    }
+
+    return {
+
+        id:
+            String(
+                employee.id ??
+                ""
+            ),
+
+        name:
+            employee.name ??
+            "",
+
+        email:
+            employee.email ??
+            "",
+
+        phone:
+            employee.phone ??
+            null,
+
+        role:
+            employee.role ??
+            "",
+
+        status:
+            employee.status ??
+            "",
+    };
+};
+
+// ======================================================
 // Normalize Booking
 // ======================================================
 
 const normalizeBooking = (
     booking: any
 ): Booking => {
+
     const documents =
         booking?.documents ??
         createDefaultDocuments();
 
     return {
+
         id:
             String(
                 booking?.id ??
@@ -189,59 +347,90 @@ const normalizeBooking = (
 
         flatNumber:
             booking?.flatNumber ??
-            booking?.property?.unitNumber ??
+            booking?.property
+                ?.unitNumber ??
             "",
 
         tower:
             booking?.tower ??
-            booking?.property?.block ??
+            booking?.property
+                ?.block ??
             "",
 
         floor:
             Number(
                 booking?.floor ??
-                booking?.property?.floor ??
+                booking?.property
+                    ?.floor ??
                 0
             ),
 
         customerName:
             booking?.customerName ??
-            booking?.customer?.name ??
+            booking?.customer
+                ?.name ??
             "",
 
         mobile:
             booking?.mobile ??
-            booking?.customer?.phone ??
+            booking?.customer
+                ?.phone ??
             "",
 
         email:
             booking?.email ??
-            booking?.customer?.email ??
+            booking?.customer
+                ?.email ??
             "",
 
         address:
             booking?.address ??
-            booking?.customer?.address ??
+            booking?.customer
+                ?.address ??
             "",
 
         aadhar:
             booking?.aadhar ??
-            booking?.customer?.aadhar ??
+            booking?.customer
+                ?.aadhar ??
             "",
 
         pan:
             booking?.pan ??
-            booking?.customer?.pan ??
+            booking?.customer
+                ?.pan ??
             "",
+
+        // ==================================================
+        // Client Customer Fields
+        // ==================================================
+
+        dob:
+            booking?.dob ??
+            "",
+
+        doa:
+            booking?.doa ??
+            "",
+
+        profile:
+            booking?.profile ??
+            "",
+
+        // ==================================================
+        // Existing Booking Fields
+        // ==================================================
 
         bookingAmount:
             booking?.bookingAmount ??
-                booking?.amount != null
-                ? String(
-                    booking?.bookingAmount ??
-                    booking?.amount
-                )
-                : "",
+            (
+                booking?.amount !=
+                null
+                    ? String(
+                        booking.amount
+                    )
+                    : ""
+            ),
 
         paymentMode:
             booking?.paymentMode ??
@@ -253,6 +442,13 @@ const normalizeBooking = (
                     booking.bookingDate
                 ).split("T")[0]
                 : "",
+
+        cancelledAt:
+            booking?.cancelledAt
+                ? String(
+                    booking.cancelledAt
+                )
+                : null,
 
         remarks:
             booking?.remarks ??
@@ -266,18 +462,74 @@ const normalizeBooking = (
             booking?.bookingCode ??
             undefined,
 
+        // ==================================================
+        // Client Booking Fields
+        // ==================================================
+
+        totalAmount:
+            booking?.totalAmount ??
+            "",
+
+        discount:
+            booking?.discount ??
+            "",
+
+        afterDiscountAmount:
+            booking?.afterDiscountAmount ??
+            "",
+
+        plan:
+            booking?.plan ??
+            "",
+
+        chequeNo:
+            booking?.chequeNo ??
+            "",
+
+        bankName:
+            booking?.bankName ??
+            "",
+
+        finance:
+            booking?.finance ??
+            "",
+
+        customerNeed:
+            booking?.customerNeed ??
+            "",
+
+        // ==================================================
+        // Assigned Employee
+        // ==================================================
+
+        employeeId:
+            booking?.employeeId ??
+            booking?.assignedEmployee
+                ?.id ??
+            null,
+
+        assignedEmployee:
+            normalizeAssignedEmployee(
+                booking?.assignedEmployee ??
+                booking?.employee
+            ),
+
         documents: {
+
             requisitionLetter:
                 normalizeDocument(
-                    documents.requisitionLetter
+                    documents
+                        .requisitionLetter
                 ),
 
             agreementToSell:
                 normalizeDocument(
-                    documents.agreementToSell
+                    documents
+                        .agreementToSell
                 ),
 
             tripartiteAgreement: {
+
                 required:
                     Boolean(
                         documents
@@ -297,14 +549,17 @@ const normalizeBooking = (
 };
 
 // ======================================================
-// Convert frontend booking → API payload
+// Convert Frontend Booking -> API Payload
 // ======================================================
 
 const createApiPayload = (
     booking: Booking
 ) => {
+
     return {
-        id: booking.id,
+
+        id:
+            booking.id,
 
         bookingCode:
             booking.bookingCode,
@@ -317,6 +572,18 @@ const createApiPayload = (
 
         floor:
             booking.floor,
+
+        // ==================================================
+        // Employee Assignment
+        // ==================================================
+
+        employeeId:
+            booking.employeeId ??
+            null,
+
+        // ==================================================
+        // Customer
+        // ==================================================
 
         customerName:
             booking.customerName,
@@ -336,8 +603,45 @@ const createApiPayload = (
         pan:
             booking.pan,
 
+        dob:
+            booking.dob,
+
+        doa:
+            booking.doa,
+
+        profile:
+            booking.profile,
+
+        // ==================================================
+        // Booking
+        // ==================================================
+
         bookingAmount:
             booking.bookingAmount,
+
+        totalAmount:
+            booking.totalAmount,
+
+        discount:
+            booking.discount,
+
+        afterDiscountAmount:
+            booking.afterDiscountAmount,
+
+        plan:
+            booking.plan,
+
+        chequeNo:
+            booking.chequeNo,
+
+        bankName:
+            booking.bankName,
+
+        finance:
+            booking.finance,
+
+        customerNeed:
+            booking.customerNeed,
 
         paymentMode:
             booking.paymentMode,
@@ -362,7 +666,8 @@ const createApiPayload = (
 
 const BookingContext =
     createContext<
-        BookingContextType | undefined
+        BookingContextType |
+        undefined
     >(undefined);
 
 // ======================================================
@@ -372,274 +677,382 @@ const BookingContext =
 export function BookingProvider({
     children,
 }: {
-    children: ReactNode;
+    children:
+        ReactNode;
 }) {
-    const [bookings, setBookings] =
-        useState<Booking[]>([]);
 
-    const [loading, setLoading] =
-        useState(true);
+    const [
+        bookings,
+        setBookings,
+    ] =
+        useState<
+            Booking[]
+        >([]);
 
-    const [error, setError] =
-        useState<string | null>(null);
+    const [
+        loading,
+        setLoading,
+    ] =
+        useState(
+            true
+        );
+
+    const [
+        error,
+        setError,
+    ] =
+        useState<
+            string | null
+        >(null);
 
     // ==================================================
     // GET BOOKINGS
     // ==================================================
 
-    const refreshBookings = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+    const refreshBookings =
+        async () => {
 
-            const response =
-                await fetch(API_URL);
+            try {
 
-            const result =
-                await response.json();
+                setLoading(
+                    true
+                );
 
-            if (
-                !response.ok ||
-                !result.success
+                setError(
+                    null
+                );
+
+                const response =
+                    await fetch(
+                        API_URL,
+                        {
+                            headers:
+                                getRequestHeaders(),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to fetch bookings"
+                    );
+                }
+
+                const serverBookings =
+                    Array.isArray(
+                        result.data
+                    )
+                        ? result.data.map(
+                            normalizeBooking
+                        )
+                        : [];
+
+                setBookings(
+                    serverBookings
+                );
+
+            } catch (
+                error
             ) {
-                throw new Error(
-                    result.message ||
-                    "Failed to fetch bookings"
+
+                console.error(
+                    "Fetch bookings error:",
+                    error
+                );
+
+                setError(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to fetch bookings"
+                );
+
+            } finally {
+
+                setLoading(
+                    false
                 );
             }
-
-            const serverBookings =
-                Array.isArray(result.data)
-                    ? result.data.map(
-                        normalizeBooking
-                    )
-                    : [];
-
-            setBookings(
-                serverBookings
-            );
-        } catch (error) {
-            console.error(
-                "Fetch bookings error:",
-                error
-            );
-
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to fetch bookings"
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
 
     // ==================================================
     // INITIAL LOAD
     // ==================================================
 
     useEffect(() => {
-        refreshBookings();
+
+        void refreshBookings();
+
     }, []);
 
     // ==================================================
     // ADD BOOKING
     // ==================================================
 
-    const addBooking = async (
-        booking: Booking
-    ) => {
-        try {
-            setError(null);
+    const addBooking =
+        async (
+            booking:
+                Booking
+        ) => {
 
-            const response =
-                await fetch(API_URL, {
-                    method: "POST",
+            try {
 
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body: JSON.stringify(
-                        createApiPayload(
-                            booking
-                        )
-                    ),
-                });
-
-            const result =
-                await response.json();
-
-            if (
-                !response.ok ||
-                !result.success
-            ) {
-                throw new Error(
-                    result.message ||
-                    "Failed to create booking"
-                );
-            }
-
-            const newBooking =
-                normalizeBooking(
-                    result.data
+                setError(
+                    null
                 );
 
-            setBookings(
-                (previous) => [
-                    ...previous,
-                    newBooking,
-                ]
-            );
-        } catch (error) {
-            console.error(
-                "Create booking error:",
+                const response =
+                    await fetch(
+                        API_URL,
+                        {
+                            method:
+                                "POST",
+
+                            headers:
+                                getRequestHeaders(
+                                    true
+                                ),
+
+                            body:
+                                JSON.stringify(
+                                    createApiPayload(
+                                        booking
+                                    )
+                                ),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to create booking"
+                    );
+                }
+
+                const newBooking =
+                    normalizeBooking(
+                        result.data
+                    );
+
+                setBookings(
+                    (
+                        previous
+                    ) => [
+                        ...previous,
+                        newBooking,
+                    ]
+                );
+
+            } catch (
                 error
-            );
+            ) {
 
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to create booking"
-            );
+                console.error(
+                    "Create booking error:",
+                    error
+                );
 
-            throw error;
-        }
-    };
+                setError(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to create booking"
+                );
+
+                throw error;
+            }
+        };
 
     // ==================================================
     // UPDATE BOOKING
     // ==================================================
 
-    const updateBooking = async (
-        updatedBooking: Booking
-    ) => {
-        try {
-            setError(null);
+    const updateBooking =
+        async (
+            updatedBooking:
+                Booking
+        ) => {
 
-            const response =
-                await fetch(
-                    `${API_URL}/${updatedBooking.id}`,
-                    {
-                        method: "PUT",
+            try {
 
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-
-                        body: JSON.stringify(
-                            createApiPayload(
-                                updatedBooking
-                            )
-                        ),
-                    }
+                setError(
+                    null
                 );
 
-            const result =
-                await response.json();
+                const response =
+                    await fetch(
+                        `${API_URL}/${updatedBooking.id}`,
+                        {
+                            method:
+                                "PUT",
 
-            if (
-                !response.ok ||
-                !result.success
-            ) {
-                throw new Error(
-                    result.message ||
-                    "Failed to update booking"
+                            headers:
+                                getRequestHeaders(
+                                    true
+                                ),
+
+                            body:
+                                JSON.stringify(
+                                    createApiPayload(
+                                        updatedBooking
+                                    )
+                                ),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to update booking"
+                    );
+                }
+
+                const savedBooking =
+                    normalizeBooking(
+                        result.data
+                    );
+
+                setBookings(
+                    (
+                        previous
+                    ) =>
+                        previous.map(
+                            (
+                                booking
+                            ) =>
+                                booking.id ===
+                                    savedBooking.id
+                                    ? savedBooking
+                                    : booking
+                        )
                 );
-            }
 
-            const savedBooking =
-                normalizeBooking(
-                    result.data
-                );
-
-            setBookings(
-                (previous) =>
-                    previous.map(
-                        (booking) =>
-                            booking.id ===
-                                savedBooking.id
-                                ? savedBooking
-                                : booking
-                    )
-            );
-        } catch (error) {
-            console.error(
-                "Update booking error:",
+            } catch (
                 error
-            );
+            ) {
 
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to update booking"
-            );
+                console.error(
+                    "Update booking error:",
+                    error
+                );
 
-            throw error;
-        }
-    };
+                setError(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to update booking"
+                );
+
+                throw error;
+            }
+        };
 
     // ==================================================
     // DELETE BOOKING
     // ==================================================
 
-    const deleteBooking = async (
-        id: string
-    ) => {
-        try {
-            setError(null);
+    const deleteBooking =
+        async (
+            id:
+                string
+        ) => {
 
-            const response =
-                await fetch(
-                    `${API_URL}/${id}`,
-                    {
-                        method: "DELETE",
-                    }
+            try {
+
+                setError(
+                    null
                 );
 
-            const result =
-                await response.json();
+                const response =
+                    await fetch(
+                        `${API_URL}/${id}`,
+                        {
+                            method:
+                                "DELETE",
 
-            if (
-                !response.ok ||
-                !result.success
-            ) {
-                throw new Error(
-                    result.message ||
-                    "Failed to delete booking"
+                            headers:
+                                getRequestHeaders(),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to delete booking"
+                    );
+                }
+
+                setBookings(
+                    (
+                        previous
+                    ) =>
+                        previous.filter(
+                            (
+                                booking
+                            ) =>
+                                booking.id !==
+                                id
+                        )
                 );
-            }
 
-            setBookings(
-                (previous) =>
-                    previous.filter(
-                        (booking) =>
-                            booking.id !== id
-                    )
-            );
-        } catch (error) {
-            console.error(
-                "Delete booking error:",
+            } catch (
                 error
-            );
+            ) {
 
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to delete booking"
-            );
+                console.error(
+                    "Delete booking error:",
+                    error
+                );
 
-            throw error;
-        }
-    };
+                setError(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to delete booking"
+                );
+
+                throw error;
+            }
+        };
 
     // ==================================================
-    // PROVIDER
+    // Provider
     // ==================================================
 
     return (
+
         <BookingContext.Provider
             value={{
                 bookings,
@@ -653,7 +1066,11 @@ export function BookingProvider({
                 refreshBookings,
             }}
         >
-            {children}
+
+            {
+                children
+            }
+
         </BookingContext.Provider>
     );
 }
@@ -663,12 +1080,16 @@ export function BookingProvider({
 // ======================================================
 
 export function useBooking() {
+
     const context =
         useContext(
             BookingContext
         );
 
-    if (!context) {
+    if (
+        !context
+    ) {
+
         throw new Error(
             "useBooking must be used inside BookingProvider"
         );

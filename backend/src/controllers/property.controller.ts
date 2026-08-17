@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 
 import {
+  BookingStatus,
   PropertyStatus,
   PropertyType,
 } from "../generated/prisma/enums";
@@ -636,24 +637,89 @@ export const updateProperty = async (
         optionalText(description);
     }
 
-    const property =
-      await prisma.property.update({
-        where: {
-          id: propertyId,
-        },
+    // --------------------------------------------------
+    // Booking Cancellation
+    //
+    // When a BOOKED property is intentionally returned
+    // to AVAILABLE, preserve booking history but cancel
+    // the currently active booking(s).
+    // employeeId is intentionally NOT removed.
+    // --------------------------------------------------
 
-        data: updateData,
-      });
+    const shouldCancelBooking =
+      existingProperty.status ===
+        PropertyStatus.BOOKED &&
+      updateData.status ===
+        PropertyStatus.AVAILABLE;
+
+    const cancellationTime =
+      shouldCancelBooking
+        ? new Date()
+        : null;
+
+    let cancelledBookingCount = 0;
+
+    const property =
+      await prisma.$transaction(
+        async (tx) => {
+
+          if (
+            shouldCancelBooking &&
+            cancellationTime
+          ) {
+            const cancellationResult =
+              await tx.booking.updateMany({
+                where: {
+                  propertyId,
+
+                  status: {
+                    in: [
+                      BookingStatus.PENDING,
+                      BookingStatus.CONFIRMED,
+                    ],
+                  },
+                },
+
+                data: {
+                  status:
+                    BookingStatus.CANCELLED,
+
+                  cancelledAt:
+                    cancellationTime,
+                },
+              });
+
+            cancelledBookingCount =
+              cancellationResult.count;
+          }
+
+          return tx.property.update({
+            where: {
+              id: propertyId,
+            },
+
+            data: updateData,
+          });
+        }
+      );
 
     return res.json({
       success: true,
+
       message:
-        updateData.isFineDine === true
-          ? "Property reserved for Fine Dine successfully"
-          : updateData.isFineDine === false
-            ? "Property released from Fine Dine successfully"
-            : "Property updated successfully",
+        shouldCancelBooking &&
+        cancelledBookingCount > 0
+          ? "Property returned to Available and booking cancelled successfully"
+          : updateData.isFineDine === true
+            ? "Property reserved for Fine Dine successfully"
+            : updateData.isFineDine === false
+              ? "Property released from Fine Dine successfully"
+              : "Property updated successfully",
+
       data: property,
+
+      cancelledBookings:
+        cancelledBookingCount,
     });
   } catch (error) {
     console.error(

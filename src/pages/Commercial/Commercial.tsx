@@ -25,6 +25,7 @@ import type {
 import {
     createBooking,
 } from "../../services/bookingService";
+
 import {
     useAutoRefresh,
 } from "../../hooks/useAutoRefresh";
@@ -127,7 +128,6 @@ function chunkArray<T>(
 const getShopColor = (
     status: string
 ) => {
-
     if (
         status ===
         "finedine"
@@ -191,7 +191,6 @@ const getShopColor = (
 const getStatusText = (
     status: string
 ) => {
-
     if (
         status ===
         "finedine"
@@ -316,7 +315,7 @@ function Commercial() {
 
     const backendPhase =
         selectedSection ===
-        "Commercial"
+            "Commercial"
             ? "Phase 1"
             : "Phase 2";
 
@@ -325,49 +324,64 @@ function Commercial() {
     // ==================================================
 
     const loadProperties =
-        async () => {
+        async (
+            showLoading = false
+        ) => {
+            try {
 
-        try {
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        true
+                    );
+                }
 
-            setLoading(true);
-            setError("");
+                setError("");
 
-            const response =
-                await getProperties({
-                    type:
-                        "COMMERCIAL",
-                });
+                const response =
+                    await getProperties({
+                        type:
+                            "COMMERCIAL",
+                    });
 
-            setProperties(
-                response.data
-            );
+                setProperties(
+                    response.data
+                );
 
-        } catch (err) {
+            } catch (err) {
 
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Failed to load commercial inventory";
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to load commercial inventory";
 
-            setError(
-                message
-            );
+                setError(
+                    message
+                );
 
-        } finally {
+            } finally {
 
-            setLoading(
-                false
-            );
-        }
-    };
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        false
+                    );
+                }
+            }
+        };
 
     useEffect(() => {
-        loadProperties();
+        void loadProperties(
+            true
+        );
     }, []);
+
     useAutoRefresh(
-    loadProperties,
-    5000
-);
+        loadProperties,
+        5000
+    );
 
     // ==================================================
     // Current Section Shops
@@ -380,9 +394,9 @@ function Commercial() {
                 .filter(
                     (property) =>
                         property.type ===
-                            "COMMERCIAL" &&
+                        "COMMERCIAL" &&
                         property.phase ===
-                            backendPhase
+                        backendPhase
                 )
                 .sort(
                     naturalSort
@@ -401,18 +415,18 @@ function Commercial() {
         properties.filter(
             (property) =>
                 property.type ===
-                    "COMMERCIAL" &&
+                "COMMERCIAL" &&
                 property.phase ===
-                    "Phase 1"
+                "Phase 1"
         ).length;
 
     const commercial1Total =
         properties.filter(
             (property) =>
                 property.type ===
-                    "COMMERCIAL" &&
+                "COMMERCIAL" &&
                 property.phase ===
-                    "Phase 2"
+                "Phase 2"
         ).length;
 
     // ==================================================
@@ -474,7 +488,6 @@ function Commercial() {
     const getFloorTotal = (
         floor: Floor
     ) => {
-
         return sectionShops.filter(
             (property) =>
                 property.floor ===
@@ -499,9 +512,9 @@ function Commercial() {
 
                     if (
                         selectedFloor !==
-                            "all" &&
+                        "all" &&
                         property.floor !==
-                            selectedFloor
+                        selectedFloor
                     ) {
                         return false;
                     }
@@ -513,9 +526,9 @@ function Commercial() {
 
                     if (
                         selectedStatus !==
-                            "all" &&
+                        "all" &&
                         frontendStatus !==
-                            selectedStatus
+                        selectedStatus
                     ) {
                         return false;
                     }
@@ -568,7 +581,6 @@ function Commercial() {
     const mapPropertyToShop = (
         property: Property
     ) => {
-
         return {
             id:
                 property.id,
@@ -589,7 +601,7 @@ function Commercial() {
 
             phase:
                 property.phase ===
-                "Phase 1"
+                    "Phase 1"
                     ? 1
                     : 2,
 
@@ -598,7 +610,7 @@ function Commercial() {
 
             sectionName:
                 property.phase ===
-                "Phase 1"
+                    "Phase 1"
                     ? "Commercial"
                     : "Commercial 1",
 
@@ -639,7 +651,6 @@ function Commercial() {
     const handleShopClick = (
         property: Property
     ) => {
-
         setSelectedShop(
             mapPropertyToShop(
                 property
@@ -661,72 +672,69 @@ function Commercial() {
                 string | number,
             newStatus: string
         ) => {
+            try {
 
-        try {
+                const id =
+                    String(
+                        shopId
+                    );
 
-            const id =
-                String(
-                    shopId
-                );
+                const normalized =
+                    String(
+                        newStatus
+                    ).toLowerCase();
 
-            const normalized =
-                String(
-                    newStatus
-                ).toLowerCase();
+                if (
+                    normalized ===
+                    "finedine"
+                ) {
+                    await updateProperty(
+                        id,
+                        {
+                            isFineDine:
+                                true,
+                        }
+                    );
 
-            // Fine Dine is controlled by isFineDine.
-            if (
-                normalized ===
-                "finedine"
-            ) {
+                } else {
 
-                await updateProperty(
-                    id,
-                    {
-                        isFineDine:
-                            true,
-                    }
-                );
-
-            } else {
-
-                const status =
-                    normalized
-                        .toUpperCase() as
+                    const status =
+                        normalized
+                            .toUpperCase() as
                         PropertyStatus;
 
-                await updateProperty(
-                    id,
-                    {
-                        status,
-                        isFineDine:
-                            false,
-                    }
+                    await updateProperty(
+                        id,
+                        {
+                            status,
+                            isFineDine:
+                                false,
+                        }
+                    );
+                }
+
+                await loadProperties();
+
+                setIsShopModalOpen(
+                    false
+                );
+
+                setSelectedShop(
+                    null
+                );
+
+            } catch (err) {
+
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to update shop";
+
+                alert(
+                    message
                 );
             }
-
-            await loadProperties();
-
-            setIsShopModalOpen(
-                false
-            );
-
-            setSelectedShop(
-                null
-            );
-
-        } catch (err) {
-
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Failed to update shop";
-
-            alert(
-                message
-            );
-        }
-    };
+        };
 
     // ==================================================
     // Book Shop
@@ -735,15 +743,14 @@ function Commercial() {
     const handleBookShop = (
         shop: any
     ) => {
-
         if (
             !shop ||
             shop.status ===
-                "booked" ||
+            "booked" ||
             shop.status ===
-                "sold" ||
+            "sold" ||
             shop.status ===
-                "hold"
+            "hold"
         ) {
             return;
         }
@@ -751,7 +758,6 @@ function Commercial() {
         if (
             shop.isFineDine
         ) {
-
             alert(
                 "This shop is reserved for Fine Dine and cannot be booked."
             );
@@ -780,83 +786,85 @@ function Commercial() {
         async (
             bookingData: any
         ) => {
+            if (
+                !selectedShop
+            ) {
+                return;
+            }
 
-        if (
-            !selectedShop
-        ) {
-            return;
-        }
+            try {
 
-        try {
+                await createBooking({
+                    propertyId:
+                        selectedShop.id,
 
-            await createBooking({
-                propertyId:
-                    selectedShop.id,
+                    customerName:
+                        bookingData.customerName,
 
-                customerName:
-                    bookingData.customerName,
+                    mobile:
+                        bookingData.mobile,
 
-                mobile:
-                    bookingData.mobile,
+                    email:
+                        bookingData.email,
 
-                email:
-                    bookingData.email,
+                    address:
+                        bookingData.address,
 
-                address:
-                    bookingData.address,
+                    aadhar:
+                        bookingData.aadhar,
 
-                aadhar:
-                    bookingData.aadhar,
+                    pan:
+                        bookingData.pan,
 
-                pan:
-                    bookingData.pan,
+                    bookingAmount:
+                        bookingData.bookingAmount,
 
-                bookingAmount:
-                    bookingData.bookingAmount,
+                    paymentMode:
+                        bookingData.paymentMode,
 
-                paymentMode:
-                    bookingData.paymentMode,
+                    bookingDate:
+                        bookingData.bookingDate,
 
-                bookingDate:
-                    bookingData.bookingDate,
+                    remarks:
+                        bookingData.remarks,
 
-                remarks:
-                    bookingData.remarks,
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
 
-                status:
-                    bookingData.status ??
-                    "CONFIRMED",
-            });
+                    status:
+                        bookingData.status ??
+                        "CONFIRMED",
+                });
 
-            await loadProperties();
+                await loadProperties();
 
-            setIsBookingModalOpen(
-                false
-            );
+                setIsBookingModalOpen(
+                    false
+                );
 
-            setSelectedShop(
-                null
-            );
+                setSelectedShop(
+                    null
+                );
 
-        } catch (err) {
+            } catch (err) {
 
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Booking failed";
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Booking failed";
 
-            alert(
-                message
-            );
-        }
-    };
+                alert(
+                    message
+                );
+            }
+        };
 
     // ==================================================
     // Reset
     // ==================================================
 
     const resetFilters = () => {
-
         setSelectedFloor(
             "all"
         );
@@ -876,7 +884,6 @@ function Commercial() {
         section:
             CommercialSection
     ) => {
-
         setSelectedSection(
             section
         );
@@ -890,7 +897,7 @@ function Commercial() {
 
     const currentHeading =
         selectedFloor ===
-        "all"
+            "all"
             ? selectedSection
             : `${selectedSection} - ${selectedFloor}`;
 
@@ -928,9 +935,11 @@ function Commercial() {
 
                 <button
                     type="button"
-                    onClick={
-                        loadProperties
-                    }
+                    onClick={() => {
+                        void loadProperties(
+                            true
+                        );
+                    }}
                     className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
                 >
                     Retry
@@ -994,16 +1003,15 @@ function Commercial() {
                             font-semibold
                             transition-all
 
-                            ${
-                                selectedSection ===
+                            ${selectedSection ===
                                 "Commercial"
-                                    ? `
+                                ? `
                                         border-green-600
                                         bg-green-600
                                         text-white
                                         shadow-md
                                       `
-                                    : `
+                                : `
                                         border-gray-300
                                         bg-white
                                         text-gray-700
@@ -1013,7 +1021,6 @@ function Commercial() {
                             }
                         `}
                     >
-
                         Commercial
 
                         <span className="ml-2 text-xs opacity-80">
@@ -1037,16 +1044,15 @@ function Commercial() {
                             font-semibold
                             transition-all
 
-                            ${
-                                selectedSection ===
+                            ${selectedSection ===
                                 "Commercial 1"
-                                    ? `
+                                ? `
                                         border-green-600
                                         bg-green-600
                                         text-white
                                         shadow-md
                                       `
-                                    : `
+                                : `
                                         border-gray-300
                                         bg-white
                                         text-gray-700
@@ -1056,7 +1062,6 @@ function Commercial() {
                             }
                         `}
                     >
-
                         Commercial 1
 
                         <span className="ml-2 text-xs opacity-80">
@@ -1176,15 +1181,14 @@ function Commercial() {
                             font-medium
                             transition-all
 
-                            ${
-                                selectedFloor ===
+                            ${selectedFloor ===
                                 "all"
-                                    ? `
+                                ? `
                                         border-blue-600
                                         bg-blue-600
                                         text-white
                                       `
-                                    : `
+                                : `
                                         border-gray-300
                                         bg-white
                                         text-gray-700
@@ -1217,15 +1221,14 @@ function Commercial() {
                                     font-medium
                                     transition-all
 
-                                    ${
-                                        selectedFloor ===
+                                    ${selectedFloor ===
                                         floor
-                                            ? `
+                                        ? `
                                                 border-blue-600
                                                 bg-blue-600
                                                 text-white
                                               `
-                                            : `
+                                        : `
                                                 border-gray-300
                                                 bg-white
                                                 text-gray-700
@@ -1309,7 +1312,7 @@ function Commercial() {
                                 setSelectedStatus(
                                     event.target
                                         .value as
-                                        Status
+                                    Status
                                 )
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
@@ -1382,7 +1385,7 @@ function Commercial() {
                 </div>
 
                 {filteredShops.length ===
-                0 ? (
+                    0 ? (
 
                     <div className="rounded-xl border border-dashed p-12 text-center">
 
@@ -1464,7 +1467,7 @@ function Commercial() {
                                                 const rowOffset =
                                                     rowIndex %
                                                         2 ===
-                                                    1
+                                                        1
                                                         ? 86
                                                         : 0;
 
@@ -1518,8 +1521,8 @@ function Commercial() {
                                                             focus:ring-offset-2
 
                                                             ${getShopColor(
-                                                                status
-                                                            )}
+                                                            status
+                                                        )}
                                                         `}
                                                     >
 
