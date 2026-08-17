@@ -1,6 +1,20 @@
 import jsPDF from "jspdf";
 
+// ======================================================
+// Types
+// ======================================================
+
+interface AssignedEmployee {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
 interface BookingData {
+  bookingCode?: string;
+
   flatNumber?: string;
   tower?: string;
   floor?: number | string;
@@ -10,15 +24,114 @@ interface BookingData {
   email?: string;
   address?: string;
 
+  dob?: string;
+  doa?: string;
+  profile?: string;
+
   aadhar?: string;
   pan?: string;
 
+  totalAmount?: string | number;
+  discount?: string | number;
+  afterDiscountAmount?: string | number;
+
+  plan?: string;
+
   bookingAmount?: string | number;
   paymentMode?: string;
+
+  chequeNo?: string;
+  bankName?: string;
+
+  finance?: string;
+  customerNeed?: string;
+
   bookingDate?: string;
+
+  employeeId?: string | null;
+
+  assignedEmployee?:
+    AssignedEmployee | null;
 
   remarks?: string;
 }
+
+// ======================================================
+// Helpers
+// ======================================================
+
+const formatCurrency = (
+  value?: string | number
+) => {
+
+  const amount =
+    Number(
+      value || 0
+    );
+
+  return `₹ ${(
+    Number.isFinite(amount)
+      ? amount
+      : 0
+  ).toLocaleString(
+    "en-IN"
+  )}`;
+};
+
+const formatDate = (
+  value?: string
+) => {
+
+  if (!value) {
+    return "-";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      day:
+        "2-digit",
+
+      month:
+        "2-digit",
+
+      year:
+        "numeric",
+    }
+  );
+};
+
+const formatRole = (
+  role?: string
+) => {
+
+  if (!role) {
+    return "-";
+  }
+
+  return role
+    .replace(
+      /_/g,
+      " "
+    )
+    .toLowerCase()
+    .replace(
+      /\b\w/g,
+      (character) =>
+        character.toUpperCase()
+    );
+};
 
 // ======================================================
 // Generate Agreement To Sell PDF
@@ -27,78 +140,219 @@ interface BookingData {
 export function generateAgreement(
   booking: BookingData
 ) {
-  const pdf = new jsPDF();
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pdf =
+    new jsPDF();
 
-  let y = 20;
+  const pageWidth =
+    pdf.internal.pageSize
+      .getWidth();
+
+  const pageHeight =
+    pdf.internal.pageSize
+      .getHeight();
+
+  const leftMargin =
+    20;
+
+  const rightMargin =
+    20;
+
+  const contentWidth =
+    pageWidth -
+    leftMargin -
+    rightMargin;
+
+  let y =
+    20;
 
   // ====================================================
-  // Helper Functions
+  // Page Management
+  // ====================================================
+
+  const ensureSpace = (
+    requiredHeight = 15
+  ) => {
+
+    if (
+      y +
+        requiredHeight >
+      pageHeight -
+        20
+    ) {
+
+      pdf.addPage();
+
+      y =
+        20;
+    }
+  };
+
+  // ====================================================
+  // Heading
   // ====================================================
 
   const addHeading = (
     text: string
   ) => {
 
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(14);
+    ensureSpace(
+      18
+    );
+
+    pdf.setFont(
+      "helvetica",
+      "bold"
+    );
+
+    pdf.setFontSize(
+      14
+    );
 
     pdf.text(
       text,
-      20,
+      leftMargin,
       y
     );
 
-    y += 10;
+    y +=
+      4;
+
+    pdf.setDrawColor(
+      190
+    );
+
+    pdf.line(
+      leftMargin,
+      y,
+      pageWidth -
+        rightMargin,
+      y
+    );
+
+    y +=
+      8;
   };
+
+  // ====================================================
+  // Field
+  // ====================================================
 
   const addField = (
     label: string,
-    value: string
+    value:
+      string |
+      number |
+      null |
+      undefined
   ) => {
 
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(10);
+    const displayValue =
+      value === null ||
+      value === undefined ||
+      String(value)
+        .trim() === ""
+        ? "-"
+        : String(
+            value
+          );
+
+    const valueLines =
+      pdf.splitTextToSize(
+        displayValue,
+        pageWidth -
+          85 -
+          rightMargin
+      );
+
+    const lineCount =
+      Math.max(
+        valueLines.length,
+        1
+      );
+
+    ensureSpace(
+      lineCount *
+        5 +
+        4
+    );
+
+    pdf.setFont(
+      "helvetica",
+      "bold"
+    );
+
+    pdf.setFontSize(
+      10
+    );
 
     pdf.text(
       `${label}:`,
-      20,
+      leftMargin,
       y
     );
 
-    pdf.setFont("helvetica", "normal");
+    pdf.setFont(
+      "helvetica",
+      "normal"
+    );
 
     pdf.text(
-      value || "-",
-      65,
+      valueLines,
+      70,
       y
     );
 
-    y += 7;
+    y +=
+      Math.max(
+        lineCount *
+          5,
+        7
+      );
   };
+
+  // ====================================================
+  // Paragraph
+  // ====================================================
 
   const addParagraph = (
     text: string
   ) => {
 
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
+    pdf.setFont(
+      "helvetica",
+      "normal"
+    );
+
+    pdf.setFontSize(
+      10
+    );
 
     const lines =
       pdf.splitTextToSize(
         text,
-        pageWidth - 40
+        contentWidth
       );
+
+    const requiredHeight =
+      lines.length *
+        5 +
+      8;
+
+    ensureSpace(
+      requiredHeight
+    );
 
     pdf.text(
       lines,
-      20,
+      leftMargin,
       y
     );
 
     y +=
-      lines.length * 5 + 5;
+      lines.length *
+        5 +
+      7;
   };
 
   // ====================================================
@@ -110,53 +364,64 @@ export function generateAgreement(
     "bold"
   );
 
-  pdf.setFontSize(18);
+  pdf.setFontSize(
+    18
+  );
 
   pdf.text(
     "EMERALD HEIGHTS",
-    pageWidth / 2,
+    pageWidth /
+      2,
     y,
     {
-      align: "center",
+      align:
+        "center",
     }
   );
 
-  y += 8;
+  y +=
+    8;
 
-  pdf.setFontSize(12);
+  pdf.setFontSize(
+    12
+  );
 
   pdf.text(
     "AGREEMENT TO SELL",
-    pageWidth / 2,
+    pageWidth /
+      2,
     y,
     {
-      align: "center",
+      align:
+        "center",
     }
   );
 
-  y += 15;
-
-  // ====================================================
-  // Document Notice
-  // ====================================================
+  y +=
+    10;
 
   pdf.setFont(
     "helvetica",
     "normal"
   );
 
-  pdf.setFontSize(9);
+  pdf.setFontSize(
+    9
+  );
 
   pdf.text(
     "Draft generated from CRM booking information.",
-    pageWidth / 2,
+    pageWidth /
+      2,
     y,
     {
-      align: "center",
+      align:
+        "center",
     }
   );
 
-  y += 15;
+  y +=
+    15;
 
   // ====================================================
   // Booking Information
@@ -167,43 +432,37 @@ export function generateAgreement(
   );
 
   addField(
-    "Flat Number",
-    booking.flatNumber || "-"
-  );
-
-  addField(
-    "Tower",
-    booking.tower || "-"
-  );
-
-  addField(
-    "Floor",
-    String(
-      booking.floor ?? "-"
-    )
+    "Booking No.",
+    booking.bookingCode
   );
 
   addField(
     "Booking Date",
-    booking.bookingDate || "-"
+    formatDate(
+      booking.bookingDate
+    )
   );
 
   addField(
-    "Booking Amount",
-    `₹ ${Number(
-      booking.bookingAmount || 0
-    ).toLocaleString("en-IN")}`
+    "Flat Number",
+    booking.flatNumber
   );
 
   addField(
-    "Payment Mode",
-    booking.paymentMode || "-"
+    "Tower / Block",
+    booking.tower
   );
 
-  y += 5;
+  addField(
+    "Floor",
+    booking.floor
+  );
+
+  y +=
+    4;
 
   // ====================================================
-  // Customer Information
+  // Purchaser Information
   // ====================================================
 
   addHeading(
@@ -212,35 +471,209 @@ export function generateAgreement(
 
   addField(
     "Customer Name",
-    booking.customerName || "-"
+    booking.customerName
   );
 
   addField(
     "Mobile",
-    booking.mobile || "-"
+    booking.mobile
   );
 
   addField(
     "Email",
-    booking.email || "-"
+    booking.email
+  );
+
+  addField(
+    "Profile",
+    booking.profile
+  );
+
+  addField(
+    "DOB",
+    formatDate(
+      booking.dob
+    )
+  );
+
+  addField(
+    "DOA",
+    formatDate(
+      booking.doa
+    )
   );
 
   addField(
     "Address",
-    booking.address || "-"
+    booking.address
+  );
+
+  y +=
+    4;
+
+  // ====================================================
+  // Customer KYC
+  // ====================================================
+
+  addHeading(
+    "Customer KYC"
   );
 
   addField(
-    "Aadhar",
-    booking.aadhar || "-"
+    "Aadhar Number",
+    booking.aadhar
   );
 
   addField(
-    "PAN",
-    booking.pan || "-"
+    "PAN Number",
+    booking.pan
   );
 
-  y += 5;
+  y +=
+    4;
+
+  // ====================================================
+  // Commercial Details
+  // ====================================================
+
+  addHeading(
+    "Commercial Details"
+  );
+
+  addField(
+    "Total Amount",
+    formatCurrency(
+      booking.totalAmount
+    )
+  );
+
+  addField(
+    "Discount",
+    formatCurrency(
+      booking.discount
+    )
+  );
+
+  addField(
+    "After Discount Amount",
+    formatCurrency(
+      booking.afterDiscountAmount
+    )
+  );
+
+  addField(
+    "Booking Amount",
+    formatCurrency(
+      booking.bookingAmount
+    )
+  );
+
+  addField(
+    "Plan",
+    booking.plan
+  );
+
+  addField(
+    "Payment Mode",
+    booking.paymentMode
+  );
+
+  addField(
+    "Cheque No.",
+    booking.chequeNo
+  );
+
+  addField(
+    "Bank Name",
+    booking.bankName
+  );
+
+  y +=
+    4;
+
+  // ====================================================
+  // Finance & Customer Requirement
+  // ====================================================
+
+  addHeading(
+    "Finance & Customer Requirement"
+  );
+
+  addField(
+    "Finance",
+    booking.finance
+  );
+
+  addField(
+    "Customer Need",
+    booking.customerNeed
+  );
+
+  y +=
+    4;
+
+  // ====================================================
+  // Relationship Manager
+  // ====================================================
+
+  addHeading(
+    "Relationship Manager"
+  );
+
+  addField(
+    "Name",
+    booking
+      .assignedEmployee
+      ?.name ||
+      "Unassigned"
+  );
+
+  if (
+    booking
+      .assignedEmployee
+      ?.role
+  ) {
+
+    addField(
+      "Designation",
+      formatRole(
+        booking
+          .assignedEmployee
+          .role
+      )
+    );
+  }
+
+  if (
+    booking
+      .assignedEmployee
+      ?.phone
+  ) {
+
+    addField(
+      "Mobile",
+      booking
+        .assignedEmployee
+        .phone
+    );
+  }
+
+  if (
+    booking
+      .assignedEmployee
+      ?.email
+  ) {
+
+    addField(
+      "Email",
+      booking
+        .assignedEmployee
+        .email
+    );
+  }
+
+  y +=
+    4;
 
   // ====================================================
   // Property Description
@@ -251,12 +684,15 @@ export function generateAgreement(
   );
 
   addParagraph(
-    `The purchaser has expressed their intention to purchase the residential unit bearing Flat Number ${
-      booking.flatNumber || "-"
-    }, situated in Tower ${
-      booking.tower || "-"
+    `The purchaser has expressed their intention to purchase the unit bearing Flat Number ${
+      booking.flatNumber ||
+      "-"
+    }, situated in Tower / Block ${
+      booking.tower ||
+      "-"
     }, Floor ${
-      booking.floor ?? "-"
+      booking.floor ??
+      "-"
     }, in the Emerald Heights project, subject to the terms and conditions contained in the final Agreement to Sell.`
   );
 
@@ -265,18 +701,50 @@ export function generateAgreement(
   // ====================================================
 
   addHeading(
-    "Commercial Details"
+    "Commercial Terms"
   );
 
   addParagraph(
-    `The booking amount recorded in the CRM for the above-mentioned unit is ₹ ${
-      Number(
-        booking.bookingAmount || 0
-      ).toLocaleString("en-IN")
-    }. Payment mode recorded is ${
-      booking.paymentMode || "-"
+    `The total amount recorded in the CRM for the above-mentioned unit is ${formatCurrency(
+      booking.totalAmount
+    )}. A discount of ${formatCurrency(
+      booking.discount
+    )} has been recorded, resulting in an after-discount amount of ${formatCurrency(
+      booking.afterDiscountAmount
+    )}. The booking amount received or recorded is ${formatCurrency(
+      booking.bookingAmount
+    )}. The payment mode recorded is ${
+      booking.paymentMode ||
+      "-"
+    }, and the selected plan is ${
+      booking.plan ||
+      "-"
     }.`
   );
+
+  // ====================================================
+  // Finance / Requirement Note
+  // ====================================================
+
+  if (
+    booking.finance ||
+    booking.customerNeed
+  ) {
+
+    addHeading(
+      "Customer Requirement"
+    );
+
+    addParagraph(
+      `Finance details recorded: ${
+        booking.finance ||
+        "-"
+      }. Customer requirement recorded: ${
+        booking.customerNeed ||
+        "-"
+      }.`
+    );
+  }
 
   // ====================================================
   // Important Legal Note
@@ -294,7 +762,9 @@ export function generateAgreement(
   // Remarks
   // ====================================================
 
-  if (booking.remarks) {
+  if (
+    booking.remarks
+  ) {
 
     addHeading(
       "CRM Remarks"
@@ -309,21 +779,21 @@ export function generateAgreement(
   // Signature Section
   // ====================================================
 
-  if (y > 245) {
+  ensureSpace(
+    65
+  );
 
-    pdf.addPage();
-
-    y = 20;
-  }
-
-  y += 15;
+  y +=
+    10;
 
   pdf.setFont(
     "helvetica",
     "bold"
   );
 
-  pdf.setFontSize(10);
+  pdf.setFontSize(
+    10
+  );
 
   pdf.text(
     "Purchaser Signature",
@@ -337,7 +807,8 @@ export function generateAgreement(
     y
   );
 
-  y += 25;
+  y +=
+    25;
 
   pdf.line(
     20,
@@ -353,20 +824,27 @@ export function generateAgreement(
     y
   );
 
-  y += 15;
+  y +=
+    15;
+
+  // ====================================================
+  // Generated Date
+  // ====================================================
 
   pdf.setFont(
     "helvetica",
     "normal"
   );
 
-  pdf.setFontSize(8);
+  pdf.setFontSize(
+    8
+  );
 
   pdf.text(
     `Generated on: ${new Date().toLocaleString(
       "en-IN"
     )}`,
-    20,
+    leftMargin,
     y
   );
 
@@ -375,27 +853,40 @@ export function generateAgreement(
   // ====================================================
 
   const safeCustomerName =
-    (booking.customerName ||
-      "Customer")
-      .replace(
-        /[^a-zA-Z0-9]/g,
-        "_"
-      );
+    (
+      booking.customerName ||
+      "Customer"
+    ).replace(
+      /[^a-zA-Z0-9]/g,
+      "_"
+    );
 
   const safeFlatNumber =
-    (booking.flatNumber ||
-      "Flat")
-      .replace(
-        /[^a-zA-Z0-9-]/g,
-        "_"
-      );
+    (
+      booking.flatNumber ||
+      "Flat"
+    ).replace(
+      /[^a-zA-Z0-9-]/g,
+      "_"
+    );
+
+  const safeBookingCode =
+    (
+      booking.bookingCode ||
+      "Booking"
+    ).replace(
+      /[^a-zA-Z0-9-]/g,
+      "_"
+    );
 
   const fileName =
-    `Agreement_To_Sell_${safeFlatNumber}_${safeCustomerName}.pdf`;
+    `Agreement_To_Sell_${safeBookingCode}_${safeFlatNumber}_${safeCustomerName}.pdf`;
 
   // ====================================================
   // Save PDF
   // ====================================================
 
-  pdf.save(fileName);
+  pdf.save(
+    fileName
+  );
 }

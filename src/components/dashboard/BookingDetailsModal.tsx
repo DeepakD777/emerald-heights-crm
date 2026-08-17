@@ -1105,7 +1105,8 @@ function BookingDetailsModal({
 
               <p className="font-semibold">
                 {
-                  booking.customerName
+                  booking.customerName ||
+                  "-"
                 }
               </p>
 
@@ -1119,7 +1120,8 @@ function BookingDetailsModal({
 
               <p className="font-semibold">
                 {
-                  booking.mobile
+                  booking.mobile ||
+                  "-"
                 }
               </p>
 
@@ -1128,7 +1130,7 @@ function BookingDetailsModal({
             <div>
 
               <p className="text-sm text-gray-500">
-                Email
+                Email ID
               </p>
 
               <p className="font-semibold">
@@ -1141,6 +1143,51 @@ function BookingDetailsModal({
             </div>
 
             <div>
+
+              <p className="text-sm text-gray-500">
+                Profile
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.profile ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                DOB
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.dob ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                DOA
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.doa ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div className="sm:col-span-2">
 
               <p className="text-sm text-gray-500">
                 Address
@@ -1206,16 +1253,106 @@ function BookingDetailsModal({
         </div>
 
         {/* ==================================================
-            Payment
+            Booking & Financial Details
         ================================================== */}
 
         <div>
 
           <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
-            Payment Details
+            Booking & Financial Details
           </h3>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Booking No.
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.bookingCode ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Booking Date
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.bookingDate ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Total Amount
+              </p>
+
+              <p className="font-semibold text-green-700">
+                ₹{" "}
+                {
+                  Number(
+                    booking.totalAmount ||
+                    0
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Discount
+              </p>
+
+              <p className="font-semibold">
+                ₹{" "}
+                {
+                  Number(
+                    booking.discount ||
+                    0
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                After Discount Amount
+              </p>
+
+              <p className="font-semibold text-green-700">
+                ₹{" "}
+                {
+                  Number(
+                    booking.afterDiscountAmount ||
+                    0
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                }
+              </p>
+
+            </div>
 
             <div>
 
@@ -1229,10 +1366,24 @@ function BookingDetailsModal({
                   Number(
                     booking.bookingAmount ||
                     0
+                  ).toLocaleString(
+                    "en-IN"
                   )
-                    .toLocaleString(
-                      "en-IN"
-                    )
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Plan
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.plan ||
+                  "-"
                 }
               </p>
 
@@ -1256,17 +1407,151 @@ function BookingDetailsModal({
             <div>
 
               <p className="text-sm text-gray-500">
-                Booking Date
+                Cheque No.
               </p>
 
               <p className="font-semibold">
                 {
-                  booking.bookingDate ||
+                  booking.chequeNo ||
                   "-"
                 }
               </p>
 
             </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Bank Name
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.bankName ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ==================================================
+            Finance & Customer Requirement
+        ================================================== */}
+
+        <div>
+
+          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+            Finance & Customer Requirement
+          </h3>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Finance
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.finance ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+            <div>
+
+              <p className="text-sm text-gray-500">
+                Customer Need
+              </p>
+
+              <p className="font-semibold">
+                {
+                  booking.customerNeed ||
+                  "-"
+                }
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ==================================================
+            Relationship Manager
+        ================================================== */}
+
+        <div>
+
+          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+            Relationship Manager
+          </h3>
+
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+
+            {
+              booking
+                .assignedEmployee
+                ?.name
+                ? (
+
+                  <div>
+
+                    <p className="font-semibold text-gray-800">
+                      {
+                        booking
+                          .assignedEmployee
+                          .name
+                      }
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
+                      {
+                        booking
+                          .assignedEmployee
+                          .role
+                          ?.replace(
+                            /_/g,
+                            " "
+                          ) ||
+                        "Sales Member"
+                      }
+                    </p>
+
+                    {
+                      booking
+                        .assignedEmployee
+                        .phone && (
+
+                          <p className="mt-1 text-sm text-gray-500">
+                            {
+                              booking
+                                .assignedEmployee
+                                .phone
+                            }
+                          </p>
+
+                        )
+                    }
+
+                  </div>
+
+                )
+                : (
+
+                  <p className="text-sm text-gray-500">
+                    Unassigned
+                  </p>
+
+                )
+            }
 
           </div>
 
