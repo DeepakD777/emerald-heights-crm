@@ -1,235 +1,396 @@
-import { Request, Response } from "express";
-import { prisma } from "../lib/prisma";
+import {
+  Request,
+  Response,
+} from "express";
+
+import {
+  prisma,
+} from "../lib/prisma";
+
+// ======================================================
+// Dashboard Summary
+// ======================================================
 
 export const getDashboardSummary = async (
   _req: Request,
   res: Response
 ) => {
+
   try {
-    const [
-      totalEmployees,
-      activeEmployees,
-      totalCustomers,
 
-      totalProperties,
-      availableProperties,
-      holdProperties,
-      bookedProperties,
-      soldProperties,
+    // ==================================================
+    // Employees
+    // ==================================================
 
-      totalResidential,
-      availableResidential,
-      holdResidential,
-      bookedResidential,
-      soldResidential,
+    const totalEmployees =
+      await prisma.employee.count();
 
-      totalCommercial,
-      availableCommercial,
-      holdCommercial,
-      bookedCommercial,
-      soldCommercial,
-
-      totalBookings,
-      pendingBookings,
-      confirmedBookings,
-      completedBookings,
-      cancelledBookings,
-    ] = await Promise.all([
-      // Employees
-      prisma.employee.count(),
-
-      prisma.employee.count({
+    const activeEmployees =
+      await prisma.employee.count({
         where: {
           status: "ACTIVE",
         },
-      }),
+      });
 
-      // Customers
-      prisma.customer.count(),
+    // ==================================================
+    // Customers
+    // ==================================================
 
-      // All Properties
-      prisma.property.count(),
+    const totalCustomers =
+      await prisma.customer.count();
 
-      prisma.property.count({
-        where: {
-          status: "AVAILABLE",
+    // ==================================================
+    // Properties
+    //
+    // One grouped query replaces 15 separate counts.
+    // ==================================================
+
+    const propertyGroups =
+      await prisma.property.groupBy({
+        by: [
+          "type",
+          "status",
+        ],
+
+        _count: {
+          _all: true,
         },
-      }),
+      });
 
-      prisma.property.count({
-        where: {
-          status: "HOLD",
+    // ==================================================
+    // Property Helpers
+    // ==================================================
+
+    const getPropertyCount = (
+      type?: string,
+      status?: string
+    ) => {
+
+      return propertyGroups
+        .filter(
+          (group) => {
+
+            const typeMatches =
+              !type ||
+              group.type === type;
+
+            const statusMatches =
+              !status ||
+              group.status === status;
+
+            return (
+              typeMatches &&
+              statusMatches
+            );
+          }
+        )
+        .reduce(
+          (
+            total,
+            group
+          ) =>
+            total +
+            group._count._all,
+          0
+        );
+    };
+
+    // ==================================================
+    // All Properties
+    // ==================================================
+
+    const totalProperties =
+      getPropertyCount();
+
+    const availableProperties =
+      getPropertyCount(
+        undefined,
+        "AVAILABLE"
+      );
+
+    const holdProperties =
+      getPropertyCount(
+        undefined,
+        "HOLD"
+      );
+
+    const bookedProperties =
+      getPropertyCount(
+        undefined,
+        "BOOKED"
+      );
+
+    const soldProperties =
+      getPropertyCount(
+        undefined,
+        "SOLD"
+      );
+
+    // ==================================================
+    // Residential
+    // ==================================================
+
+    const totalResidential =
+      getPropertyCount(
+        "RESIDENTIAL"
+      );
+
+    const availableResidential =
+      getPropertyCount(
+        "RESIDENTIAL",
+        "AVAILABLE"
+      );
+
+    const holdResidential =
+      getPropertyCount(
+        "RESIDENTIAL",
+        "HOLD"
+      );
+
+    const bookedResidential =
+      getPropertyCount(
+        "RESIDENTIAL",
+        "BOOKED"
+      );
+
+    const soldResidential =
+      getPropertyCount(
+        "RESIDENTIAL",
+        "SOLD"
+      );
+
+    // ==================================================
+    // Commercial
+    // ==================================================
+
+    const totalCommercial =
+      getPropertyCount(
+        "COMMERCIAL"
+      );
+
+    const availableCommercial =
+      getPropertyCount(
+        "COMMERCIAL",
+        "AVAILABLE"
+      );
+
+    const holdCommercial =
+      getPropertyCount(
+        "COMMERCIAL",
+        "HOLD"
+      );
+
+    const bookedCommercial =
+      getPropertyCount(
+        "COMMERCIAL",
+        "BOOKED"
+      );
+
+    const soldCommercial =
+      getPropertyCount(
+        "COMMERCIAL",
+        "SOLD"
+      );
+
+    // ==================================================
+    // Bookings
+    //
+    // One grouped query replaces booking count queries
+    // and the separate amount aggregate query.
+    // ==================================================
+
+    const bookingGroups =
+      await prisma.booking.groupBy({
+        by: [
+          "status",
+        ],
+
+        _count: {
+          _all: true,
         },
-      }),
 
-      prisma.property.count({
-        where: {
-          status: "BOOKED",
+        _sum: {
+          amount: true,
         },
-      }),
+      });
 
-      prisma.property.count({
-        where: {
-          status: "SOLD",
+    // ==================================================
+    // Booking Helper
+    // ==================================================
+
+    const getBookingCount = (
+      status?: string
+    ) => {
+
+      return bookingGroups
+        .filter(
+          (group) =>
+            !status ||
+            group.status === status
+        )
+        .reduce(
+          (
+            total,
+            group
+          ) =>
+            total +
+            group._count._all,
+          0
+        );
+    };
+
+    // ==================================================
+    // Booking Counts
+    // ==================================================
+
+    const totalBookings =
+      getBookingCount();
+
+    const pendingBookings =
+      getBookingCount(
+        "PENDING"
+      );
+
+    const confirmedBookings =
+      getBookingCount(
+        "CONFIRMED"
+      );
+
+    const completedBookings =
+      getBookingCount(
+        "COMPLETED"
+      );
+
+    const cancelledBookings =
+      getBookingCount(
+        "CANCELLED"
+      );
+
+    // ==================================================
+    // Revenue
+    // ==================================================
+
+    const totalBookingAmount =
+      bookingGroups.reduce(
+        (
+          total,
+          group
+        ) => {
+
+          return (
+            total +
+            Number(
+              group._sum.amount ??
+              0
+            )
+          );
         },
-      }),
+        0
+      );
 
-      // Residential
-      prisma.property.count({
-        where: {
-          type: "RESIDENTIAL",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "RESIDENTIAL",
-          status: "AVAILABLE",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "RESIDENTIAL",
-          status: "HOLD",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "RESIDENTIAL",
-          status: "BOOKED",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "RESIDENTIAL",
-          status: "SOLD",
-        },
-      }),
-
-      // Commercial
-      prisma.property.count({
-        where: {
-          type: "COMMERCIAL",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "COMMERCIAL",
-          status: "AVAILABLE",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "COMMERCIAL",
-          status: "HOLD",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "COMMERCIAL",
-          status: "BOOKED",
-        },
-      }),
-
-      prisma.property.count({
-        where: {
-          type: "COMMERCIAL",
-          status: "SOLD",
-        },
-      }),
-
-      // Bookings
-      prisma.booking.count(),
-
-      prisma.booking.count({
-        where: {
-          status: "PENDING",
-        },
-      }),
-
-      prisma.booking.count({
-        where: {
-          status: "CONFIRMED",
-        },
-      }),
-
-      prisma.booking.count({
-        where: {
-          status: "COMPLETED",
-        },
-      }),
-
-      prisma.booking.count({
-        where: {
-          status: "CANCELLED",
-        },
-      }),
-    ]);
-
-    const amountSummary = await prisma.booking.aggregate({
-      _sum: {
-        amount: true,
-      },
-    });
+    // ==================================================
+    // Response
+    // ==================================================
 
     return res.json({
       success: true,
 
       data: {
+
         employees: {
-          total: totalEmployees,
-          active: activeEmployees,
+          total:
+            totalEmployees,
+
+          active:
+            activeEmployees,
         },
 
         customers: {
-          total: totalCustomers,
+          total:
+            totalCustomers,
         },
 
         properties: {
-          total: totalProperties,
-          available: availableProperties,
-          hold: holdProperties,
-          booked: bookedProperties,
-          sold: soldProperties,
+
+          total:
+            totalProperties,
+
+          available:
+            availableProperties,
+
+          hold:
+            holdProperties,
+
+          booked:
+            bookedProperties,
+
+          sold:
+            soldProperties,
 
           residential: {
-            total: totalResidential,
-            available: availableResidential,
-            hold: holdResidential,
-            booked: bookedResidential,
-            sold: soldResidential,
+
+            total:
+              totalResidential,
+
+            available:
+              availableResidential,
+
+            hold:
+              holdResidential,
+
+            booked:
+              bookedResidential,
+
+            sold:
+              soldResidential,
           },
 
           commercial: {
-            total: totalCommercial,
-            available: availableCommercial,
-            hold: holdCommercial,
-            booked: bookedCommercial,
-            sold: soldCommercial,
+
+            total:
+              totalCommercial,
+
+            available:
+              availableCommercial,
+
+            hold:
+              holdCommercial,
+
+            booked:
+              bookedCommercial,
+
+            sold:
+              soldCommercial,
           },
         },
 
         bookings: {
-          total: totalBookings,
-          pending: pendingBookings,
-          confirmed: confirmedBookings,
-          completed: completedBookings,
-          cancelled: cancelledBookings,
+
+          total:
+            totalBookings,
+
+          pending:
+            pendingBookings,
+
+          confirmed:
+            confirmedBookings,
+
+          completed:
+            completedBookings,
+
+          cancelled:
+            cancelledBookings,
         },
 
         revenue: {
-          totalBookingAmount:
-            amountSummary._sum.amount ?? 0,
+
+          totalBookingAmount,
         },
       },
     });
+
   } catch (error) {
+
     console.error(
       "Dashboard summary error:",
       error
@@ -237,6 +398,7 @@ export const getDashboardSummary = async (
 
     return res.status(500).json({
       success: false,
+
       message:
         "Failed to fetch dashboard summary",
     });
