@@ -17,6 +17,7 @@ import {
 
 import type {
     AuthUser,
+    LoginType,
 } from "../services/authService";
 
 // ======================================================
@@ -25,30 +26,31 @@ import type {
 
 type AuthContextType = {
     user:
-        AuthUser | null;
+    AuthUser | null;
 
     loading:
-        boolean;
+    boolean;
 
     isAuthenticated:
-        boolean;
+    boolean;
 
     isAdmin:
-        boolean;
+    boolean;
 
     isEmployee:
-        boolean;
+    boolean;
 
     login: (
         email: string,
-        password: string
+        password: string,
+        loginType: LoginType
     ) => Promise<AuthUser>;
 
     logout:
-        () => void;
+    () => void;
 
     refreshUser:
-        () => Promise<void>;
+    () => Promise<void>;
 };
 
 // ======================================================
@@ -69,7 +71,7 @@ export function AuthProvider({
     children,
 }: {
     children:
-        ReactNode;
+    ReactNode;
 }) {
 
     const [
@@ -91,27 +93,27 @@ export function AuthProvider({
     const refreshUser =
         async () => {
 
-        try {
-            const response =
-                await getCurrentUser();
+            try {
+                const response =
+                    await getCurrentUser();
 
-            setUser(
-                response.user
-            );
+                setUser(
+                    response.user
+                );
 
-        } catch {
-            logoutUser();
+            } catch {
+                logoutUser();
 
-            setUser(
-                null
-            );
+                setUser(
+                    null
+                );
 
-        } finally {
-            setLoading(
-                false
-            );
-        }
-    };
+            } finally {
+                setLoading(
+                    false
+                );
+            }
+        };
 
     useEffect(() => {
         refreshUser();
@@ -124,21 +126,23 @@ export function AuthProvider({
     const login =
         async (
             email: string,
-            password: string
+            password: string,
+            loginType: LoginType
         ) => {
 
-        const response =
-            await loginUser(
-                email,
-                password
+            const response =
+                await loginUser(
+                    email,
+                    password,
+                    loginType
+                );
+
+            setUser(
+                response.user
             );
 
-        setUser(
-            response.user
-        );
-
-        return response.user;
-    };
+            return response.user;
+        };
 
     // ==================================================
     // Logout

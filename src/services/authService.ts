@@ -21,6 +21,10 @@ export type AuthUser = {
         | "EMPLOYEE";
 };
 
+export type LoginType =
+    | "ADMIN"
+    | "EMPLOYEE";
+
 type LoginResponse = {
     success: true;
     message: string;
@@ -33,13 +37,25 @@ type MeResponse = {
     user: AuthUser;
 };
 
+type ForgotPasswordResponse = {
+    success: true;
+    message: string;
+};
+
+type VerifyOtpResponse = {
+    success: true;
+    message: string;
+    resetToken: string;
+};
+
 // ======================================================
 // Login
 // ======================================================
 
 export async function loginUser(
     email: string,
-    password: string
+    password: string,
+    loginType: LoginType
 ) {
     const response =
         await apiRequest<LoginResponse>(
@@ -52,6 +68,7 @@ export async function loginUser(
                     JSON.stringify({
                         email,
                         password,
+                        loginType,
                     }),
             }
         );
@@ -61,6 +78,75 @@ export async function loginUser(
     );
 
     return response;
+}
+
+// ======================================================
+// Admin Forgot Password - Request OTP
+// ======================================================
+
+export async function requestAdminPasswordOtp(
+    email: string
+) {
+    return apiRequest<ForgotPasswordResponse>(
+        "/auth/admin/forgot-password/request-otp",
+        {
+            method:
+                "POST",
+
+            body:
+                JSON.stringify({
+                    email,
+                }),
+        }
+    );
+}
+
+// ======================================================
+// Admin Forgot Password - Verify OTP
+// ======================================================
+
+export async function verifyAdminPasswordOtp(
+    email: string,
+    otp: string
+) {
+    return apiRequest<VerifyOtpResponse>(
+        "/auth/admin/forgot-password/verify-otp",
+        {
+            method:
+                "POST",
+
+            body:
+                JSON.stringify({
+                    email,
+                    otp,
+                }),
+        }
+    );
+}
+
+// ======================================================
+// Admin Forgot Password - Reset Password
+// ======================================================
+
+export async function resetAdminPassword(
+    resetToken: string,
+    newPassword: string,
+    confirmPassword: string
+) {
+    return apiRequest<ForgotPasswordResponse>(
+        "/auth/admin/forgot-password/reset",
+        {
+            method:
+                "POST",
+
+            body:
+                JSON.stringify({
+                    resetToken,
+                    newPassword,
+                    confirmPassword,
+                }),
+        }
+    );
 }
 
 // ======================================================

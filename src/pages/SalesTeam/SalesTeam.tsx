@@ -2,6 +2,9 @@ import {
     useEffect,
     useState,
 } from "react";
+import {
+    useSearchParams,
+} from "react-router-dom";
 
 import {
     UserPlus,
@@ -43,8 +46,8 @@ interface SalesMember {
     email: string;
 
     status:
-        | "active"
-        | "inactive";
+    | "active"
+    | "inactive";
 
     bookings: number;
 }
@@ -59,8 +62,8 @@ interface MemberForm {
     email: string;
 
     status:
-        | "active"
-        | "inactive";
+    | "active"
+    | "inactive";
 
     password: string;
 
@@ -197,6 +200,11 @@ function SalesTeam() {
     } = useAuth();
 
     const [
+        searchParams,
+        setSearchParams,
+    ] = useSearchParams();
+
+    const [
         salesTeam,
         setSalesTeam,
     ] =
@@ -267,16 +275,16 @@ function SalesTeam() {
     const canModify =
         () => {
 
-        if (isAdmin) {
-            return true;
-        }
+            if (isAdmin) {
+                return true;
+            }
 
-        alert(
-            "View only access — sales team changes can only be made by an administrator."
-        );
+            alert(
+                "View only access — sales team changes can only be made by an administrator."
+            );
 
-        return false;
-    };
+            return false;
+        };
 
     // ==================================================
     // Load Employees From Backend
@@ -285,129 +293,129 @@ function SalesTeam() {
     const fetchSalesTeam =
         async () => {
 
-        try {
+            try {
 
-            setLoading(
-                true
-            );
-
-            setError(
-                null
-            );
-
-            const response =
-                await fetch(
-                    EMPLOYEES_API,
-                    {
-                        headers:
-                            getRequestHeaders(),
-                    }
+                setLoading(
+                    true
                 );
 
-            const result =
-                await response
-                    .json();
+                setError(
+                    null
+                );
 
-            if (
-                !response.ok ||
-                !result.success
-            ) {
+                const response =
+                    await fetch(
+                        EMPLOYEES_API,
+                        {
+                            headers:
+                                getRequestHeaders(),
+                        }
+                    );
 
-                throw new Error(
-                    result.message ||
-                    "Failed to fetch employees"
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to fetch employees"
+                    );
+                }
+
+                const rawEmployees =
+                    Array.isArray(
+                        result.data
+                    )
+                        ? result.data
+                        : [];
+
+                const employees:
+                    SalesMember[] =
+                    rawEmployees.map(
+                        (
+                            employee: {
+                                id: string;
+                                name: string;
+                                email: string;
+                                phone?: string | null;
+                                role: string;
+                                status: string;
+                                bookings?: number;
+                                _count?: {
+                                    bookings?: number;
+                                };
+                            }
+                        ) => ({
+
+                            id:
+                                employee.id,
+
+                            name:
+                                employee.name,
+
+                            role:
+                                getRoleLabel(
+                                    employee.role
+                                ),
+
+                            phone:
+                                employee.phone ||
+                                "",
+
+                            email:
+                                employee.email,
+
+                            status:
+                                employee.status ===
+                                    "ACTIVE"
+                                    ? "active"
+                                    : "inactive",
+
+                            bookings:
+                                Number(
+                                    employee
+                                        .bookings ??
+                                    employee
+                                        ._count
+                                        ?.bookings ??
+                                    0
+                                ),
+                        })
+                    );
+
+                setSalesTeam(
+                    employees
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load sales team:",
+                    error
+                );
+
+                setSalesTeam(
+                    []
+                );
+
+                setError(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to fetch employees"
+                );
+
+            } finally {
+
+                setLoading(
+                    false
                 );
             }
-
-            const rawEmployees =
-                Array.isArray(
-                    result.data
-                )
-                    ? result.data
-                    : [];
-
-            const employees:
-                SalesMember[] =
-                rawEmployees.map(
-                    (
-                        employee: {
-                            id: string;
-                            name: string;
-                            email: string;
-                            phone?: string | null;
-                            role: string;
-                            status: string;
-                            bookings?: number;
-                            _count?: {
-                                bookings?: number;
-                            };
-                        }
-                    ) => ({
-
-                        id:
-                            employee.id,
-
-                        name:
-                            employee.name,
-
-                        role:
-                            getRoleLabel(
-                                employee.role
-                            ),
-
-                        phone:
-                            employee.phone ||
-                            "",
-
-                        email:
-                            employee.email,
-
-                        status:
-                            employee.status ===
-                            "ACTIVE"
-                                ? "active"
-                                : "inactive",
-
-                        bookings:
-                            Number(
-                                employee
-                                    .bookings ??
-                                employee
-                                    ._count
-                                    ?.bookings ??
-                                0
-                            ),
-                    })
-                );
-
-            setSalesTeam(
-                employees
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Failed to load sales team:",
-                error
-            );
-
-            setSalesTeam(
-                []
-            );
-
-            setError(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to fetch employees"
-            );
-
-        } finally {
-
-            setLoading(
-                false
-            );
-        }
-    };
+        };
 
     useEffect(() => {
 
@@ -454,34 +462,34 @@ function SalesTeam() {
     const handleAddMember =
         () => {
 
-        if (!canModify()) {
-            return;
-        }
+            if (!canModify()) {
+                return;
+            }
 
-        setEditingMemberId(
-            null
-        );
+            setEditingMemberId(
+                null
+            );
 
-        setFormData(
-            emptyForm
-        );
+            setFormData(
+                emptyForm
+            );
 
-        setShowPassword(
-            false
-        );
+            setShowPassword(
+                false
+            );
 
-        setShowConfirmPassword(
-            false
-        );
+            setShowConfirmPassword(
+                false
+            );
 
-        setIsModalOpen(
-            true
-        );
+            setIsModalOpen(
+                true
+            );
 
-        setOpenMenuId(
-            null
-        );
-    };
+            setOpenMenuId(
+                null
+            );
+        };
 
     // ==================================================
     // Open Edit Modal
@@ -540,6 +548,45 @@ function SalesTeam() {
             null
         );
     };
+    // ======================================================
+    // Open Add Member From Quick Actions
+    // ======================================================
+
+    useEffect(() => {
+
+        if (
+            !isAdmin ||
+            searchParams.get(
+                "mode"
+            ) !== "create"
+        ) {
+            return;
+        }
+
+        handleAddMember();
+
+        const nextParams =
+            new URLSearchParams(
+                searchParams
+            );
+
+        nextParams.delete(
+            "mode"
+        );
+
+        setSearchParams(
+            nextParams,
+            {
+                replace:
+                    true,
+            }
+        );
+
+    }, [
+        isAdmin,
+        searchParams,
+        setSearchParams,
+    ]);
 
     // ==================================================
     // Close Modal
@@ -548,26 +595,26 @@ function SalesTeam() {
     const handleCloseModal =
         () => {
 
-        setIsModalOpen(
-            false
-        );
+            setIsModalOpen(
+                false
+            );
 
-        setEditingMemberId(
-            null
-        );
+            setEditingMemberId(
+                null
+            );
 
-        setFormData(
-            emptyForm
-        );
+            setFormData(
+                emptyForm
+            );
 
-        setShowPassword(
-            false
-        );
+            setShowPassword(
+                false
+            );
 
-        setShowConfirmPassword(
-            false
-        );
-    };
+            setShowConfirmPassword(
+                false
+            );
+        };
 
     // ==================================================
     // Form Change
@@ -600,39 +647,91 @@ function SalesTeam() {
     const validatePassword =
         () => {
 
-        const isNewMember =
-            editingMemberId ===
-            null;
+            const isNewMember =
+                editingMemberId ===
+                null;
 
-        const password =
-            formData.password;
+            const password =
+                formData.password;
 
-        const confirmPassword =
-            formData.confirmPassword;
+            const confirmPassword =
+                formData.confirmPassword;
 
-        // ----------------------------------------------
-        // New Member
-        // Password Required
-        // ----------------------------------------------
+            // ----------------------------------------------
+            // New Member
+            // Password Required
+            // ----------------------------------------------
 
-        if (isNewMember) {
+            if (isNewMember) {
 
-            if (!password) {
+                if (!password) {
 
-                alert(
-                    "Please enter a password for the new sales member."
-                );
+                    alert(
+                        "Please enter a password for the new sales member."
+                    );
 
-                return false;
+                    return false;
+                }
+
+                if (
+                    password.length <
+                    8
+                ) {
+
+                    alert(
+                        "Password must be at least 8 characters long."
+                    );
+
+                    return false;
+                }
+
+                if (
+                    !confirmPassword
+                ) {
+
+                    alert(
+                        "Please confirm the password."
+                    );
+
+                    return false;
+                }
+
+                if (
+                    password !==
+                    confirmPassword
+                ) {
+
+                    alert(
+                        "Password and Confirm Password do not match."
+                    );
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // ----------------------------------------------
+            // Edit Member
+            // Password Optional
+            // ----------------------------------------------
+
+            if (
+                !password &&
+                !confirmPassword
+            ) {
+
+                return true;
             }
 
             if (
+                !password ||
                 password.length <
                 8
             ) {
 
                 alert(
-                    "Password must be at least 8 characters long."
+                    "New password must be at least 8 characters long."
                 );
 
                 return false;
@@ -643,7 +742,7 @@ function SalesTeam() {
             ) {
 
                 alert(
-                    "Please confirm the password."
+                    "Please confirm the new password."
                 );
 
                 return false;
@@ -662,59 +761,7 @@ function SalesTeam() {
             }
 
             return true;
-        }
-
-        // ----------------------------------------------
-        // Edit Member
-        // Password Optional
-        // ----------------------------------------------
-
-        if (
-            !password &&
-            !confirmPassword
-        ) {
-
-            return true;
-        }
-
-        if (
-            !password ||
-            password.length <
-            8
-        ) {
-
-            alert(
-                "New password must be at least 8 characters long."
-            );
-
-            return false;
-        }
-
-        if (
-            !confirmPassword
-        ) {
-
-            alert(
-                "Please confirm the new password."
-            );
-
-            return false;
-        }
-
-        if (
-            password !==
-            confirmPassword
-        ) {
-
-            alert(
-                "Password and Confirm Password do not match."
-            );
-
-            return false;
-        }
-
-        return true;
-    };
+        };
 
     // ==================================================
     // Save Member
@@ -726,100 +773,370 @@ function SalesTeam() {
                 React.FormEvent<HTMLFormElement>
         ) => {
 
-        event.preventDefault();
+            event.preventDefault();
 
-        if (!canModify()) {
-            return;
-        }
+            if (!canModify()) {
+                return;
+            }
 
-        const trimmedName =
-            formData
-                .name
-                .trim();
+            const trimmedName =
+                formData
+                    .name
+                    .trim();
 
-        const trimmedPhone =
-            formData
-                .phone
-                .trim();
+            const trimmedPhone =
+                formData
+                    .phone
+                    .trim();
 
-        const trimmedEmail =
-            formData
-                .email
-                .trim()
-                .toLowerCase();
+            const trimmedEmail =
+                formData
+                    .email
+                    .trim()
+                    .toLowerCase();
 
-        if (
-            !trimmedName ||
-            !trimmedPhone ||
-            !trimmedEmail
-        ) {
+            if (
+                !trimmedName ||
+                !trimmedPhone ||
+                !trimmedEmail
+            ) {
 
-            alert(
-                "Please fill Name, Phone and Email."
-            );
+                alert(
+                    "Please fill Name, Phone and Email."
+                );
 
-            return;
-        }
+                return;
+            }
 
-        if (
-            !validatePassword()
-        ) {
+            if (
+                !validatePassword()
+            ) {
 
-            return;
-        }
+                return;
+            }
 
-        // ==============================================
-        // Edit Existing Member
-        // ==============================================
+            // ==============================================
+            // Edit Existing Member
+            // ==============================================
 
-        if (
-            editingMemberId !==
-            null
-        ) {
+            if (
+                editingMemberId !==
+                null
+            ) {
+
+                try {
+
+                    const payload:
+                        Record<
+                            string,
+                            string
+                        > = {
+
+                        name:
+                            trimmedName,
+
+                        email:
+                            trimmedEmail,
+
+                        phone:
+                            trimmedPhone,
+
+                        role:
+                            getRoleApiValue(
+                                formData.role
+                            ),
+
+                        status:
+                            formData.status ===
+                                "active"
+                                ? "ACTIVE"
+                                : "INACTIVE",
+                    };
+
+                    // Password is optional when editing.
+                    // Blank means keep existing password.
+
+                    if (
+                        formData.password
+                    ) {
+
+                        payload.password =
+                            formData.password;
+                    }
+
+                    const response =
+                        await fetch(
+                            `${EMPLOYEES_API}/${editingMemberId}`,
+                            {
+                                method:
+                                    "PUT",
+
+                                headers:
+                                    getRequestHeaders(
+                                        true
+                                    ),
+
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    ),
+                            }
+                        );
+
+                    const result =
+                        await response
+                            .json();
+
+                    if (
+                        !response.ok ||
+                        !result.success
+                    ) {
+
+                        throw new Error(
+                            result.message ||
+                            "Failed to update employee"
+                        );
+                    }
+
+                    const employee =
+                        result.data;
+
+                    setSalesTeam(
+                        (
+                            previous
+                        ) =>
+                            previous.map(
+                                (
+                                    member
+                                ) =>
+                                    member.id ===
+                                        editingMemberId
+                                        ? {
+                                            ...member,
+
+                                            id:
+                                                employee.id,
+
+                                            name:
+                                                employee.name,
+
+                                            role:
+                                                getRoleLabel(
+                                                    employee.role
+                                                ),
+
+                                            phone:
+                                                employee.phone ||
+                                                "",
+
+                                            email:
+                                                employee.email,
+
+                                            status:
+                                                employee.status ===
+                                                    "ACTIVE"
+                                                    ? "active"
+                                                    : "inactive",
+                                        }
+                                        : member
+                            )
+                    );
+
+                    alert(
+                        "Sales member updated successfully."
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Update sales member error:",
+                        error
+                    );
+
+                    alert(
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to update sales member. Please try again."
+                    );
+
+                    return;
+                }
+            }
+
+            // ==============================================
+            // Add New Member
+            // ==============================================
+
+            else {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            EMPLOYEES_API,
+                            {
+                                method:
+                                    "POST",
+
+                                headers:
+                                    getRequestHeaders(
+                                        true
+                                    ),
+
+                                body:
+                                    JSON.stringify({
+
+                                        name:
+                                            trimmedName,
+
+                                        email:
+                                            trimmedEmail,
+
+                                        phone:
+                                            trimmedPhone,
+
+                                        password:
+                                            formData.password,
+
+                                        role:
+                                            getRoleApiValue(
+                                                formData.role
+                                            ),
+
+                                        status:
+                                            formData.status ===
+                                                "active"
+                                                ? "ACTIVE"
+                                                : "INACTIVE",
+                                    }),
+                            }
+                        );
+
+                    const result =
+                        await response
+                            .json();
+
+                    if (
+                        !response.ok ||
+                        !result.success
+                    ) {
+
+                        throw new Error(
+                            result.message ||
+                            "Failed to create employee"
+                        );
+                    }
+
+                    const employee =
+                        result.data;
+
+                    const newMember:
+                        SalesMember = {
+
+                        id:
+                            employee.id,
+
+                        name:
+                            employee.name,
+
+                        role:
+                            getRoleLabel(
+                                employee.role
+                            ),
+
+                        phone:
+                            employee.phone ||
+                            "",
+
+                        email:
+                            employee.email,
+
+                        status:
+                            employee.status ===
+                                "ACTIVE"
+                                ? "active"
+                                : "inactive",
+
+                        bookings:
+                            Number(
+                                employee
+                                    .bookings ??
+                                employee
+                                    ._count
+                                    ?.bookings ??
+                                0
+                            ),
+                    };
+
+                    setSalesTeam(
+                        (
+                            previous
+                        ) => [
+                                ...previous,
+                                newMember,
+                            ]
+                    );
+
+                    alert(
+                        "Sales member created successfully."
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Create sales member error:",
+                        error
+                    );
+
+                    alert(
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to create sales member. Please try again."
+                    );
+
+                    return;
+                }
+            }
+
+            handleCloseModal();
+        };
+
+    // ==================================================
+    // Toggle Active / Inactive
+    // ==================================================
+
+    const handleToggleStatus =
+        async (
+            memberId:
+                string
+        ) => {
+
+            if (!canModify()) {
+                return;
+            }
+
+            const member =
+                salesTeam.find(
+                    (item) =>
+                        item.id ===
+                        memberId
+                );
+
+            if (!member) {
+                return;
+            }
+
+            const newStatus =
+                member.status ===
+                    "active"
+                    ? "INACTIVE"
+                    : "ACTIVE";
 
             try {
 
-                const payload:
-                    Record<
-                        string,
-                        string
-                    > = {
-
-                    name:
-                        trimmedName,
-
-                    email:
-                        trimmedEmail,
-
-                    phone:
-                        trimmedPhone,
-
-                    role:
-                        getRoleApiValue(
-                            formData.role
-                        ),
-
-                    status:
-                        formData.status ===
-                        "active"
-                            ? "ACTIVE"
-                            : "INACTIVE",
-                };
-
-                // Password is optional when editing.
-                // Blank means keep existing password.
-
-                if (
-                    formData.password
-                ) {
-
-                    payload.password =
-                        formData.password;
-                }
-
                 const response =
                     await fetch(
-                        `${EMPLOYEES_API}/${editingMemberId}`,
+                        `${EMPLOYEES_API}/${memberId}`,
                         {
                             method:
                                 "PUT",
@@ -830,137 +1147,24 @@ function SalesTeam() {
                                 ),
 
                             body:
-                                JSON.stringify(
-                                    payload
-                                ),
-                        }
-                    );
-
-                const result =
-                    await response
-                        .json();
-
-                if (
-                    !response.ok ||
-                    !result.success
-                ) {
-
-                    throw new Error(
-                        result.message ||
-                        "Failed to update employee"
-                    );
-                }
-
-                const employee =
-                    result.data;
-
-                setSalesTeam(
-                    (
-                        previous
-                    ) =>
-                        previous.map(
-                            (
-                                member
-                            ) =>
-                                member.id ===
-                                editingMemberId
-                                    ? {
-                                        ...member,
-
-                                        id:
-                                            employee.id,
-
-                                        name:
-                                            employee.name,
-
-                                        role:
-                                            getRoleLabel(
-                                                employee.role
-                                            ),
-
-                                        phone:
-                                            employee.phone ||
-                                            "",
-
-                                        email:
-                                            employee.email,
-
-                                        status:
-                                            employee.status ===
-                                            "ACTIVE"
-                                                ? "active"
-                                                : "inactive",
-                                    }
-                                    : member
-                        )
-                );
-
-                alert(
-                    "Sales member updated successfully."
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Update sales member error:",
-                    error
-                );
-
-                alert(
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to update sales member. Please try again."
-                );
-
-                return;
-            }
-        }
-
-        // ==============================================
-        // Add New Member
-        // ==============================================
-
-        else {
-
-            try {
-
-                const response =
-                    await fetch(
-                        EMPLOYEES_API,
-                        {
-                            method:
-                                "POST",
-
-                            headers:
-                                getRequestHeaders(
-                                    true
-                                ),
-
-                            body:
                                 JSON.stringify({
 
                                     name:
-                                        trimmedName,
+                                        member.name,
 
                                     email:
-                                        trimmedEmail,
+                                        member.email,
 
                                     phone:
-                                        trimmedPhone,
-
-                                    password:
-                                        formData.password,
+                                        member.phone,
 
                                     role:
                                         getRoleApiValue(
-                                            formData.role
+                                            member.role
                                         ),
 
                                     status:
-                                        formData.status ===
-                                        "active"
-                                            ? "ACTIVE"
-                                            : "INACTIVE",
+                                        newStatus,
                                 }),
                         }
                     );
@@ -976,212 +1180,55 @@ function SalesTeam() {
 
                     throw new Error(
                         result.message ||
-                        "Failed to create employee"
+                        "Failed to update employee status"
                     );
                 }
 
-                const employee =
+                const updatedEmployee =
                     result.data;
-
-                const newMember:
-                    SalesMember = {
-
-                    id:
-                        employee.id,
-
-                    name:
-                        employee.name,
-
-                    role:
-                        getRoleLabel(
-                            employee.role
-                        ),
-
-                    phone:
-                        employee.phone ||
-                        "",
-
-                    email:
-                        employee.email,
-
-                    status:
-                        employee.status ===
-                        "ACTIVE"
-                            ? "active"
-                            : "inactive",
-
-                    bookings:
-                        Number(
-                            employee
-                                .bookings ??
-                            employee
-                                ._count
-                                ?.bookings ??
-                            0
-                        ),
-                };
 
                 setSalesTeam(
                     (
                         previous
-                    ) => [
-                        ...previous,
-                        newMember,
-                    ]
+                    ) =>
+                        previous.map(
+                            (
+                                item
+                            ) =>
+                                item.id ===
+                                    memberId
+                                    ? {
+                                        ...item,
+
+                                        status:
+                                            updatedEmployee
+                                                .status ===
+                                                "ACTIVE"
+                                                ? "active"
+                                                : "inactive",
+                                    }
+                                    : item
+                        )
                 );
 
-                alert(
-                    "Sales member created successfully."
+                setOpenMenuId(
+                    null
                 );
 
             } catch (error) {
 
                 console.error(
-                    "Create sales member error:",
+                    "Update employee status error:",
                     error
                 );
 
                 alert(
                     error instanceof Error
                         ? error.message
-                        : "Failed to create sales member. Please try again."
-                );
-
-                return;
-            }
-        }
-
-        handleCloseModal();
-    };
-
-    // ==================================================
-    // Toggle Active / Inactive
-    // ==================================================
-
-    const handleToggleStatus =
-        async (
-            memberId:
-                string
-        ) => {
-
-        if (!canModify()) {
-            return;
-        }
-
-        const member =
-            salesTeam.find(
-                (item) =>
-                    item.id ===
-                    memberId
-            );
-
-        if (!member) {
-            return;
-        }
-
-        const newStatus =
-            member.status ===
-            "active"
-                ? "INACTIVE"
-                : "ACTIVE";
-
-        try {
-
-            const response =
-                await fetch(
-                    `${EMPLOYEES_API}/${memberId}`,
-                    {
-                        method:
-                            "PUT",
-
-                        headers:
-                            getRequestHeaders(
-                                true
-                            ),
-
-                        body:
-                            JSON.stringify({
-
-                                name:
-                                    member.name,
-
-                                email:
-                                    member.email,
-
-                                phone:
-                                    member.phone,
-
-                                role:
-                                    getRoleApiValue(
-                                        member.role
-                                    ),
-
-                                status:
-                                    newStatus,
-                            }),
-                    }
-                );
-
-            const result =
-                await response
-                    .json();
-
-            if (
-                !response.ok ||
-                !result.success
-            ) {
-
-                throw new Error(
-                    result.message ||
-                    "Failed to update employee status"
+                        : "Failed to update member status. Please try again."
                 );
             }
-
-            const updatedEmployee =
-                result.data;
-
-            setSalesTeam(
-                (
-                    previous
-                ) =>
-                    previous.map(
-                        (
-                            item
-                        ) =>
-                            item.id ===
-                            memberId
-                                ? {
-                                    ...item,
-
-                                    status:
-                                        updatedEmployee
-                                            .status ===
-                                        "ACTIVE"
-                                            ? "active"
-                                            : "inactive",
-                                }
-                                : item
-                    )
-            );
-
-            setOpenMenuId(
-                null
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Update employee status error:",
-                error
-            );
-
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to update member status. Please try again."
-            );
-        }
-    };
+        };
 
     // ==================================================
     // Delete Member
@@ -1193,94 +1240,94 @@ function SalesTeam() {
                 string
         ) => {
 
-        if (!canModify()) {
-            return;
-        }
-
-        const member =
-            salesTeam.find(
-                (item) =>
-                    item.id ===
-                    memberId
-            );
-
-        if (!member) {
-            return;
-        }
-
-        const confirmed =
-            window.confirm(
-                `Delete ${member.name} from the sales team?`
-            );
-
-        if (!confirmed) {
-            return;
-        }
-
-        try {
-
-            const response =
-                await fetch(
-                    `${EMPLOYEES_API}/${memberId}`,
-                    {
-                        method:
-                            "DELETE",
-
-                        headers:
-                            getRequestHeaders(),
-                    }
-                );
-
-            const result =
-                await response
-                    .json();
-
-            if (
-                !response.ok ||
-                !result.success
-            ) {
-
-                throw new Error(
-                    result.message ||
-                    "Failed to delete employee"
-                );
+            if (!canModify()) {
+                return;
             }
 
-            setSalesTeam(
-                (
-                    previous
-                ) =>
-                    previous.filter(
-                        (
-                            item
-                        ) =>
-                            item.id !==
-                            memberId
-                    )
-            );
+            const member =
+                salesTeam.find(
+                    (item) =>
+                        item.id ===
+                        memberId
+                );
 
-            setOpenMenuId(
-                null
-            );
+            if (!member) {
+                return;
+            }
 
-            alert(
-                "Sales member deleted successfully."
-            );
+            const confirmed =
+                window.confirm(
+                    `Delete ${member.name} from the sales team?`
+                );
 
-        } catch (error) {
+            if (!confirmed) {
+                return;
+            }
 
-            console.error(
-                "Delete sales member error:",
-                error
-            );
+            try {
 
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to delete sales member. Please try again."
-            );
-        }
-    };
+                const response =
+                    await fetch(
+                        `${EMPLOYEES_API}/${memberId}`,
+                        {
+                            method:
+                                "DELETE",
+
+                            headers:
+                                getRequestHeaders(),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to delete employee"
+                    );
+                }
+
+                setSalesTeam(
+                    (
+                        previous
+                    ) =>
+                        previous.filter(
+                            (
+                                item
+                            ) =>
+                                item.id !==
+                                memberId
+                        )
+                );
+
+                setOpenMenuId(
+                    null
+                );
+
+                alert(
+                    "Sales member deleted successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Delete sales member error:",
+                    error
+                );
+
+                alert(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to delete sales member. Please try again."
+                );
+            }
+        };
 
     // ==================================================
     // Render
@@ -1493,7 +1540,7 @@ function SalesTeam() {
                     </div>
 
                 ) : salesTeam.length ===
-                0 ? (
+                    0 ? (
 
                     <div className="p-10 text-center text-gray-500">
                         No sales members found.
@@ -1631,16 +1678,15 @@ function SalesTeam() {
                                                 <td className="px-6 py-4">
 
                                                     <span
-                                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                                                            member.status ===
-                                                            "active"
+                                                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${member.status ===
+                                                                "active"
                                                                 ? "bg-green-100 text-green-700"
                                                                 : "bg-red-100 text-red-700"
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {
                                                             member.status ===
-                                                            "active"
+                                                                "active"
                                                                 ? "Active"
                                                                 : "Inactive"
                                                         }
@@ -1657,7 +1703,7 @@ function SalesTeam() {
                                                             onClick={() =>
                                                                 setOpenMenuId(
                                                                     openMenuId ===
-                                                                    member.id
+                                                                        member.id
                                                                         ? null
                                                                         : member.id
                                                                 )
@@ -1673,61 +1719,61 @@ function SalesTeam() {
                                                         {openMenuId ===
                                                             member.id && (
 
-                                                            <div className="absolute right-6 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white text-left shadow-lg">
+                                                                <div className="absolute right-6 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white text-left shadow-lg">
 
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleEditMember(
-                                                                            member
-                                                                        )
-                                                                    }
-                                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
-                                                                >
-                                                                    <Pencil
-                                                                        size={16}
-                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            handleEditMember(
+                                                                                member
+                                                                            )
+                                                                        }
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                                                                    >
+                                                                        <Pencil
+                                                                            size={16}
+                                                                        />
 
-                                                                    Edit Member
-                                                                </button>
+                                                                        Edit Member
+                                                                    </button>
 
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleToggleStatus(
-                                                                            member.id
-                                                                        )
-                                                                    }
-                                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
-                                                                >
-                                                                    <Power
-                                                                        size={16}
-                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            handleToggleStatus(
+                                                                                member.id
+                                                                            )
+                                                                        }
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                                                                    >
+                                                                        <Power
+                                                                            size={16}
+                                                                        />
 
-                                                                    {member.status ===
-                                                                    "active"
-                                                                        ? "Deactivate"
-                                                                        : "Activate"}
-                                                                </button>
+                                                                        {member.status ===
+                                                                            "active"
+                                                                            ? "Deactivate"
+                                                                            : "Activate"}
+                                                                    </button>
 
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleDeleteMember(
-                                                                            member.id
-                                                                        )
-                                                                    }
-                                                                    className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
-                                                                >
-                                                                    <Trash2
-                                                                        size={16}
-                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() =>
+                                                                            handleDeleteMember(
+                                                                                member.id
+                                                                            )
+                                                                        }
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+                                                                    >
+                                                                        <Trash2
+                                                                            size={16}
+                                                                        />
 
-                                                                    Delete Member
-                                                                </button>
+                                                                        Delete Member
+                                                                    </button>
 
-                                                            </div>
-                                                        )}
+                                                                </div>
+                                                            )}
 
                                                     </td>
                                                 )}
@@ -1799,7 +1845,7 @@ function SalesTeam() {
                                                     onClick={() =>
                                                         setOpenMenuId(
                                                             openMenuId ===
-                                                            member.id
+                                                                member.id
                                                                 ? null
                                                                 : member.id
                                                         )
@@ -1819,61 +1865,61 @@ function SalesTeam() {
                                             openMenuId ===
                                             member.id && (
 
-                                            <div className="absolute right-4 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white shadow-lg">
+                                                <div className="absolute right-4 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white shadow-lg">
 
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleEditMember(
-                                                            member
-                                                        )
-                                                    }
-                                                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
-                                                >
-                                                    <Pencil
-                                                        size={16}
-                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleEditMember(
+                                                                member
+                                                            )
+                                                        }
+                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        <Pencil
+                                                            size={16}
+                                                        />
 
-                                                    Edit Member
-                                                </button>
+                                                        Edit Member
+                                                    </button>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleToggleStatus(
-                                                            member.id
-                                                        )
-                                                    }
-                                                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
-                                                >
-                                                    <Power
-                                                        size={16}
-                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleToggleStatus(
+                                                                member.id
+                                                            )
+                                                        }
+                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        <Power
+                                                            size={16}
+                                                        />
 
-                                                    {member.status ===
-                                                    "active"
-                                                        ? "Deactivate"
-                                                        : "Activate"}
-                                                </button>
+                                                        {member.status ===
+                                                            "active"
+                                                            ? "Deactivate"
+                                                            : "Activate"}
+                                                    </button>
 
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        handleDeleteMember(
-                                                            member.id
-                                                        )
-                                                    }
-                                                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50"
-                                                >
-                                                    <Trash2
-                                                        size={16}
-                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDeleteMember(
+                                                                member.id
+                                                            )
+                                                        }
+                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50"
+                                                    >
+                                                        <Trash2
+                                                            size={16}
+                                                        />
 
-                                                    Delete Member
-                                                </button>
+                                                        Delete Member
+                                                    </button>
 
-                                            </div>
-                                        )}
+                                                </div>
+                                            )}
 
                                         <div className="mt-4 space-y-2 text-sm text-gray-600">
 
@@ -1921,16 +1967,15 @@ function SalesTeam() {
                                             </div>
 
                                             <span
-                                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                    member.status ===
-                                                    "active"
+                                                className={`rounded-full px-3 py-1 text-xs font-semibold ${member.status ===
+                                                        "active"
                                                         ? "bg-green-100 text-green-700"
                                                         : "bg-red-100 text-red-700"
-                                                }`}
+                                                    }`}
                                             >
                                                 {
                                                     member.status ===
-                                                    "active"
+                                                        "active"
                                                         ? "Active"
                                                         : "Inactive"
                                                 }
@@ -1957,415 +2002,415 @@ function SalesTeam() {
             {isAdmin &&
                 isModalOpen && (
 
-                <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
-                    onMouseDown={(
-                        event
-                    ) => {
+                    <div
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+                        onMouseDown={(
+                            event
+                        ) => {
 
-                        if (
-                            event.target ===
-                            event.currentTarget
-                        ) {
+                            if (
+                                event.target ===
+                                event.currentTarget
+                            ) {
 
-                            handleCloseModal();
-                        }
-                    }}
-                >
-
-                    <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
-
-                        {/* Modal Header */}
-
-                        <div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
-
-                            <div>
-
-                                <h2 className="text-lg font-bold text-gray-800">
-                                    {editingMemberId !==
-                                    null
-                                        ? "Edit Sales Member"
-                                        : "Add Sales Member"}
-                                </h2>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    {editingMemberId !==
-                                    null
-                                        ? "Update sales member details"
-                                        : "Create a sales member with login access"}
-                                </p>
-
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={
-                                    handleCloseModal
-                                }
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                                aria-label="Close"
-                            >
-                                <X
-                                    size={20}
-                                />
-                            </button>
-
-                        </div>
-
-                        {/* Form */}
-
-                        <form
-                            onSubmit={
-                                handleSaveMember
+                                handleCloseModal();
                             }
-                            className="space-y-5 p-5 sm:p-6"
-                        >
+                        }}
+                    >
 
-                            {/* Name */}
+                        <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl">
 
-                            <div>
+                            {/* Modal Header */}
 
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Full Name
-                                </label>
+                            <div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
 
-                                <input
-                                    type="text"
-                                    value={
-                                        formData.name
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        handleInputChange(
-                                            "name",
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Enter full name"
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                    required
-                                />
+                                <div>
 
-                            </div>
-
-                            {/* Role */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Role
-                                </label>
-
-                                <select
-                                    value={
-                                        formData.role
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        handleInputChange(
-                                            "role",
-                                            event.target.value
-                                        )
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                >
-                                    <option value="Sales Executive">
-                                        Sales Executive
-                                    </option>
-
-                                    <option value="Sales Manager">
-                                        Sales Manager
-                                    </option>
-
-                                    <option value="Team Leader">
-                                        Team Leader
-                                    </option>
-                                </select>
-
-                            </div>
-
-                            {/* Phone */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Phone Number
-                                </label>
-
-                                <input
-                                    type="tel"
-                                    value={
-                                        formData.phone
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        handleInputChange(
-                                            "phone",
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="Enter phone number"
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                    required
-                                />
-
-                            </div>
-
-                            {/* Email */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Email Address
-                                </label>
-
-                                <input
-                                    type="email"
-                                    value={
-                                        formData.email
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        handleInputChange(
-                                            "email",
-                                            event.target.value
-                                        )
-                                    }
-                                    placeholder="employee@example.com"
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                    required
-                                />
-
-                            </div>
-
-                            {/* Password */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    {editingMemberId !==
-                                    null
-                                        ? "New Password"
-                                        : "Password"}
-                                </label>
-
-                                <div className="relative">
-
-                                    <input
-                                        type={
-                                            showPassword
-                                                ? "text"
-                                                : "password"
-                                        }
-                                        value={
-                                            formData.password
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            handleInputChange(
-                                                "password",
-                                                event.target.value
-                                            )
-                                        }
-                                        placeholder={
-                                            editingMemberId !==
+                                    <h2 className="text-lg font-bold text-gray-800">
+                                        {editingMemberId !==
                                             null
-                                                ? "Leave blank to keep current password"
-                                                : "Minimum 8 characters"
-                                        }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                        required={
-                                            editingMemberId ===
-                                            null
-                                        }
-                                    />
+                                            ? "Edit Sales Member"
+                                            : "Add Sales Member"}
+                                    </h2>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setShowPassword(
-                                                (
-                                                    previous
-                                                ) =>
-                                                    !previous
-                                            )
-                                        }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                        aria-label={
-                                            showPassword
-                                                ? "Hide password"
-                                                : "Show password"
-                                        }
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff
-                                                size={18}
-                                            />
-                                        ) : (
-                                            <Eye
-                                                size={18}
-                                            />
-                                        )}
-                                    </button>
+                                    <p className="mt-1 text-sm text-gray-500">
+                                        {editingMemberId !==
+                                            null
+                                            ? "Update sales member details"
+                                            : "Create a sales member with login access"}
+                                    </p>
 
                                 </div>
-
-                                <p className="mt-1 text-xs text-gray-500">
-                                    {editingMemberId !==
-                                    null
-                                        ? "Leave blank if you do not want to change the employee password."
-                                        : "Password must contain at least 8 characters."}
-                                </p>
-
-                            </div>
-
-                            {/* Confirm Password */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    {editingMemberId !==
-                                    null
-                                        ? "Confirm New Password"
-                                        : "Confirm Password"}
-                                </label>
-
-                                <div className="relative">
-
-                                    <input
-                                        type={
-                                            showConfirmPassword
-                                                ? "text"
-                                                : "password"
-                                        }
-                                        value={
-                                            formData.confirmPassword
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            handleInputChange(
-                                                "confirmPassword",
-                                                event.target.value
-                                            )
-                                        }
-                                        placeholder={
-                                            editingMemberId !==
-                                            null
-                                                ? "Confirm new password"
-                                                : "Re-enter password"
-                                        }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                        required={
-                                            editingMemberId ===
-                                            null
-                                        }
-                                    />
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setShowConfirmPassword(
-                                                (
-                                                    previous
-                                                ) =>
-                                                    !previous
-                                            )
-                                        }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                        aria-label={
-                                            showConfirmPassword
-                                                ? "Hide confirm password"
-                                                : "Show confirm password"
-                                        }
-                                    >
-                                        {showConfirmPassword ? (
-                                            <EyeOff
-                                                size={18}
-                                            />
-                                        ) : (
-                                            <Eye
-                                                size={18}
-                                            />
-                                        )}
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            {/* Status */}
-
-                            <div>
-
-                                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Status
-                                </label>
-
-                                <select
-                                    value={
-                                        formData.status
-                                    }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        handleInputChange(
-                                            "status",
-                                            event.target.value as
-                                                | "active"
-                                                | "inactive"
-                                        )
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
-                                >
-                                    <option value="active">
-                                        Active
-                                    </option>
-
-                                    <option value="inactive">
-                                        Inactive
-                                    </option>
-                                </select>
-
-                            </div>
-
-                            {/* Buttons */}
-
-                            <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
 
                                 <button
                                     type="button"
                                     onClick={
                                         handleCloseModal
                                     }
-                                    className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                    className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                    aria-label="Close"
                                 >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700"
-                                >
-                                    {editingMemberId !==
-                                    null
-                                        ? "Update Member"
-                                        : "Save Member"}
+                                    <X
+                                        size={20}
+                                    />
                                 </button>
 
                             </div>
 
-                        </form>
+                            {/* Form */}
+
+                            <form
+                                onSubmit={
+                                    handleSaveMember
+                                }
+                                className="space-y-5 p-5 sm:p-6"
+                            >
+
+                                {/* Name */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        Full Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        value={
+                                            formData.name
+                                        }
+                                        onChange={(
+                                            event
+                                        ) =>
+                                            handleInputChange(
+                                                "name",
+                                                event.target.value
+                                            )
+                                        }
+                                        placeholder="Enter full name"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                        required
+                                    />
+
+                                </div>
+
+                                {/* Role */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        Role
+                                    </label>
+
+                                    <select
+                                        value={
+                                            formData.role
+                                        }
+                                        onChange={(
+                                            event
+                                        ) =>
+                                            handleInputChange(
+                                                "role",
+                                                event.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                    >
+                                        <option value="Sales Executive">
+                                            Sales Executive
+                                        </option>
+
+                                        <option value="Sales Manager">
+                                            Sales Manager
+                                        </option>
+
+                                        <option value="Team Leader">
+                                            Team Leader
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                {/* Phone */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        Phone Number
+                                    </label>
+
+                                    <input
+                                        type="tel"
+                                        value={
+                                            formData.phone
+                                        }
+                                        onChange={(
+                                            event
+                                        ) =>
+                                            handleInputChange(
+                                                "phone",
+                                                event.target.value
+                                            )
+                                        }
+                                        placeholder="Enter phone number"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                        required
+                                    />
+
+                                </div>
+
+                                {/* Email */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        Email Address
+                                    </label>
+
+                                    <input
+                                        type="email"
+                                        value={
+                                            formData.email
+                                        }
+                                        onChange={(
+                                            event
+                                        ) =>
+                                            handleInputChange(
+                                                "email",
+                                                event.target.value
+                                            )
+                                        }
+                                        placeholder="employee@example.com"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                        required
+                                    />
+
+                                </div>
+
+                                {/* Password */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        {editingMemberId !==
+                                            null
+                                            ? "New Password"
+                                            : "Password"}
+                                    </label>
+
+                                    <div className="relative">
+
+                                        <input
+                                            type={
+                                                showPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            value={
+                                                formData.password
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                handleInputChange(
+                                                    "password",
+                                                    event.target.value
+                                                )
+                                            }
+                                            placeholder={
+                                                editingMemberId !==
+                                                    null
+                                                    ? "Leave blank to keep current password"
+                                                    : "Minimum 8 characters"
+                                            }
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                            required={
+                                                editingMemberId ===
+                                                null
+                                            }
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword(
+                                                    (
+                                                        previous
+                                                    ) =>
+                                                        !previous
+                                                )
+                                            }
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            aria-label={
+                                                showPassword
+                                                    ? "Hide password"
+                                                    : "Show password"
+                                            }
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff
+                                                    size={18}
+                                                />
+                                            ) : (
+                                                <Eye
+                                                    size={18}
+                                                />
+                                            )}
+                                        </button>
+
+                                    </div>
+
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        {editingMemberId !==
+                                            null
+                                            ? "Leave blank if you do not want to change the employee password."
+                                            : "Password must contain at least 8 characters."}
+                                    </p>
+
+                                </div>
+
+                                {/* Confirm Password */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        {editingMemberId !==
+                                            null
+                                            ? "Confirm New Password"
+                                            : "Confirm Password"}
+                                    </label>
+
+                                    <div className="relative">
+
+                                        <input
+                                            type={
+                                                showConfirmPassword
+                                                    ? "text"
+                                                    : "password"
+                                            }
+                                            value={
+                                                formData.confirmPassword
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                handleInputChange(
+                                                    "confirmPassword",
+                                                    event.target.value
+                                                )
+                                            }
+                                            placeholder={
+                                                editingMemberId !==
+                                                    null
+                                                    ? "Confirm new password"
+                                                    : "Re-enter password"
+                                            }
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                            required={
+                                                editingMemberId ===
+                                                null
+                                            }
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowConfirmPassword(
+                                                    (
+                                                        previous
+                                                    ) =>
+                                                        !previous
+                                                )
+                                            }
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            aria-label={
+                                                showConfirmPassword
+                                                    ? "Hide confirm password"
+                                                    : "Show confirm password"
+                                            }
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeOff
+                                                    size={18}
+                                                />
+                                            ) : (
+                                                <Eye
+                                                    size={18}
+                                                />
+                                            )}
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                {/* Status */}
+
+                                <div>
+
+                                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                                        Status
+                                    </label>
+
+                                    <select
+                                        value={
+                                            formData.status
+                                        }
+                                        onChange={(
+                                            event
+                                        ) =>
+                                            handleInputChange(
+                                                "status",
+                                                event.target.value as
+                                                | "active"
+                                                | "inactive"
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                                    >
+                                        <option value="active">
+                                            Active
+                                        </option>
+
+                                        <option value="inactive">
+                                            Inactive
+                                        </option>
+                                    </select>
+
+                                </div>
+
+                                {/* Buttons */}
+
+                                <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
+
+                                    <button
+                                        type="button"
+                                        onClick={
+                                            handleCloseModal
+                                        }
+                                        className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-700"
+                                    >
+                                        {editingMemberId !==
+                                            null
+                                            ? "Update Member"
+                                            : "Save Member"}
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        </div>
 
                     </div>
-
-                </div>
-            )}
+                )}
 
         </div>
     );

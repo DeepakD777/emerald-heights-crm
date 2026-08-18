@@ -5,6 +5,9 @@ import {
 import {
     login,
     getCurrentUser,
+    requestAdminPasswordOtp,
+    verifyAdminPasswordOtp,
+    resetAdminPassword,
 } from "../controllers/auth.controller";
 
 import {
@@ -21,6 +24,21 @@ const router =
 router.post(
     "/login",
     login
+);
+
+router.post(
+    "/admin/forgot-password/request-otp",
+    requestAdminPasswordOtp
+);
+
+router.post(
+    "/admin/forgot-password/verify-otp",
+    verifyAdminPasswordOtp
+);
+
+router.post(
+    "/admin/forgot-password/reset",
+    resetAdminPassword
 );
 
 // ======================================================
