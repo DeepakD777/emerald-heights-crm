@@ -803,82 +803,67 @@ function Residential() {
     // Booking
     // ==================================================
 
-    const handleBooking =
-        async (
-            bookingData: any
-        ) => {
+const handleBooking =
+    async (
+        bookingData: any
+    ) => {
 
-            if (
-                !selectedFlat
-            ) {
-                return;
-            }
+        if (
+            !selectedFlat
+        ) {
+            return;
+        }
 
-            try {
+        try {
 
-                await createBooking({
-                    propertyId:
-                        selectedFlat.id,
+            await createBooking({
 
-                    customerName:
-                        bookingData.customerName,
+                // ==========================================
+                // IMPORTANT:
+                // BookingModal ki saari filled fields
+                // backend ko forward hongi.
+                // ==========================================
 
-                    mobile:
-                        bookingData.mobile,
+                ...bookingData,
 
-                    email:
-                        bookingData.email,
+                // Correct selected residential property
+                propertyId:
+                    selectedFlat.propertyId ??
+                    selectedFlat.id,
 
-                    address:
-                        bookingData.address,
+                // Assigned Sales Member
+                employeeId:
+                    bookingData.employeeId ??
+                    undefined,
 
-                    aadhar:
-                        bookingData.aadhar,
+                // New booking default status
+                status:
+                    bookingData.status ??
+                    "CONFIRMED",
+            });
 
-                    pan:
-                        bookingData.pan,
+            await loadProperties();
 
-                    bookingAmount:
-                        bookingData.bookingAmount,
+            setIsFlatModalOpen(
+                false
+            );
 
-                    paymentMode:
-                        bookingData.paymentMode,
+            setSelectedFlat(
+                null
+            );
 
-                    bookingDate:
-                        bookingData.bookingDate,
+        } catch (err) {
 
-                    remarks:
-                        bookingData.remarks,
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Booking failed";
 
-                    employeeId:
-                        bookingData.employeeId ??
-                        undefined,
-
-                    status:
-                        bookingData.status ??
-                        "CONFIRMED",
-                });
-
-                await loadProperties();
-
-                setIsFlatModalOpen(
-                    false
-                );
-
-                setSelectedFlat(
-                    null
-                );
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Booking failed";
-
-                alert(message);
-            }
-        };
+            alert(
+                message
+            );
+        }
+    };
 
     // ==================================================
     // Loading

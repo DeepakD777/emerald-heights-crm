@@ -1,17 +1,14 @@
-import {
-    Request,
-    Response,
-} from "express";
+import { Request, Response } from "express";
 
-import {
-    prisma,
-} from "../lib/prisma";
+import { prisma } from "../lib/prisma";
 
 import {
     BookingStatus,
-    DocumentType,
     DocumentStatus,
+    DocumentType,
+    FinanceType,
     PropertyStatus,
+    RemainingAmountMode,
 } from "../generated/prisma/enums";
 
 type FrontendDocument = {
@@ -25,19 +22,69 @@ type FrontendDocument = {
 };
 
 type FrontendDocuments = {
-    requisitionLetter?:
-        FrontendDocument;
-
-    agreementToSell?:
-        FrontendDocument;
+    requisitionLetter?: FrontendDocument;
+    agreementToSell?: FrontendDocument;
 
     tripartiteAgreement?: {
         required?: boolean;
-
-        document?:
-            FrontendDocument;
+        document?: FrontendDocument;
     };
 };
+
+type BookingPayload = {
+    bookingCode?: string;
+
+    customerId?: string;
+    propertyId?: string;
+
+    employeeId?:
+    | string
+    | null;
+
+    flatNumber?: string;
+    tower?: string;
+    floor?: number;
+
+    customerName?: string;
+    mobile?: string;
+    email?: string;
+    address?: string;
+    aadhar?: string;
+    pan?: string;
+    dob?: string;
+    doa?: string;
+    profile?: string;
+
+    bookingAmount?: string;
+
+    remainingAmount?: string;
+    remainingAmountMode?: string;
+
+    financeType?: string;
+
+    totalAmount?: string;
+    discount?: string;
+    afterDiscountAmount?: string;
+
+    plan?: string;
+    chequeNo?: string;
+    bankName?: string;
+    finance?: string;
+    customerNeed?: string;
+
+    paymentMode?: string;
+
+    bookingDate?: string;
+    remarks?: string;
+
+    status?: string;
+
+    documents?: FrontendDocuments;
+};
+
+// ======================================================
+// Normalizers / Parsers
+// ======================================================
 
 const normalizeBookingStatus = (
     status: unknown
@@ -54,28 +101,76 @@ const normalizeBookingStatus = (
 
         case "BOOKED":
         case "CONFIRMED":
-            return (
-                BookingStatus.CONFIRMED
-            );
+            return BookingStatus.CONFIRMED;
 
         case "CANCELLED":
         case "CANCELED":
-            return (
-                BookingStatus.CANCELLED
-            );
+            return BookingStatus.CANCELLED;
 
         case "COMPLETED":
-            return (
-                BookingStatus.COMPLETED
-            );
+            return BookingStatus.COMPLETED;
 
         case "PENDING":
         default:
-            return (
-                BookingStatus.PENDING
-            );
+            return BookingStatus.PENDING;
     }
 };
+
+// ======================================================
+// Remaining Amount Mode
+// ======================================================
+
+const normalizeRemainingAmountMode = (
+    value: unknown
+): RemainingAmountMode => {
+
+    return String(
+        value ?? ""
+    )
+        .trim()
+        .toUpperCase() ===
+        "MANUAL"
+        ? RemainingAmountMode.MANUAL
+        : RemainingAmountMode.AUTO;
+};
+
+// ======================================================
+// Finance Type
+// ======================================================
+
+const normalizeFinanceType = (
+    value: unknown
+): FinanceType | null => {
+
+    const normalized =
+        String(
+            value ?? ""
+        )
+            .trim()
+            .toUpperCase();
+
+    if (
+        normalized ===
+        "FINANCE"
+    ) {
+
+        return FinanceType.FINANCE;
+    }
+
+    if (
+        normalized ===
+        "CASH"
+    ) {
+
+        return FinanceType.CASH;
+    }
+
+    return null;
+};
+
+// ======================================================
+// Document Status
+// ======================================================
 
 const normalizeDocumentStatus = (
     status: unknown
@@ -91,32 +186,26 @@ const normalizeDocumentStatus = (
     switch (value) {
 
         case "GENERATED":
-            return (
-                DocumentStatus.GENERATED
-            );
+            return DocumentStatus.GENERATED;
 
         case "UPLOADED":
-            return (
-                DocumentStatus.UPLOADED
-            );
+            return DocumentStatus.UPLOADED;
 
         case "GIVEN":
-            return (
-                DocumentStatus.GIVEN
-            );
+            return DocumentStatus.GIVEN;
 
         case "COMPLETED":
-            return (
-                DocumentStatus.COMPLETED
-            );
+            return DocumentStatus.COMPLETED;
 
         case "PENDING":
         default:
-            return (
-                DocumentStatus.PENDING
-            );
+            return DocumentStatus.PENDING;
     }
 };
+
+// ======================================================
+// Date Parser
+// ======================================================
 
 const parseDateValue = (
     value: unknown
@@ -125,6 +214,7 @@ const parseDateValue = (
     if (
         value === undefined
     ) {
+
         return undefined;
     }
 
@@ -132,6 +222,7 @@ const parseDateValue = (
         value === null ||
         value === ""
     ) {
+
         return null;
     }
 
@@ -147,16 +238,100 @@ const parseDateValue = (
             date.getTime()
         )
     ) {
+
         return undefined;
     }
 
     return date;
 };
 
+// ======================================================
+// Number Parser
+// ======================================================
+
+const parseNullableNumber = (
+    value: unknown
+): number | null | undefined => {
+
+    if (
+        value === undefined
+    ) {
+
+        return undefined;
+    }
+
+    if (
+        value === null ||
+        String(
+            value
+        )
+            .trim() ===
+        ""
+    ) {
+
+        return null;
+    }
+
+    const numberValue =
+        Number(
+            value
+        );
+
+    if (
+        !Number.isFinite(
+            numberValue
+        )
+    ) {
+
+        return undefined;
+    }
+
+    return numberValue;
+};
+
+// ======================================================
+// Remaining Amount Calculation
+//
+// AUTO:
+// After Discount Amount - Booking Amount
+// Minimum remaining amount = 0
+// ======================================================
+
+const calculateRemainingAmount = (
+    afterDiscountAmount:
+        | number
+        | null
+        | undefined,
+
+    bookingAmount:
+        | number
+        | null
+        | undefined
+): number | null => {
+
+    if (
+        afterDiscountAmount ==
+        null ||
+        bookingAmount ==
+        null
+    ) {
+
+        return null;
+    }
+
+    return Math.max(
+        afterDiscountAmount -
+        bookingAmount,
+        0
+    );
+};
+
+// ======================================================
+// Document Data Builder
+// ======================================================
+
 const buildDocumentData = (
-    payload:
-        FrontendDocument |
-        undefined
+    payload?: FrontendDocument
 ) => {
 
     const status =
@@ -169,8 +344,8 @@ const buildDocumentData = (
             string,
             any
         > = {
-            status,
-        };
+        status,
+    };
 
     if (
         payload &&
@@ -268,9 +443,9 @@ const buildDocumentData = (
 
     if (
         status ===
-            DocumentStatus.GENERATED &&
+        DocumentStatus.GENERATED &&
         data.generatedAt ===
-            undefined
+        undefined
     ) {
 
         data.generatedAt =
@@ -279,9 +454,9 @@ const buildDocumentData = (
 
     if (
         status ===
-            DocumentStatus.UPLOADED &&
+        DocumentStatus.UPLOADED &&
         data.uploadedAt ===
-            undefined
+        undefined
     ) {
 
         data.uploadedAt =
@@ -290,9 +465,9 @@ const buildDocumentData = (
 
     if (
         status ===
-            DocumentStatus.GIVEN &&
+        DocumentStatus.GIVEN &&
         data.givenAt ===
-            undefined
+        undefined
     ) {
 
         data.givenAt =
@@ -301,9 +476,9 @@ const buildDocumentData = (
 
     if (
         status ===
-            DocumentStatus.COMPLETED &&
+        DocumentStatus.COMPLETED &&
         data.completedAt ===
-            undefined
+        undefined
     ) {
 
         data.completedAt =
@@ -346,17 +521,21 @@ const buildDocumentData = (
     return data;
 };
 
+// ======================================================
+// Upsert Booking Document
+// ======================================================
+
 const upsertBookingDocument =
     async (
         tx: any,
         bookingId: string,
         type: DocumentType,
-        payload?:
-            FrontendDocument
+        payload?: FrontendDocument
     ) => {
 
         const existing =
-            await tx.bookingDocument
+            await tx
+                .bookingDocument
                 .findFirst({
 
                     where: {
@@ -379,7 +558,8 @@ const upsertBookingDocument =
             existing
         ) {
 
-            await tx.bookingDocument
+            await tx
+                .bookingDocument
                 .update({
 
                     where: {
@@ -393,7 +573,8 @@ const upsertBookingDocument =
             return;
         }
 
-        await tx.bookingDocument
+        await tx
+            .bookingDocument
             .create({
 
                 data: {
@@ -404,18 +585,21 @@ const upsertBookingDocument =
             });
     };
 
+// ======================================================
+// Sync Documents
+// ======================================================
+
 const syncBookingDocuments =
     async (
         tx: any,
         bookingId: string,
-        documents:
-            FrontendDocuments |
-            undefined
+        documents?: FrontendDocuments
     ) => {
 
         if (
             !documents
         ) {
+
             return;
         }
 
@@ -456,6 +640,7 @@ const syncBookingDocuments =
         if (
             !tripartite
         ) {
+
             return;
         }
 
@@ -464,7 +649,8 @@ const syncBookingDocuments =
             false
         ) {
 
-            await tx.bookingDocument
+            await tx
+                .bookingDocument
                 .deleteMany({
 
                     where: {
@@ -481,7 +667,7 @@ const syncBookingDocuments =
 
         if (
             tripartite.required ===
-                true ||
+            true ||
             tripartite.document
         ) {
 
@@ -490,6 +676,7 @@ const syncBookingDocuments =
                 bookingId,
                 DocumentType
                     .TRIPARTITE_AGREEMENT,
+
                 tripartite.document ?? {
                     status:
                         "pending",
@@ -498,109 +685,110 @@ const syncBookingDocuments =
         }
     };
 
-const getPropertyStatusFromBookingStatus =
-    (
-        status:
-            BookingStatus
-    ): PropertyStatus => {
+// ======================================================
+// Property Status From Booking
+// ======================================================
 
-        switch (
-            status
-        ) {
+const getPropertyStatusFromBookingStatus = (
+    status: BookingStatus
+): PropertyStatus => {
 
-            case BookingStatus
-                .CONFIRMED:
+    switch (
+    status
+    ) {
 
-                return (
-                    PropertyStatus.BOOKED
-                );
+        case BookingStatus
+            .CONFIRMED:
 
-            case BookingStatus
-                .COMPLETED:
+            return PropertyStatus
+                .BOOKED;
 
-                return (
-                    PropertyStatus.SOLD
-                );
+        case BookingStatus
+            .COMPLETED:
 
-            case BookingStatus
-                .PENDING:
+            return PropertyStatus
+                .SOLD;
 
-                return (
-                    PropertyStatus.HOLD
-                );
+        case BookingStatus
+            .PENDING:
 
-            case BookingStatus
-                .CANCELLED:
+            return PropertyStatus
+                .HOLD;
 
-            default:
+        case BookingStatus
+            .CANCELLED:
 
-                return (
-                    PropertyStatus.AVAILABLE
-                );
-        }
-    };
+        default:
 
-const getPropertyStatusFromBookings =
-    (
-        bookings:
-            Array<{
-                status:
-                    BookingStatus;
-            }>
-    ): PropertyStatus => {
+            return PropertyStatus
+                .AVAILABLE;
+    }
+};
 
-        if (
-            bookings.some(
-                (
-                    booking
-                ) =>
-                    booking.status ===
-                    BookingStatus
-                        .COMPLETED
-            )
-        ) {
+// ======================================================
+// Property Status From Multiple Bookings
+// ======================================================
 
-            return (
-                PropertyStatus.SOLD
-            );
-        }
+const getPropertyStatusFromBookings = (
+    bookings:
+        Array<{
+            status:
+            BookingStatus;
+        }>
+): PropertyStatus => {
 
-        if (
-            bookings.some(
-                (
-                    booking
-                ) =>
-                    booking.status ===
-                    BookingStatus
-                        .CONFIRMED
-            )
-        ) {
+    if (
+        bookings.some(
+            (
+                booking
+            ) =>
+                booking.status ===
+                BookingStatus
+                    .COMPLETED
+        )
+    ) {
 
-            return (
-                PropertyStatus.BOOKED
-            );
-        }
+        return PropertyStatus
+            .SOLD;
+    }
 
-        if (
-            bookings.some(
-                (
-                    booking
-                ) =>
-                    booking.status ===
-                    BookingStatus
-                        .PENDING
-            )
-        ) {
+    if (
+        bookings.some(
+            (
+                booking
+            ) =>
+                booking.status ===
+                BookingStatus
+                    .CONFIRMED
+        )
+    ) {
 
-            return (
-                PropertyStatus.HOLD
-            );
-        }
+        return PropertyStatus
+            .BOOKED;
+    }
 
-        return (
-            PropertyStatus.AVAILABLE
-        );
-    };
+    if (
+        bookings.some(
+            (
+                booking
+            ) =>
+                booking.status ===
+                BookingStatus
+                    .PENDING
+        )
+    ) {
+
+        return PropertyStatus
+            .HOLD;
+    }
+
+    return PropertyStatus
+        .AVAILABLE;
+};
+
+// ======================================================
+// Format Booking For Frontend
+// ======================================================
 
 const formatBooking = (
     booking: any
@@ -746,6 +934,15 @@ const formatBooking = (
                 }
                 : null,
 
+        // ----------------------------------------------
+        // Property
+        // ----------------------------------------------
+
+        propertyType:
+            booking.property
+                ?.type ??
+            null,
+
         flatNumber:
             booking.property
                 ?.unitNumber ??
@@ -759,11 +956,54 @@ const formatBooking = (
             "",
 
         floor:
-            Number(
-                booking.property
-                    ?.floor ??
-                0
-            ),
+            (() => {
+
+                const rawFloor =
+                    booking.property
+                        ?.floor;
+
+                if (
+                    rawFloor ===
+                    null ||
+                    rawFloor ===
+                    undefined
+                ) {
+                    return 0;
+                }
+
+                const normalizedFloor =
+                    String(
+                        rawFloor
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    normalizedFloor ===
+                    "ground floor" ||
+                    normalizedFloor ===
+                    "ground" ||
+                    normalizedFloor ===
+                    "gf"
+                ) {
+                    return 0;
+                }
+
+                const floorNumber =
+                    normalizedFloor.match(
+                        /\d+/
+                    );
+
+                return floorNumber
+                    ? Number(
+                        floorNumber[0]
+                    )
+                    : 0;
+            })(),
+
+        // ----------------------------------------------
+        // Customer
+        // ----------------------------------------------
 
         customerName:
             booking.customer
@@ -799,26 +1039,36 @@ const formatBooking = (
             booking.customer
                 ?.dob
                 ? new Date(
-                    booking.customer.dob
+                    booking.customer
+                        .dob
                 )
                     .toISOString()
-                    .split("T")[0]
+                    .split(
+                        "T"
+                    )[0]
                 : "",
 
         doa:
             booking.customer
                 ?.doa
                 ? new Date(
-                    booking.customer.doa
+                    booking.customer
+                        .doa
                 )
                     .toISOString()
-                    .split("T")[0]
+                    .split(
+                        "T"
+                    )[0]
                 : "",
 
         profile:
             booking.customer
                 ?.profile ??
             "",
+
+        // ----------------------------------------------
+        // Financial
+        // ----------------------------------------------
 
         bookingAmount:
             booking.amount !=
@@ -828,11 +1078,34 @@ const formatBooking = (
                 )
                 : "",
 
-        totalAmount:
-            booking.totalAmount !=
+        remainingAmount:
+            booking
+                .remainingAmount !=
                 null
                 ? String(
-                    booking.totalAmount
+                    booking
+                        .remainingAmount
+                )
+                : "",
+
+        remainingAmountMode:
+            booking
+                .remainingAmountMode ??
+            RemainingAmountMode
+                .AUTO,
+
+        financeType:
+            booking
+                .financeType ??
+            null,
+
+        totalAmount:
+            booking
+                .totalAmount !=
+                null
+                ? String(
+                    booking
+                        .totalAmount
                 )
                 : "",
 
@@ -845,10 +1118,12 @@ const formatBooking = (
                 : "",
 
         afterDiscountAmount:
-            booking.afterDiscountAmount !=
+            booking
+                .afterDiscountAmount !=
                 null
                 ? String(
-                    booking.afterDiscountAmount
+                    booking
+                        .afterDiscountAmount
                 )
                 : "",
 
@@ -877,13 +1152,19 @@ const formatBooking = (
                 .paymentMode ??
             "Cash",
 
+        // ----------------------------------------------
+        // Dates / Status
+        // ----------------------------------------------
+
         bookingDate:
             booking.bookingDate
                 ? new Date(
                     booking.bookingDate
                 )
                     .toISOString()
-                    .split("T")[0]
+                    .split(
+                        "T"
+                    )[0]
                 : "",
 
         cancelledAt:
@@ -901,13 +1182,18 @@ const formatBooking = (
 
         status:
             booking.status ===
-                BookingStatus.CONFIRMED
+                BookingStatus
+                    .CONFIRMED
                 ? "booked"
                 : booking.status
                     .toLowerCase(),
 
         bookingCode:
             booking.bookingCode,
+
+        // ----------------------------------------------
+        // Documents
+        // ----------------------------------------------
 
         documents: {
 
@@ -937,6 +1223,10 @@ const formatBooking = (
     };
 };
 
+// ======================================================
+// GET BOOKINGS
+// ======================================================
+
 export const getBookings =
     async (
         _req: Request,
@@ -946,7 +1236,8 @@ export const getBookings =
         try {
 
             const bookings =
-                await prisma.booking
+                await prisma
+                    .booking
                     .findMany({
 
                         include: {
@@ -1001,6 +1292,10 @@ export const getBookings =
         }
     };
 
+// ======================================================
+// GET BOOKING BY ID
+// ======================================================
+
 export const getBookingById =
     async (
         req: Request,
@@ -1010,7 +1305,8 @@ export const getBookingById =
         try {
 
             const booking =
-                await prisma.booking
+                await prisma
+                    .booking
                     .findUnique({
 
                         where: {
@@ -1083,6 +1379,10 @@ export const getBookingById =
         }
     };
 
+// ======================================================
+// CREATE BOOKING
+// ======================================================
+
 export const createBooking =
     async (
         req: Request,
@@ -1091,8 +1391,13 @@ export const createBooking =
 
         try {
 
+            const payload =
+                req.body as
+                BookingPayload;
+
             const {
                 bookingCode,
+
                 customerId,
                 propertyId,
                 employeeId,
@@ -1112,87 +1417,35 @@ export const createBooking =
                 profile,
 
                 bookingAmount,
+
+                remainingAmount,
+                remainingAmountMode,
+
+                financeType,
+
                 totalAmount,
                 discount,
                 afterDiscountAmount,
+
                 plan,
                 chequeNo,
                 bankName,
                 finance,
                 customerNeed,
+
                 paymentMode,
+
                 bookingDate,
                 remarks,
 
                 status,
 
                 documents,
-            } =
-                req.body as {
+            } = payload;
 
-                    bookingCode?: string;
-
-                    customerId?: string;
-
-                    propertyId?: string;
-
-                    employeeId?:
-                        string |
-                        null;
-
-                    flatNumber?: string;
-
-                    tower?: string;
-
-                    floor?: number;
-
-                    customerName?: string;
-
-                    mobile?: string;
-
-                    email?: string;
-
-                    address?: string;
-
-                    aadhar?: string;
-
-                    pan?: string;
-
-                    dob?: string;
-
-                    doa?: string;
-
-                    profile?: string;
-
-                    bookingAmount?: string;
-
-                    totalAmount?: string;
-
-                    discount?: string;
-
-                    afterDiscountAmount?: string;
-
-                    plan?: string;
-
-                    chequeNo?: string;
-
-                    bankName?: string;
-
-                    finance?: string;
-
-                    customerNeed?: string;
-
-                    paymentMode?: string;
-
-                    bookingDate?: string;
-
-                    remarks?: string;
-
-                    status?: string;
-
-                    documents?:
-                        FrontendDocuments;
-                };
+            // ==================================================
+            // Required Customer Fields
+            // ==================================================
 
             if (
                 !customerName ||
@@ -1211,14 +1464,14 @@ export const createBooking =
                     });
             }
 
-            let customer;
+            // ==================================================
+            // Find Customer
+            // ==================================================
 
-            if (
+            let customer =
                 customerId
-            ) {
-
-                customer =
-                    await prisma.customer
+                    ? await prisma
+                        .customer
                         .findUnique({
 
                             where: {
@@ -1227,15 +1480,16 @@ export const createBooking =
                                         customerId
                                     ),
                             },
-                        });
-            }
+                        })
+                    : null;
 
             if (
                 !customer
             ) {
 
                 customer =
-                    await prisma.customer
+                    await prisma
+                        .customer
                         .findFirst({
 
                             where: {
@@ -1248,12 +1502,83 @@ export const createBooking =
                         });
             }
 
-            if (
-                customer
-            ) {
+            // ==================================================
+            // Customer Data
+            // ==================================================
 
-                customer =
-                    await prisma.customer
+            const customerData = {
+
+                name:
+                    String(
+                        customerName
+                    )
+                        .trim(),
+
+                email:
+                    email
+                        ? String(
+                            email
+                        )
+                            .trim()
+                        : null,
+
+                phone:
+                    String(
+                        mobile
+                    )
+                        .trim(),
+
+                address:
+                    address
+                        ? String(
+                            address
+                        )
+                            .trim()
+                        : null,
+
+                aadhar:
+                    aadhar
+                        ? String(
+                            aadhar
+                        )
+                            .trim()
+                        : null,
+
+                pan:
+                    pan
+                        ? String(
+                            pan
+                        )
+                            .trim()
+                        : null,
+
+                dob:
+                    parseDateValue(
+                        dob
+                    ),
+
+                doa:
+                    parseDateValue(
+                        doa
+                    ),
+
+                profile:
+                    profile
+                        ? String(
+                            profile
+                        )
+                            .trim()
+                        : null,
+            };
+
+            // ==================================================
+            // Create / Update Customer
+            // ==================================================
+
+            customer =
+                customer
+                    ? await prisma
+                        .customer
                         .update({
 
                             where: {
@@ -1261,153 +1586,26 @@ export const createBooking =
                                     customer.id,
                             },
 
-                            data: {
+                            data:
+                                customerData,
+                        })
 
-                                name:
-                                    String(
-                                        customerName
-                                    )
-                                        .trim(),
-
-                                email:
-                                    email
-                                        ? String(
-                                            email
-                                        )
-                                            .trim()
-                                        : null,
-
-                                phone:
-                                    String(
-                                        mobile
-                                    )
-                                        .trim(),
-
-                                address:
-                                    address
-                                        ? String(
-                                            address
-                                        )
-                                            .trim()
-                                        : null,
-
-                                aadhar:
-                                    aadhar
-                                        ? String(
-                                            aadhar
-                                        )
-                                            .trim()
-                                        : null,
-
-                                pan:
-                                    pan
-                                        ? String(
-                                            pan
-                                        )
-                                            .trim()
-                                        : null,
-
-                                dob:
-                                    parseDateValue(
-                                        dob
-                                    ),
-
-                                doa:
-                                    parseDateValue(
-                                        doa
-                                    ),
-
-                                profile:
-                                    profile
-                                        ? String(
-                                            profile
-                                        )
-                                            .trim()
-                                        : null,
-                            },
-                        });
-
-            } else {
-
-                customer =
-                    await prisma.customer
+                    : await prisma
+                        .customer
                         .create({
 
-                            data: {
-
-                                name:
-                                    String(
-                                        customerName
-                                    )
-                                        .trim(),
-
-                                email:
-                                    email
-                                        ? String(
-                                            email
-                                        )
-                                            .trim()
-                                        : null,
-
-                                phone:
-                                    String(
-                                        mobile
-                                    )
-                                        .trim(),
-
-                                address:
-                                    address
-                                        ? String(
-                                            address
-                                        )
-                                            .trim()
-                                        : null,
-
-                                aadhar:
-                                    aadhar
-                                        ? String(
-                                            aadhar
-                                        )
-                                            .trim()
-                                        : null,
-
-                                pan:
-                                    pan
-                                        ? String(
-                                            pan
-                                        )
-                                            .trim()
-                                        : null,
-
-                                dob:
-                                    parseDateValue(
-                                        dob
-                                    ),
-
-                                doa:
-                                    parseDateValue(
-                                        doa
-                                    ),
-
-                                profile:
-                                    profile
-                                        ? String(
-                                            profile
-                                        )
-                                            .trim()
-                                        : null,
-                            },
+                            data:
+                                customerData,
                         });
-            }
 
-            let property;
+            // ==================================================
+            // Find Property
+            // ==================================================
 
-            if (
+            let property =
                 propertyId
-            ) {
-
-                property =
-                    await prisma.property
+                    ? await prisma
+                        .property
                         .findUnique({
 
                             where: {
@@ -1416,15 +1614,16 @@ export const createBooking =
                                         propertyId
                                     ),
                             },
-                        });
-            }
+                        })
+                    : null;
 
             if (
                 !property
             ) {
 
                 property =
-                    await prisma.property
+                    await prisma
+                        .property
                         .findFirst({
 
                             where: {
@@ -1478,8 +1677,13 @@ export const createBooking =
                     });
             }
 
+            // ==================================================
+            // Fine Dine Guard
+            // ==================================================
+
             if (
-                property.isFineDine
+                property
+                    .isFineDine
             ) {
 
                 return res
@@ -1494,6 +1698,10 @@ export const createBooking =
                     });
             }
 
+            // ==================================================
+            // Booking Status
+            // ==================================================
+
             const finalBookingStatus =
                 normalizeBookingStatus(
                     status
@@ -1501,9 +1709,11 @@ export const createBooking =
 
             if (
                 finalBookingStatus !==
-                    BookingStatus.CANCELLED &&
+                BookingStatus
+                    .CANCELLED &&
                 property.status !==
-                    PropertyStatus.AVAILABLE
+                PropertyStatus
+                    .AVAILABLE
             ) {
 
                 return res
@@ -1518,12 +1728,17 @@ export const createBooking =
                     });
             }
 
+            // ==================================================
+            // Employee Validation
+            // ==================================================
+
             if (
                 employeeId
             ) {
 
                 const employee =
-                    await prisma.employee
+                    await prisma
+                        .employee
                         .findUnique({
 
                             where: {
@@ -1551,12 +1766,17 @@ export const createBooking =
                 }
             }
 
+            // ==================================================
+            // Booking Code
+            // ==================================================
+
             const finalBookingCode =
                 bookingCode ||
                 `BK-${Date.now()}`;
 
             const existingBooking =
-                await prisma.booking
+                await prisma
+                    .booking
                     .findUnique({
 
                         where: {
@@ -1581,6 +1801,70 @@ export const createBooking =
                     });
             }
 
+            // ==================================================
+            // Financial Values
+            // ==================================================
+
+            const parsedBookingAmount =
+                parseNullableNumber(
+                    bookingAmount
+                );
+
+            const parsedTotalAmount =
+                parseNullableNumber(
+                    totalAmount
+                );
+
+            const parsedDiscount =
+                parseNullableNumber(
+                    discount
+                );
+
+            const parsedAfterDiscountAmount =
+                parseNullableNumber(
+                    afterDiscountAmount
+                );
+
+            const parsedManualRemainingAmount =
+                parseNullableNumber(
+                    remainingAmount
+                );
+
+            // ==================================================
+            // Remaining Amount
+            // ==================================================
+
+            const finalRemainingAmountMode =
+                normalizeRemainingAmountMode(
+                    remainingAmountMode
+                );
+
+            const finalRemainingAmount =
+                finalRemainingAmountMode ===
+                    RemainingAmountMode
+                        .AUTO
+
+                    ? calculateRemainingAmount(
+                        parsedAfterDiscountAmount,
+                        parsedBookingAmount
+                    )
+
+                    : parsedManualRemainingAmount ??
+                    null;
+
+            // ==================================================
+            // Finance / Cash
+            // ==================================================
+
+            const finalFinanceType =
+                normalizeFinanceType(
+                    financeType
+                );
+
+            // ==================================================
+            // Notes
+            // ==================================================
+
             const notes =
                 JSON.stringify({
 
@@ -1593,6 +1877,10 @@ export const createBooking =
                         "",
                 });
 
+            // ==================================================
+            // Create Transaction
+            // ==================================================
+
             const booking =
                 await prisma
                     .$transaction(
@@ -1601,7 +1889,8 @@ export const createBooking =
                         ) => {
 
                             const currentProperty =
-                                await tx.property
+                                await tx
+                                    .property
                                     .findUnique({
 
                                         where: {
@@ -1631,9 +1920,13 @@ export const createBooking =
 
                             if (
                                 finalBookingStatus !==
-                                    BookingStatus.CANCELLED &&
-                                currentProperty.status !==
-                                    PropertyStatus.AVAILABLE
+                                BookingStatus
+                                    .CANCELLED &&
+
+                                currentProperty
+                                    .status !==
+                                PropertyStatus
+                                    .AVAILABLE
                             ) {
 
                                 throw new Error(
@@ -1641,8 +1934,13 @@ export const createBooking =
                                 );
                             }
 
+                            // ==================================
+                            // Create Booking
+                            // ==================================
+
                             const newBooking =
-                                await tx.booking
+                                await tx
+                                    .booking
                                     .create({
 
                                         data: {
@@ -1673,33 +1971,46 @@ export const createBooking =
                                                     )
                                                     : undefined,
 
+                                            // ----------------------
+                                            // Booking Amount
+                                            // ----------------------
+
                                             amount:
-                                                bookingAmount
-                                                    ? Number(
-                                                        bookingAmount
-                                                    )
-                                                    : undefined,
+                                                parsedBookingAmount ??
+                                                undefined,
+
+                                            // ----------------------
+                                            // Remaining Amount
+                                            // ----------------------
+
+                                            remainingAmount:
+                                                finalRemainingAmount,
+
+                                            remainingAmountMode:
+                                                finalRemainingAmountMode,
+
+                                            // ----------------------
+                                            // Finance / Cash
+                                            // ----------------------
+
+                                            financeType:
+                                                finalFinanceType,
+
+                                            // ----------------------
+                                            // Client Financial
+                                            // ----------------------
 
                                             totalAmount:
-                                                totalAmount
-                                                    ? Number(
-                                                        totalAmount
-                                                    )
-                                                    : undefined,
+                                                parsedTotalAmount ??
+                                                undefined,
 
                                             discount:
-                                                discount
-                                                    ? Number(
-                                                        discount
-                                                    )
-                                                    : undefined,
+                                                parsedDiscount ??
+                                                undefined,
 
                                             afterDiscountAmount:
-                                                afterDiscountAmount
-                                                    ? Number(
-                                                        afterDiscountAmount
-                                                    )
-                                                    : undefined,
+                                                parsedAfterDiscountAmount ??
+                                                undefined,
 
                                             plan:
                                                 plan
@@ -1745,11 +2056,18 @@ export const createBooking =
                                         },
                                     });
 
+                            // ==================================
+                            // Requisition Letter
+                            // ==================================
+
                             await upsertBookingDocument(
                                 tx,
+
                                 newBooking.id,
+
                                 DocumentType
                                     .REQUISITION_LETTER,
+
                                 documents
                                     ?.requisitionLetter ??
                                 {
@@ -1758,11 +2076,18 @@ export const createBooking =
                                 }
                             );
 
+                            // ==================================
+                            // Agreement To Sell
+                            // ==================================
+
                             await upsertBookingDocument(
                                 tx,
+
                                 newBooking.id,
+
                                 DocumentType
                                     .AGREEMENT_TO_SELL,
+
                                 documents
                                     ?.agreementToSell ??
                                 {
@@ -1770,6 +2095,10 @@ export const createBooking =
                                         "pending",
                                 }
                             );
+
+                            // ==================================
+                            // Tripartite Agreement
+                            // ==================================
 
                             if (
                                 documents
@@ -1780,9 +2109,12 @@ export const createBooking =
 
                                 await upsertBookingDocument(
                                     tx,
+
                                     newBooking.id,
+
                                     DocumentType
                                         .TRIPARTITE_AGREEMENT,
+
                                     documents
                                         .tripartiteAgreement
                                         .document ??
@@ -1793,7 +2125,12 @@ export const createBooking =
                                 );
                             }
 
-                            await tx.property
+                            // ==================================
+                            // Property Status
+                            // ==================================
+
+                            await tx
+                                .property
                                 .update({
 
                                     where: {
@@ -1802,6 +2139,7 @@ export const createBooking =
                                     },
 
                                     data: {
+
                                         status:
                                             getPropertyStatusFromBookingStatus(
                                                 finalBookingStatus
@@ -1813,8 +2151,13 @@ export const createBooking =
                         }
                     );
 
+            // ==================================================
+            // Reload Complete Booking
+            // ==================================================
+
             const completeBooking =
-                await prisma.booking
+                await prisma
+                    .booking
                     .findUnique({
 
                         where: {
@@ -1863,9 +2206,9 @@ export const createBooking =
 
             if (
                 error instanceof
-                    Error &&
+                Error &&
                 error.message ===
-                    "FINE_DINE_BLOCK"
+                "FINE_DINE_BLOCK"
             ) {
 
                 return res
@@ -1882,9 +2225,9 @@ export const createBooking =
 
             if (
                 error instanceof
-                    Error &&
+                Error &&
                 error.message ===
-                    "PROPERTY_NOT_AVAILABLE"
+                "PROPERTY_NOT_AVAILABLE"
             ) {
 
                 return res
@@ -1918,715 +2261,775 @@ export const createBooking =
         }
     };
 
-export const updateBooking =
-    async (
-        req: Request,
-        res: Response
-    ) => {
+// ======================================================
+// UPDATE BOOKING
+// ======================================================
 
-        try {
+export const updateBooking = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const bookingId =
+            String(req.params.id);
 
-            const bookingId =
-                String(
-                    req.params.id
-                );
+        const payload =
+            req.body as BookingPayload;
 
-            const existingBooking =
-                await prisma.booking
+        // ==================================================
+        // Existing Booking
+        // ==================================================
+
+        const existingBooking =
+            await prisma.booking.findUnique({
+                where: {
+                    id: bookingId,
+                },
+
+                include: {
+                    customer: true,
+                    property: true,
+                    employee: true,
+                    documents: true,
+                },
+            });
+
+        if (!existingBooking) {
+            return res
+                .status(404)
+                .json({
+                    success: false,
+                    message:
+                        "Booking not found",
+                });
+        }
+
+        // ==================================================
+        // Prisma relation payload typing helper
+        //
+        // Runtime booking contains all scalar fields.
+        // This explicitly tells TypeScript about the
+        // newly-added financial scalar fields.
+        // ==================================================
+
+        const existingBookingFinancial =
+            existingBooking as
+            typeof existingBooking & {
+                remainingAmount:
+                number | null;
+
+                remainingAmountMode:
+                RemainingAmountMode;
+
+                financeType:
+                FinanceType | null;
+            };
+
+        const {
+            customerName,
+            mobile,
+            email,
+            address,
+            aadhar,
+            pan,
+            dob,
+            doa,
+            profile,
+
+            bookingAmount,
+
+            remainingAmount,
+            remainingAmountMode,
+
+            financeType,
+
+            totalAmount,
+            discount,
+            afterDiscountAmount,
+
+            plan,
+            chequeNo,
+            bankName,
+            finance,
+            customerNeed,
+
+            paymentMode,
+            bookingDate,
+            remarks,
+
+            employeeId,
+            status,
+
+            documents,
+        } = payload;
+
+        // ==================================================
+        // Customer Update
+        // ==================================================
+
+        const hasCustomerUpdate =
+            customerName !== undefined ||
+            mobile !== undefined ||
+            email !== undefined ||
+            address !== undefined ||
+            aadhar !== undefined ||
+            pan !== undefined ||
+            dob !== undefined ||
+            doa !== undefined ||
+            profile !== undefined;
+
+        if (hasCustomerUpdate) {
+            await prisma.customer.update({
+                where: {
+                    id:
+                        existingBooking
+                            .customerId,
+                },
+
+                data: {
+                    name:
+                        customerName !==
+                            undefined
+                            ? String(
+                                customerName
+                            ).trim()
+                            : undefined,
+
+                    phone:
+                        mobile !== undefined
+                            ? String(
+                                mobile
+                            ).trim()
+                            : undefined,
+
+                    email:
+                        email !== undefined
+                            ? email
+                                ? String(
+                                    email
+                                ).trim()
+                                : null
+                            : undefined,
+
+                    address:
+                        address !==
+                            undefined
+                            ? address
+                                ? String(
+                                    address
+                                ).trim()
+                                : null
+                            : undefined,
+
+                    aadhar:
+                        aadhar !== undefined
+                            ? aadhar
+                                ? String(
+                                    aadhar
+                                ).trim()
+                                : null
+                            : undefined,
+
+                    pan:
+                        pan !== undefined
+                            ? pan
+                                ? String(
+                                    pan
+                                ).trim()
+                                : null
+                            : undefined,
+
+                    dob:
+                        dob !== undefined
+                            ? parseDateValue(
+                                dob
+                            )
+                            : undefined,
+
+                    doa:
+                        doa !== undefined
+                            ? parseDateValue(
+                                doa
+                            )
+                            : undefined,
+
+                    profile:
+                        profile !==
+                            undefined
+                            ? profile
+                                ? String(
+                                    profile
+                                ).trim()
+                                : null
+                            : undefined,
+                },
+            });
+        }
+
+        // ==================================================
+        // Employee Validation
+        // ==================================================
+
+        if (employeeId) {
+            const employee =
+                await prisma.employee
                     .findUnique({
-
                         where: {
-                            id:
-                                bookingId,
-                        },
-
-                        include: {
-
-                            customer:
-                                true,
-
-                            property:
-                                true,
-
-                            employee:
-                                true,
-
-                            documents:
-                                true,
+                            id: String(
+                                employeeId
+                            ),
                         },
                     });
 
-            if (
-                !existingBooking
-            ) {
-
+            if (!employee) {
                 return res
                     .status(404)
                     .json({
+                        success: false,
+                        message:
+                            "Employee not found",
+                    });
+            }
+        }
 
-                        success:
-                            false,
+        // ==================================================
+        // Existing Notes
+        // ==================================================
+
+        let currentExtraData: {
+            paymentMode?: string;
+            remarks?: string;
+        } = {};
+
+        try {
+            if (
+                existingBooking.notes
+            ) {
+                currentExtraData =
+                    JSON.parse(
+                        existingBooking.notes
+                    );
+            }
+        } catch {
+            currentExtraData = {
+                remarks:
+                    existingBooking.notes ??
+                    "",
+            };
+        }
+
+        const updatedNotes =
+            JSON.stringify({
+                paymentMode:
+                    paymentMode ??
+                    currentExtraData
+                        .paymentMode ??
+                    "Cash",
+
+                remarks:
+                    remarks ??
+                    currentExtraData
+                        .remarks ??
+                    "",
+            });
+
+        // ==================================================
+        // Booking Status
+        // ==================================================
+
+        const nextBookingStatus =
+            status !== undefined
+                ? normalizeBookingStatus(
+                    status
+                )
+                : existingBooking.status;
+
+        // ==================================================
+        // Active Booking Guard
+        // ==================================================
+
+        if (
+            status !== undefined &&
+            nextBookingStatus !==
+            BookingStatus.CANCELLED
+        ) {
+            const otherActiveBooking =
+                await prisma.booking
+                    .findFirst({
+                        where: {
+                            propertyId:
+                                existingBooking
+                                    .propertyId,
+
+                            id: {
+                                not: bookingId,
+                            },
+
+                            status: {
+                                in: [
+                                    BookingStatus.PENDING,
+                                    BookingStatus.CONFIRMED,
+                                    BookingStatus.COMPLETED,
+                                ],
+                            },
+                        },
+                    });
+
+            if (
+                otherActiveBooking
+            ) {
+                return res
+                    .status(409)
+                    .json({
+                        success: false,
 
                         message:
-                            "Booking not found",
-                    });
-            }
-
-            const {
-                customerName,
-                mobile,
-                email,
-                address,
-                aadhar,
-                pan,
-                dob,
-                doa,
-                profile,
-
-                bookingAmount,
-                totalAmount,
-                discount,
-                afterDiscountAmount,
-                plan,
-                chequeNo,
-                bankName,
-                finance,
-                customerNeed,
-                paymentMode,
-                bookingDate,
-                remarks,
-
-                employeeId,
-                status,
-
-                documents,
-            } =
-                req.body as {
-
-                    customerName?: string;
-
-                    mobile?: string;
-
-                    email?: string;
-
-                    address?: string;
-
-                    aadhar?: string;
-
-                    pan?: string;
-
-                    dob?: string;
-
-                    doa?: string;
-
-                    profile?: string;
-
-                    bookingAmount?: string;
-
-                    totalAmount?: string;
-
-                    discount?: string;
-
-                    afterDiscountAmount?: string;
-
-                    plan?: string;
-
-                    chequeNo?: string;
-
-                    bankName?: string;
-
-                    finance?: string;
-
-                    customerNeed?: string;
-
-                    paymentMode?: string;
-
-                    bookingDate?: string;
-
-                    remarks?: string;
-
-                    employeeId?:
-                        string |
-                        null;
-
-                    status?: string;
-
-                    documents?:
-                        FrontendDocuments;
-                };
-
-            if (
-                customerName !==
-                    undefined ||
-                mobile !==
-                    undefined ||
-                email !==
-                    undefined ||
-                address !==
-                    undefined ||
-                aadhar !==
-                    undefined ||
-                pan !==
-                    undefined ||
-                dob !==
-                    undefined ||
-                doa !==
-                    undefined ||
-                profile !==
-                    undefined
-            ) {
-
-                await prisma.customer
-                    .update({
-
-                        where: {
-                            id:
-                                existingBooking
-                                    .customerId,
-                        },
-
-                        data: {
-
-                            name:
-                                customerName !==
-                                    undefined
-                                    ? String(
-                                        customerName
-                                    )
-                                        .trim()
-                                    : undefined,
-
-                            phone:
-                                mobile !==
-                                    undefined
-                                    ? String(
-                                        mobile
-                                    )
-                                        .trim()
-                                    : undefined,
-
-                            email:
-                                email !==
-                                    undefined
-                                    ? email
-                                        ? String(
-                                            email
-                                        )
-                                            .trim()
-                                        : null
-                                    : undefined,
-
-                            address:
-                                address !==
-                                    undefined
-                                    ? address
-                                        ? String(
-                                            address
-                                        )
-                                            .trim()
-                                        : null
-                                    : undefined,
-
-                            aadhar:
-                                aadhar !==
-                                    undefined
-                                    ? aadhar
-                                        ? String(
-                                            aadhar
-                                        )
-                                            .trim()
-                                        : null
-                                    : undefined,
-
-                            pan:
-                                pan !==
-                                    undefined
-                                    ? pan
-                                        ? String(
-                                            pan
-                                        )
-                                            .trim()
-                                        : null
-                                    : undefined,
-
-                            dob:
-                                dob !==
-                                    undefined
-                                    ? parseDateValue(
-                                        dob
-                                    )
-                                    : undefined,
-
-                            doa:
-                                doa !==
-                                    undefined
-                                    ? parseDateValue(
-                                        doa
-                                    )
-                                    : undefined,
-
-                            profile:
-                                profile !==
-                                    undefined
-                                    ? profile
-                                        ? String(
-                                            profile
-                                        )
-                                            .trim()
-                                        : null
-                                    : undefined,
-                        },
+                            "Another active booking already exists for this property",
                     });
             }
 
             if (
-                employeeId
+                existingBooking
+                    .property
+                    .isFineDine
             ) {
+                return res
+                    .status(409)
+                    .json({
+                        success: false,
 
-                const employee =
-                    await prisma.employee
-                        .findUnique({
+                        message:
+                            "This property is reserved for Fine Dine and cannot be booked",
+                    });
+            }
+        }
 
+        // ==================================================
+        // Booking Amount
+        // ==================================================
+
+        const nextBookingAmount =
+            bookingAmount !==
+                undefined
+                ? parseNullableNumber(
+                    bookingAmount
+                ) ?? null
+                : existingBooking
+                    .amount;
+
+        // ==================================================
+        // After Discount Amount
+        // ==================================================
+
+        const nextAfterDiscountAmount =
+            afterDiscountAmount !==
+                undefined
+                ? parseNullableNumber(
+                    afterDiscountAmount
+                ) ?? null
+                : existingBooking
+                    .afterDiscountAmount;
+
+        // ==================================================
+        // Remaining Amount Mode
+        // ==================================================
+
+        const nextRemainingAmountMode =
+            remainingAmountMode !==
+                undefined
+                ? normalizeRemainingAmountMode(
+                    remainingAmountMode
+                )
+                : existingBookingFinancial
+                    .remainingAmountMode;
+
+        // ==================================================
+        // Remaining Amount
+        //
+        // AUTO:
+        // After Discount Amount - Booking Amount
+        //
+        // MANUAL:
+        // Admin entered value
+        // ==================================================
+
+        let nextRemainingAmount =
+            existingBookingFinancial
+                .remainingAmount;
+
+        if (
+            nextRemainingAmountMode ===
+            RemainingAmountMode.AUTO
+        ) {
+            nextRemainingAmount =
+                calculateRemainingAmount(
+                    nextAfterDiscountAmount,
+                    nextBookingAmount
+                );
+        } else if (
+            remainingAmount !==
+            undefined
+        ) {
+            nextRemainingAmount =
+                parseNullableNumber(
+                    remainingAmount
+                ) ?? null;
+        }
+
+        const shouldUpdateRemainingAmount =
+            bookingAmount !==
+            undefined ||
+            afterDiscountAmount !==
+            undefined ||
+            remainingAmount !==
+            undefined ||
+            remainingAmountMode !==
+            undefined;
+
+        // ==================================================
+        // Finance / Cash
+        // ==================================================
+
+        const nextFinanceType =
+            financeType !== undefined
+                ? normalizeFinanceType(
+                    financeType
+                )
+                : undefined;
+
+        // ==================================================
+        // Transaction
+        // ==================================================
+
+        const booking =
+            await prisma.$transaction(
+                async (tx) => {
+                    const updatedBooking =
+                        await tx.booking.update({
                             where: {
                                 id:
-                                    String(
-                                        employeeId
-                                    ),
+                                    bookingId,
+                            },
+
+                            data: {
+                                // --------------------------
+                                // Employee
+                                // --------------------------
+
+                                employeeId:
+                                    employeeId !==
+                                        undefined
+                                        ? employeeId
+                                            ? String(
+                                                employeeId
+                                            )
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Status
+                                // --------------------------
+
+                                status:
+                                    status !==
+                                        undefined
+                                        ? nextBookingStatus
+                                        : undefined,
+
+                                // --------------------------
+                                // Booking Date
+                                // --------------------------
+
+                                bookingDate:
+                                    bookingDate !==
+                                        undefined
+                                        ? bookingDate
+                                            ? new Date(
+                                                bookingDate
+                                            )
+                                            : undefined
+                                        : undefined,
+
+                                // --------------------------
+                                // Booking Amount
+                                // --------------------------
+
+                                amount:
+                                    bookingAmount !==
+                                        undefined
+                                        ? nextBookingAmount
+                                        : undefined,
+
+                                // --------------------------
+                                // Remaining Amount
+                                // --------------------------
+
+                                remainingAmount:
+                                    shouldUpdateRemainingAmount
+                                        ? nextRemainingAmount
+                                        : undefined,
+
+                                remainingAmountMode:
+                                    remainingAmountMode !==
+                                        undefined
+                                        ? nextRemainingAmountMode
+                                        : undefined,
+
+                                // --------------------------
+                                // Finance / Cash
+                                // --------------------------
+
+                                financeType:
+                                    nextFinanceType,
+
+                                // --------------------------
+                                // Total Amount
+                                // --------------------------
+
+                                totalAmount:
+                                    totalAmount !==
+                                        undefined
+                                        ? parseNullableNumber(
+                                            totalAmount
+                                        ) ?? null
+                                        : undefined,
+
+                                // --------------------------
+                                // Discount
+                                // --------------------------
+
+                                discount:
+                                    discount !==
+                                        undefined
+                                        ? parseNullableNumber(
+                                            discount
+                                        ) ?? null
+                                        : undefined,
+
+                                // --------------------------
+                                // After Discount
+                                // --------------------------
+
+                                afterDiscountAmount:
+                                    afterDiscountAmount !==
+                                        undefined
+                                        ? nextAfterDiscountAmount
+                                        : undefined,
+
+                                // --------------------------
+                                // Plan
+                                // --------------------------
+
+                                plan:
+                                    plan !==
+                                        undefined
+                                        ? plan
+                                            ? String(
+                                                plan
+                                            ).trim()
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Cheque
+                                // --------------------------
+
+                                chequeNo:
+                                    chequeNo !==
+                                        undefined
+                                        ? chequeNo
+                                            ? String(
+                                                chequeNo
+                                            ).trim()
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Bank
+                                // --------------------------
+
+                                bankName:
+                                    bankName !==
+                                        undefined
+                                        ? bankName
+                                            ? String(
+                                                bankName
+                                            ).trim()
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Existing Finance Detail
+                                // --------------------------
+
+                                finance:
+                                    finance !==
+                                        undefined
+                                        ? finance
+                                            ? String(
+                                                finance
+                                            ).trim()
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Customer Need
+                                // --------------------------
+
+                                customerNeed:
+                                    customerNeed !==
+                                        undefined
+                                        ? customerNeed
+                                            ? String(
+                                                customerNeed
+                                            ).trim()
+                                            : null
+                                        : undefined,
+
+                                // --------------------------
+                                // Notes
+                                // --------------------------
+
+                                notes:
+                                    updatedNotes,
                             },
                         });
 
-                if (
-                    !employee
-                ) {
+                    // ======================================
+                    // Documents
+                    // ======================================
 
-                    return res
-                        .status(404)
-                        .json({
+                    await syncBookingDocuments(
+                        tx,
+                        bookingId,
+                        documents
+                    );
 
-                            success:
-                                false,
+                    // ======================================
+                    // Property Status
+                    // ======================================
 
-                            message:
-                                "Employee not found",
-                        });
-                }
-            }
+                    if (
+                        status !==
+                        undefined
+                    ) {
+                        const relatedBookings =
+                            await tx.booking
+                                .findMany({
+                                    where: {
+                                        propertyId:
+                                            existingBooking
+                                                .propertyId,
 
-            let currentExtraData: {
-                paymentMode?: string;
-                remarks?: string;
-            } = {};
-
-            try {
-
-                if (
-                    existingBooking
-                        .notes
-                ) {
-
-                    currentExtraData =
-                        JSON.parse(
-                            existingBooking
-                                .notes
-                        );
-                }
-
-            } catch {
-
-                currentExtraData = {
-                    remarks:
-                        existingBooking
-                            .notes ??
-                        "",
-                };
-            }
-
-            const updatedNotes =
-                JSON.stringify({
-
-                    paymentMode:
-                        paymentMode ??
-                        currentExtraData
-                            .paymentMode ??
-                        "Cash",
-
-                    remarks:
-                        remarks ??
-                        currentExtraData
-                            .remarks ??
-                        "",
-                });
-
-            const nextBookingStatus =
-                status !==
-                    undefined
-                    ? normalizeBookingStatus(
-                        status
-                    )
-                    : existingBooking
-                        .status;
-
-            if (
-                status !==
-                    undefined &&
-                nextBookingStatus !==
-                    BookingStatus.CANCELLED
-            ) {
-
-                const otherActiveBooking =
-                    await prisma.booking
-                        .findFirst({
-
-                            where: {
-
-                                propertyId:
-                                    existingBooking
-                                        .propertyId,
-
-                                id: {
-                                    not:
-                                        bookingId,
-                                },
-
-                                status: {
-
-                                    in: [
-                                        BookingStatus
-                                            .PENDING,
-
-                                        BookingStatus
-                                            .CONFIRMED,
-
-                                        BookingStatus
-                                            .COMPLETED,
-                                    ],
-                                },
-                            },
-                        });
-
-                if (
-                    otherActiveBooking
-                ) {
-
-                    return res
-                        .status(409)
-                        .json({
-
-                            success:
-                                false,
-
-                            message:
-                                "Another active booking already exists for this property",
-                        });
-                }
-
-                if (
-                    existingBooking
-                        .property
-                        .isFineDine
-                ) {
-
-                    return res
-                        .status(409)
-                        .json({
-
-                            success:
-                                false,
-
-                            message:
-                                "This property is reserved for Fine Dine and cannot be booked",
-                        });
-                }
-            }
-
-            const booking =
-                await prisma
-                    .$transaction(
-                        async (
-                            tx
-                        ) => {
-
-                            const updatedBooking =
-                                await tx.booking
-                                    .update({
-
-                                        where: {
-                                            id:
+                                        id: {
+                                            not:
                                                 bookingId,
                                         },
 
-                                        data: {
-
-                                            employeeId:
-                                                employeeId !==
-                                                    undefined
-                                                    ? employeeId
-                                                        ? String(
-                                                            employeeId
-                                                        )
-                                                        : null
-                                                    : undefined,
-
-                                            status:
-                                                status !==
-                                                    undefined
-                                                    ? nextBookingStatus
-                                                    : undefined,
-
-                                            bookingDate:
-                                                bookingDate
-                                                    ? new Date(
-                                                        bookingDate
-                                                    )
-                                                    : undefined,
-
-                                            amount:
-                                                bookingAmount !==
-                                                    undefined
-                                                    ? bookingAmount
-                                                        ? Number(
-                                                            bookingAmount
-                                                        )
-                                                        : null
-                                                    : undefined,
-
-                                            totalAmount:
-                                                totalAmount !==
-                                                    undefined
-                                                    ? totalAmount
-                                                        ? Number(
-                                                            totalAmount
-                                                        )
-                                                        : null
-                                                    : undefined,
-
-                                            discount:
-                                                discount !==
-                                                    undefined
-                                                    ? discount
-                                                        ? Number(
-                                                            discount
-                                                        )
-                                                        : null
-                                                    : undefined,
-
-                                            afterDiscountAmount:
-                                                afterDiscountAmount !==
-                                                    undefined
-                                                    ? afterDiscountAmount
-                                                        ? Number(
-                                                            afterDiscountAmount
-                                                        )
-                                                        : null
-                                                    : undefined,
-
-                                            plan:
-                                                plan !==
-                                                    undefined
-                                                    ? plan
-                                                        ? String(
-                                                            plan
-                                                        )
-                                                            .trim()
-                                                        : null
-                                                    : undefined,
-
-                                            chequeNo:
-                                                chequeNo !==
-                                                    undefined
-                                                    ? chequeNo
-                                                        ? String(
-                                                            chequeNo
-                                                        )
-                                                            .trim()
-                                                        : null
-                                                    : undefined,
-
-                                            bankName:
-                                                bankName !==
-                                                    undefined
-                                                    ? bankName
-                                                        ? String(
-                                                            bankName
-                                                        )
-                                                            .trim()
-                                                        : null
-                                                    : undefined,
-
-                                            finance:
-                                                finance !==
-                                                    undefined
-                                                    ? finance
-                                                        ? String(
-                                                            finance
-                                                        )
-                                                            .trim()
-                                                        : null
-                                                    : undefined,
-
-                                            customerNeed:
-                                                customerNeed !==
-                                                    undefined
-                                                    ? customerNeed
-                                                        ? String(
-                                                            customerNeed
-                                                        )
-                                                            .trim()
-                                                        : null
-                                                    : undefined,
-
-                                            notes:
-                                                updatedNotes,
+                                        status: {
+                                            in: [
+                                                BookingStatus.PENDING,
+                                                BookingStatus.CONFIRMED,
+                                                BookingStatus.COMPLETED,
+                                            ],
                                         },
-                                    });
+                                    },
 
-                            await syncBookingDocuments(
-                                tx,
-                                bookingId,
-                                documents
+                                    select: {
+                                        status: true,
+                                    },
+                                });
+
+                        if (
+                            nextBookingStatus !==
+                            BookingStatus.CANCELLED
+                        ) {
+                            relatedBookings.push({
+                                status:
+                                    nextBookingStatus,
+                            });
+                        }
+
+                        const nextPropertyStatus =
+                            getPropertyStatusFromBookings(
+                                relatedBookings
                             );
 
-                            if (
-                                status !==
-                                undefined
-                            ) {
+                        await tx.property
+                            .update({
+                                where: {
+                                    id:
+                                        existingBooking
+                                            .propertyId,
+                                },
 
-                                const relatedBookings =
-                                    await tx.booking
-                                        .findMany({
+                                data: {
+                                    status:
+                                        nextPropertyStatus,
+                                },
+                            });
+                    }
 
-                                            where: {
-
-                                                propertyId:
-                                                    existingBooking
-                                                        .propertyId,
-
-                                                id: {
-                                                    not:
-                                                        bookingId,
-                                                },
-
-                                                status: {
-
-                                                    in: [
-                                                        BookingStatus
-                                                            .PENDING,
-
-                                                        BookingStatus
-                                                            .CONFIRMED,
-
-                                                        BookingStatus
-                                                            .COMPLETED,
-                                                    ],
-                                                },
-                                            },
-
-                                            select: {
-                                                status:
-                                                    true,
-                                            },
-                                        });
-
-                                if (
-                                    nextBookingStatus !==
-                                    BookingStatus.CANCELLED
-                                ) {
-
-                                    relatedBookings.push({
-                                        status:
-                                            nextBookingStatus,
-                                    });
-                                }
-
-                                const nextPropertyStatus =
-                                    getPropertyStatusFromBookings(
-                                        relatedBookings
-                                    );
-
-                                await tx.property
-                                    .update({
-
-                                        where: {
-                                            id:
-                                                existingBooking
-                                                    .propertyId,
-                                        },
-
-                                        data: {
-                                            status:
-                                                nextPropertyStatus,
-                                        },
-                                    });
-                            }
-
-                            return updatedBooking;
-                        }
-                    );
-
-            const completeBooking =
-                await prisma.booking
-                    .findUnique({
-
-                        where: {
-                            id:
-                                booking.id,
-                        },
-
-                        include: {
-
-                            customer:
-                                true,
-
-                            property:
-                                true,
-
-                            employee:
-                                true,
-
-                            documents:
-                                true,
-                        },
-                    });
-
-            return res.json({
-
-                success:
-                    true,
-
-                message:
-                    "Booking updated successfully",
-
-                data:
-                    formatBooking(
-                        completeBooking
-                    ),
-            });
-
-        } catch (error) {
-
-            console.error(
-                "Update booking error:",
-                error
+                    return updatedBooking;
+                }
             );
 
-            return res
-                .status(500)
-                .json({
+        // ==================================================
+        // Reload Complete Booking
+        // ==================================================
 
-                    success:
-                        false,
+        const completeBooking =
+            await prisma.booking
+                .findUnique({
+                    where: {
+                        id:
+                            booking.id,
+                    },
 
-                    message:
-                        "Failed to update booking",
-
-                    error:
-                        error instanceof
-                            Error
-                            ? error.message
-                            : "Unknown error",
+                    include: {
+                        customer: true,
+                        property: true,
+                        employee: true,
+                        documents: true,
+                    },
                 });
-        }
-    };
+
+        return res.json({
+            success: true,
+
+            message:
+                "Booking updated successfully",
+
+            data:
+                formatBooking(
+                    completeBooking
+                ),
+        });
+    } catch (error) {
+        console.error(
+            "Update booking error:",
+            error
+        );
+
+        return res
+            .status(500)
+            .json({
+                success: false,
+
+                message:
+                    "Failed to update booking",
+
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Unknown error",
+            });
+    }
+};
+
+// ======================================================
+// DELETE BOOKING
+// ======================================================
 
 export const deleteBooking =
     async (
@@ -2642,7 +3045,8 @@ export const deleteBooking =
                 );
 
             const existingBooking =
-                await prisma.booking
+                await prisma
+                    .booking
                     .findUnique({
 
                         where: {
@@ -2673,7 +3077,12 @@ export const deleteBooking =
                         tx
                     ) => {
 
-                        await tx.booking
+                        // ==================================
+                        // Delete Booking
+                        // ==================================
+
+                        await tx
+                            .booking
                             .delete({
 
                                 where: {
@@ -2682,8 +3091,13 @@ export const deleteBooking =
                                 },
                             });
 
+                        // ==================================
+                        // Remaining Active Bookings
+                        // ==================================
+
                         const remainingBookings =
-                            await tx.booking
+                            await tx
+                                .booking
                                 .findMany({
 
                                     where: {
@@ -2713,12 +3127,17 @@ export const deleteBooking =
                                     },
                                 });
 
+                        // ==================================
+                        // Property Status
+                        // ==================================
+
                         const nextPropertyStatus =
                             getPropertyStatusFromBookings(
                                 remainingBookings
                             );
 
-                        await tx.property
+                        await tx
+                            .property
                             .update({
 
                                 where: {

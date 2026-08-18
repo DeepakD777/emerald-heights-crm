@@ -19,11 +19,11 @@ import {
 
 interface AgreementDocument {
     status:
-        | "pending"
-        | "generated"
-        | "uploaded"
-        | "given"
-        | "completed";
+    | "pending"
+    | "generated"
+    | "uploaded"
+    | "given"
+    | "completed";
 
     fileName?: string;
     fileUrl?: string;
@@ -40,16 +40,16 @@ interface AgreementDocument {
 
 interface BookingDocuments {
     requisitionLetter:
-        AgreementDocument;
+    AgreementDocument;
 
     agreementToSell:
-        AgreementDocument;
+    AgreementDocument;
 
     tripartiteAgreement: {
         required: boolean;
 
         document:
-            AgreementDocument;
+        AgreementDocument;
     };
 }
 
@@ -98,11 +98,26 @@ interface Booking {
     // ==================================================
 
     bookingAmount: string;
+    propertyType?:
+    | "RESIDENTIAL"
+    | "COMMERCIAL"
+    | null;
+
+    remainingAmount?: string;
+
+    remainingAmountMode?:
+    | "AUTO"
+    | "MANUAL";
+
+    financeType?:
+    | "FINANCE"
+    | "CASH"
+    | null;
     paymentMode: string;
     bookingDate: string;
 
     cancelledAt:
-        string | null;
+    string | null;
 
     remarks: string;
 
@@ -129,13 +144,13 @@ interface Booking {
     // ==================================================
 
     employeeId?:
-        string | null;
+    string | null;
 
     assignedEmployee?:
-        AssignedEmployee | null;
+    AssignedEmployee | null;
 
     documents:
-        BookingDocuments;
+    BookingDocuments;
 
     bookingCode?: string;
 }
@@ -146,13 +161,13 @@ interface Booking {
 
 interface BookingContextType {
     bookings:
-        Booking[];
+    Booking[];
 
     loading:
-        boolean;
+    boolean;
 
     error:
-        string | null;
+    string | null;
 
     addBooking: (
         booking: Booking
@@ -167,7 +182,7 @@ interface BookingContextType {
     ) => Promise<void>;
 
     refreshBookings:
-        () => Promise<void>;
+    () => Promise<void>;
 }
 
 // ======================================================
@@ -425,12 +440,32 @@ const normalizeBooking = (
             booking?.bookingAmount ??
             (
                 booking?.amount !=
-                null
+                    null
                     ? String(
                         booking.amount
                     )
                     : ""
             ),
+        propertyType:
+            booking?.propertyType ??
+            booking?.property?.type ??
+            null,
+
+        remainingAmount:
+            booking?.remainingAmount !=
+                null
+                ? String(
+                    booking.remainingAmount
+                )
+                : "",
+
+        remainingAmountMode:
+            booking?.remainingAmountMode ??
+            "AUTO",
+
+        financeType:
+            booking?.financeType ??
+            null,
 
         paymentMode:
             booking?.paymentMode ??
@@ -618,6 +653,14 @@ const createApiPayload = (
 
         bookingAmount:
             booking.bookingAmount,
+        remainingAmount:
+            booking.remainingAmount,
+
+        remainingAmountMode:
+            booking.remainingAmountMode,
+
+        financeType:
+            booking.financeType,
 
         totalAmount:
             booking.totalAmount,
@@ -678,7 +721,7 @@ export function BookingProvider({
     children,
 }: {
     children:
-        ReactNode;
+    ReactNode;
 }) {
 
     const [
@@ -760,7 +803,7 @@ export function BookingProvider({
                 );
 
             } catch (
-                error
+            error
             ) {
 
                 console.error(
@@ -854,13 +897,13 @@ export function BookingProvider({
                     (
                         previous
                     ) => [
-                        ...previous,
-                        newBooking,
-                    ]
+                            ...previous,
+                            newBooking,
+                        ]
                 );
 
             } catch (
-                error
+            error
             ) {
 
                 console.error(
@@ -952,7 +995,7 @@ export function BookingProvider({
                 );
 
             } catch (
-                error
+            error
             ) {
 
                 console.error(
@@ -1028,7 +1071,7 @@ export function BookingProvider({
                 );
 
             } catch (
-                error
+            error
             ) {
 
                 console.error(

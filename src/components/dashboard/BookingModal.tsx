@@ -44,6 +44,15 @@ interface SalesMember {
     status: string;
 }
 
+type RemainingAmountMode =
+    | "AUTO"
+    | "MANUAL";
+
+type FinanceType =
+    | ""
+    | "FINANCE"
+    | "CASH";
+
 // ======================================================
 // API
 // ======================================================
@@ -77,11 +86,22 @@ const createEmptyForm = () => ({
     plan: "",
 
     bookingAmount: "",
+
+    // Remaining Amount
+    remainingAmount: "",
+    remainingAmountMode:
+        "AUTO" as RemainingAmountMode,
+
+    // Funding Classification
+    financeType:
+        "" as FinanceType,
+
     paymentMode: "Cash",
 
     chequeNo: "",
     bankName: "",
 
+    // Detailed finance notes
     finance: "",
     customerNeed: "",
 
@@ -99,7 +119,9 @@ const getRoleLabel = (
     role: string
 ) => {
 
-    switch (role) {
+    switch (
+        role
+    ) {
 
         case "SALES_MANAGER":
             return "Sales Manager";
@@ -114,6 +136,193 @@ const getRoleLabel = (
         default:
             return role;
     }
+};
+
+// ======================================================
+// Floor Label
+// ======================================================
+
+const getFloorLabel = (
+    floor:
+        number |
+        null |
+        undefined
+) => {
+
+    if (
+        floor ===
+        null ||
+        floor ===
+        undefined
+    ) {
+
+        return "-";
+    }
+
+    if (
+        floor === 0
+    ) {
+
+        return "Ground Floor";
+    }
+
+    if (
+        floor === 1
+    ) {
+
+        return "1st Floor";
+    }
+
+    if (
+        floor === 2
+    ) {
+
+        return "2nd Floor";
+    }
+
+    if (
+        floor === 3
+    ) {
+
+        return "3rd Floor";
+    }
+
+    const lastDigit =
+        floor % 10;
+
+    const lastTwoDigits =
+        floor % 100;
+
+    let suffix =
+        "th";
+
+    if (
+        lastTwoDigits < 11 ||
+        lastTwoDigits > 13
+    ) {
+
+        if (
+            lastDigit === 1
+        ) {
+
+            suffix =
+                "st";
+
+        } else if (
+            lastDigit === 2
+        ) {
+
+            suffix =
+                "nd";
+
+        } else if (
+            lastDigit === 3
+        ) {
+
+            suffix =
+                "rd";
+        }
+    }
+
+    return `${floor}${suffix} Floor`;
+};
+
+// ======================================================
+// Safe Number
+// ======================================================
+
+const toSafeNumber = (
+    value:
+        string |
+        number |
+        null |
+        undefined
+) => {
+
+    const parsed =
+        Number(
+            value
+        );
+
+    return Number.isFinite(
+        parsed
+    )
+        ? parsed
+        : 0;
+};
+
+// ======================================================
+// After Discount Amount
+// ======================================================
+
+const calculateAfterDiscountAmount = (
+    totalAmount:
+        string |
+        number |
+        null |
+        undefined,
+    discount:
+        string |
+        number |
+        null |
+        undefined
+) => {
+
+    const total =
+        toSafeNumber(
+            totalAmount
+        );
+
+    const discountAmount =
+        toSafeNumber(
+            discount
+        );
+
+    return String(
+        Math.max(
+            total -
+            discountAmount,
+            0
+        )
+    );
+};
+
+// ======================================================
+// Remaining Amount
+// AUTO = After Discount Amount - Booking Amount
+// Minimum = 0
+// ======================================================
+
+const calculateRemainingAmount = (
+    afterDiscountAmount:
+        string |
+        number |
+        null |
+        undefined,
+    bookingAmount:
+        string |
+        number |
+        null |
+        undefined
+) => {
+
+    const finalAmount =
+        toSafeNumber(
+            afterDiscountAmount
+        );
+
+    const paidBookingAmount =
+        toSafeNumber(
+            bookingAmount
+        );
+
+    return String(
+        Math.max(
+            finalAmount -
+            paidBookingAmount,
+            0
+        )
+    );
 };
 
 // ======================================================
@@ -146,14 +355,18 @@ function BookingModal({
     const [
         loadingEmployees,
         setLoadingEmployees,
-    ] = useState(false);
+    ] = useState(
+        false
+    );
 
     const [
         employeeError,
         setEmployeeError,
     ] = useState<
         string | null
-    >(null);
+    >(
+        null
+    );
 
     // ==================================================
     // Load Sales Members
@@ -161,7 +374,10 @@ function BookingModal({
 
     useEffect(() => {
 
-        if (!isOpen) {
+        if (
+            !isOpen
+        ) {
+
             return;
         }
 
@@ -196,7 +412,8 @@ function BookingModal({
                         );
 
                     const result =
-                        await response.json();
+                        await response
+                            .json();
 
                     if (
                         !response.ok ||
@@ -219,7 +436,8 @@ function BookingModal({
                     setSalesMembers(
                         employees.map(
                             (
-                                employee: any
+                                employee:
+                                    any
                             ) => ({
                                 id:
                                     employee.id,
@@ -239,7 +457,9 @@ function BookingModal({
                         )
                     );
 
-                } catch (error) {
+                } catch (
+                    error
+                ) {
 
                     console.error(
                         "Load sales members error:",
@@ -247,7 +467,8 @@ function BookingModal({
                     );
 
                     setEmployeeError(
-                        error instanceof Error
+                        error instanceof
+                            Error
                             ? error.message
                             : "Failed to load sales members"
                     );
@@ -272,7 +493,10 @@ function BookingModal({
 
     useEffect(() => {
 
-        if (!isOpen) {
+        if (
+            !isOpen
+        ) {
+
             return;
         }
 
@@ -281,9 +505,52 @@ function BookingModal({
         // ==============================================
 
         if (
-            mode === "edit" &&
+            mode ===
+                "edit" &&
             booking
         ) {
+
+            const savedMode:
+                RemainingAmountMode =
+                    booking
+                        .remainingAmountMode ===
+                    "MANUAL"
+                        ? "MANUAL"
+                        : "AUTO";
+
+            const savedAfterDiscountAmount =
+                booking
+                    .afterDiscountAmount ??
+                "";
+
+            const savedBookingAmount =
+                booking
+                    .bookingAmount ??
+                "";
+
+            const normalizedRemainingAmount =
+                savedMode ===
+                "AUTO"
+                    ? calculateRemainingAmount(
+                        savedAfterDiscountAmount,
+                        savedBookingAmount
+                    )
+                    : String(
+                        booking
+                            .remainingAmount ??
+                        ""
+                    );
+
+            const savedFinanceType:
+                FinanceType =
+                    booking.financeType ===
+                    "FINANCE"
+                        ? "FINANCE"
+                        : booking
+                            .financeType ===
+                          "CASH"
+                            ? "CASH"
+                            : "";
 
             setFormData({
 
@@ -332,16 +599,23 @@ function BookingModal({
                     "",
 
                 afterDiscountAmount:
-                    booking.afterDiscountAmount ??
-                    "",
+                    savedAfterDiscountAmount,
 
                 plan:
                     booking.plan ??
                     "",
 
                 bookingAmount:
-                    booking.bookingAmount ??
-                    "",
+                    savedBookingAmount,
+
+                remainingAmount:
+                    normalizedRemainingAmount,
+
+                remainingAmountMode:
+                    savedMode,
+
+                financeType:
+                    savedFinanceType,
 
                 paymentMode:
                     booking.paymentMode ??
@@ -373,7 +647,8 @@ function BookingModal({
 
                 employeeId:
                     booking.employeeId ??
-                    booking.assignedEmployee
+                    booking
+                        .assignedEmployee
                         ?.id ??
                     "",
             });
@@ -437,46 +712,58 @@ function BookingModal({
                         "discount"
                 ) {
 
-                    const total =
-                        Number(
-                            name ===
-                                "totalAmount"
-                                ? value
-                                : previous
-                                    .totalAmount
+                    const nextTotal =
+                        name ===
+                        "totalAmount"
+                            ? value
+                            : previous
+                                .totalAmount;
+
+                    const nextDiscount =
+                        name ===
+                        "discount"
+                            ? value
+                            : previous
+                                .discount;
+
+                    nextData
+                        .afterDiscountAmount =
+                        calculateAfterDiscountAmount(
+                            nextTotal,
+                            nextDiscount
                         );
+                }
 
-                    const discount =
-                        Number(
-                            name ===
-                                "discount"
-                                ? value
-                                : previous
-                                    .discount
-                        );
+                // ==========================================
+                // AUTO Remaining Amount
+                // ==========================================
 
-                    const safeTotal =
-                        Number.isFinite(
-                            total
-                        )
-                            ? total
-                            : 0;
+                if (
+                    nextData
+                        .remainingAmountMode ===
+                    "AUTO"
+                ) {
 
-                    const safeDiscount =
-                        Number.isFinite(
-                            discount
-                        )
-                            ? discount
-                            : 0;
+                    if (
+                        name ===
+                            "totalAmount" ||
+                        name ===
+                            "discount" ||
+                        name ===
+                            "bookingAmount" ||
+                        name ===
+                            "remainingAmountMode"
+                    ) {
 
-                    nextData.afterDiscountAmount =
-                        String(
-                            Math.max(
-                                safeTotal -
-                                safeDiscount,
-                                0
-                            )
-                        );
+                        nextData
+                            .remainingAmount =
+                            calculateRemainingAmount(
+                                nextData
+                                    .afterDiscountAmount,
+                                nextData
+                                    .bookingAmount
+                            );
+                    }
                 }
 
                 return nextData;
@@ -491,7 +778,10 @@ function BookingModal({
     const handleConfirm =
         () => {
 
-            if (!flat) {
+            if (
+                !flat
+            ) {
+
                 return;
             }
 
@@ -511,6 +801,19 @@ function BookingModal({
                 return;
             }
 
+            const finalRemainingAmount =
+                formData
+                    .remainingAmountMode ===
+                "AUTO"
+                    ? calculateRemainingAmount(
+                        formData
+                            .afterDiscountAmount,
+                        formData
+                            .bookingAmount
+                    )
+                    : formData
+                        .remainingAmount;
+
             onConfirm({
 
                 id:
@@ -523,8 +826,21 @@ function BookingModal({
 
                 ...formData,
 
+                remainingAmount:
+                    finalRemainingAmount,
+
+                remainingAmountMode:
+                    formData
+                        .remainingAmountMode,
+
+                financeType:
+                    formData
+                        .financeType ||
+                    null,
+
                 employeeId:
-                    formData.employeeId ||
+                    formData
+                        .employeeId ||
                     null,
 
                 flatNumber:
@@ -537,13 +853,15 @@ function BookingModal({
                     flat.floor,
 
                 status:
-                    mode === "edit"
+                    mode ===
+                    "edit"
                         ? booking?.status ??
                         "booked"
                         : "booked",
 
                 documents:
-                    booking?.documents,
+                    booking
+                        ?.documents,
 
                 assignedEmployee:
                     booking
@@ -557,7 +875,10 @@ function BookingModal({
     // No Flat
     // ==================================================
 
-    if (!flat) {
+    if (
+        !flat
+    ) {
+
         return null;
     }
 
@@ -575,7 +896,8 @@ function BookingModal({
                 onClose
             }
             title={
-                mode === "edit"
+                mode ===
+                "edit"
                     ? `Edit Booking - ${flat.number}`
                     : `Booking - ${flat.number}`
             }
@@ -584,45 +906,60 @@ function BookingModal({
             <div className="space-y-6">
 
                 {/* ======================================
-                    Flat Details
+                    Flat / Shop Details
                 ====================================== */}
 
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
 
                     <h3 className="mb-3 text-sm font-semibold text-gray-700">
-                        Flat Details
+                        Property Details
                     </h3>
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
 
                         <div>
+
                             <p className="text-xs text-gray-500">
-                                Flat No.
+                                Unit No.
                             </p>
 
                             <p className="font-semibold text-gray-800">
-                                {flat.number}
+                                {
+                                    flat.number
+                                }
                             </p>
+
                         </div>
 
                         <div>
+
                             <p className="text-xs text-gray-500">
                                 Block / Tower
                             </p>
 
                             <p className="font-semibold text-gray-800">
-                                {flat.tower}
+                                {
+                                    flat.tower ||
+                                    "-"
+                                }
                             </p>
+
                         </div>
 
                         <div>
+
                             <p className="text-xs text-gray-500">
                                 Floor
                             </p>
 
                             <p className="font-semibold text-gray-800">
-                                {flat.floor}
+                                {
+                                    getFloorLabel(
+                                        flat.floor
+                                    )
+                                }
                             </p>
+
                         </div>
 
                     </div>
@@ -682,8 +1019,12 @@ function BookingModal({
                                         }
                                     >
 
-                                        {member.name}
+                                        {
+                                            member.name
+                                        }
+
                                         {" — "}
+
                                         {
                                             getRoleLabel(
                                                 member.role
@@ -692,7 +1033,7 @@ function BookingModal({
 
                                         {
                                             member.status !==
-                                                "ACTIVE"
+                                            "ACTIVE"
                                                 ? " (Inactive)"
                                                 : ""
                                         }
@@ -709,7 +1050,9 @@ function BookingModal({
                             ? (
 
                                 <p className="mt-1 text-xs text-red-600">
-                                    {employeeError}
+                                    {
+                                        employeeError
+                                    }
                                 </p>
 
                             )
@@ -951,6 +1294,8 @@ function BookingModal({
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
+                        {/* Total Amount */}
+
                         <div>
 
                             <label className="mb-1 block text-sm font-medium">
@@ -972,6 +1317,8 @@ function BookingModal({
 
                         </div>
 
+                        {/* Discount */}
+
                         <div>
 
                             <label className="mb-1 block text-sm font-medium">
@@ -992,6 +1339,8 @@ function BookingModal({
                             />
 
                         </div>
+
+                        {/* After Discount */}
 
                         <div>
 
@@ -1015,6 +1364,8 @@ function BookingModal({
 
                         </div>
 
+                        {/* Booking Amount */}
+
                         <div>
 
                             <label className="mb-1 block text-sm font-medium">
@@ -1033,6 +1384,103 @@ function BookingModal({
                                 }
                                 className="w-full rounded-lg border p-2"
                             />
+
+                        </div>
+
+                        {/* Calculation Mode */}
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Remaining Amount Calculation
+                            </label>
+
+                            <select
+                                name="remainingAmountMode"
+                                value={
+                                    formData
+                                        .remainingAmountMode
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            >
+
+                                <option value="AUTO">
+                                    Auto
+                                </option>
+
+                                <option value="MANUAL">
+                                    Manual
+                                </option>
+
+                            </select>
+
+                            <p className="mt-1 text-xs text-gray-500">
+                                Auto calculates remaining balance. Manual allows admin override.
+                            </p>
+
+                        </div>
+
+                        {/* Remaining Amount */}
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Remaining Amount
+                            </label>
+
+                            <input
+                                type="number"
+                                name="remainingAmount"
+                                min="0"
+                                value={
+                                    formData
+                                        .remainingAmount
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                readOnly={
+                                    formData
+                                        .remainingAmountMode ===
+                                    "AUTO"
+                                }
+                                className={`
+                                    w-full
+                                    rounded-lg
+                                    border
+                                    p-2
+                                    ${
+                                        formData
+                                            .remainingAmountMode ===
+                                        "AUTO"
+                                            ? "bg-gray-100 text-gray-700"
+                                            : "bg-white"
+                                    }
+                                `}
+                            />
+
+                            {
+                                formData
+                                    .remainingAmountMode ===
+                                "AUTO"
+                                    ? (
+
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Auto: After Discount Amount − Booking Amount.
+                                        </p>
+
+                                    )
+                                    : (
+
+                                        <p className="mt-1 text-xs text-orange-600">
+                                            Manual mode: enter the remaining amount yourself.
+                                        </p>
+
+                                    )
+                            }
 
                         </div>
 
@@ -1166,10 +1614,51 @@ function BookingModal({
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
+                        {/* Finance Type */}
+
                         <div>
 
                             <label className="mb-1 block text-sm font-medium">
-                                Finance
+                                Finance Type
+                            </label>
+
+                            <select
+                                name="financeType"
+                                value={
+                                    formData.financeType
+                                }
+                                onChange={
+                                    handleChange
+                                }
+                                className="w-full rounded-lg border p-2"
+                            >
+
+                                <option value="">
+                                    Select Finance Type
+                                </option>
+
+                                <option value="FINANCE">
+                                    Finance
+                                </option>
+
+                                <option value="CASH">
+                                    Cash
+                                </option>
+
+                            </select>
+
+                            <p className="mt-1 text-xs text-gray-500">
+                                Select whether the property is financed or self-funded/cash.
+                            </p>
+
+                        </div>
+
+                        {/* Detailed Finance */}
+
+                        <div>
+
+                            <label className="mb-1 block text-sm font-medium">
+                                Finance Details
                             </label>
 
                             <input
@@ -1181,13 +1670,15 @@ function BookingModal({
                                 onChange={
                                     handleChange
                                 }
-                                placeholder="Finance details"
+                                placeholder="Bank / loan / finance details"
                                 className="w-full rounded-lg border p-2"
                             />
 
                         </div>
 
-                        <div>
+                        {/* Customer Need */}
+
+                        <div className="sm:col-span-2">
 
                             <label className="mb-1 block text-sm font-medium">
                                 Customer Need
@@ -1295,7 +1786,8 @@ function BookingModal({
                     >
 
                         {
-                            mode === "edit"
+                            mode ===
+                            "edit"
                                 ? "Update Booking"
                                 : "Confirm Booking"
                         }

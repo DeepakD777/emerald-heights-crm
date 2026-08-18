@@ -783,82 +783,61 @@ function Commercial() {
     // ==================================================
 
     const handleConfirmBooking =
-        async (
-            bookingData: any
-        ) => {
-            if (
-                !selectedShop
-            ) {
-                return;
-            }
+    async (
+        bookingData: any
+    ) => {
 
-            try {
+        if (
+            !selectedShop
+        ) {
+            return;
+        }
 
-                await createBooking({
-                    propertyId:
-                        selectedShop.id,
+        try {
 
-                    customerName:
-                        bookingData.customerName,
+            await createBooking({
 
-                    mobile:
-                        bookingData.mobile,
+                // BookingModal ki saari filled fields
+                ...bookingData,
 
-                    email:
-                        bookingData.email,
+                // Correct Commercial property
+                propertyId:
+                    selectedShop.propertyId ??
+                    selectedShop.id,
 
-                    address:
-                        bookingData.address,
+                // Assigned Sales Member
+                employeeId:
+                    bookingData.employeeId ??
+                    undefined,
 
-                    aadhar:
-                        bookingData.aadhar,
+                // Default booking status
+                status:
+                    bookingData.status ??
+                    "CONFIRMED",
+            });
 
-                    pan:
-                        bookingData.pan,
+            await loadProperties();
 
-                    bookingAmount:
-                        bookingData.bookingAmount,
+            setIsBookingModalOpen(
+                false
+            );
 
-                    paymentMode:
-                        bookingData.paymentMode,
+            setSelectedShop(
+                null
+            );
 
-                    bookingDate:
-                        bookingData.bookingDate,
+        } catch (err) {
 
-                    remarks:
-                        bookingData.remarks,
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Booking failed";
 
-                    employeeId:
-                        bookingData.employeeId ??
-                        undefined,
-
-                    status:
-                        bookingData.status ??
-                        "CONFIRMED",
-                });
-
-                await loadProperties();
-
-                setIsBookingModalOpen(
-                    false
-                );
-
-                setSelectedShop(
-                    null
-                );
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Booking failed";
-
-                alert(
-                    message
-                );
-            }
-        };
+            alert(
+                message
+            );
+        }
+    };
 
     // ==================================================
     // Reset

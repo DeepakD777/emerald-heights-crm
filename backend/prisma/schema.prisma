@@ -62,6 +62,15 @@ enum NocStatus {
   REJECTED
   ISSUED
 }
+enum RemainingAmountMode {
+  AUTO
+  MANUAL
+}
+
+enum FinanceType {
+  FINANCE
+  CASH
+}
 
 model Admin {
   id           String  @id @default(cuid())
@@ -171,6 +180,12 @@ model Booking {
 
   // Existing booking amount
   amount Float?
+  // Remaining payment tracking
+  remainingAmount     Float?
+  remainingAmountMode RemainingAmountMode @default(AUTO)
+
+// Property purchase funding type
+financeType FinanceType?
 
   // Client booking form financial details
   totalAmount         Float?

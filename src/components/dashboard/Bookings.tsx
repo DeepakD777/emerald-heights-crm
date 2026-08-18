@@ -1,7 +1,13 @@
 import {
     useEffect,
+    useMemo,
     useState,
 } from "react";
+
+import {
+    Building2,
+    Home,
+} from "lucide-react";
 
 import {
     useSearchParams,
@@ -19,6 +25,14 @@ import BookingDetailsModal from "./BookingDetailsModal";
 import BookingModal from "./BookingModal";
 
 // ======================================================
+// Types
+// ======================================================
+
+type BookingSection =
+    | "RESIDENTIAL"
+    | "COMMERCIAL";
+
+// ======================================================
 // Document Status Badge
 // ======================================================
 
@@ -26,15 +40,19 @@ function DocumentStatusBadge({
     status,
 }: {
     status:
-        | "pending"
-        | "generated"
-        | "uploaded"
-        | "given"
-        | "completed"
-        | "not-required";
+    | "pending"
+    | "generated"
+    | "uploaded"
+    | "given"
+    | "completed"
+    | "not-required";
 }) {
 
-    if (status === "given") {
+    if (
+        status ===
+        "given"
+    ) {
+
         return (
             <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                 Given
@@ -42,7 +60,11 @@ function DocumentStatusBadge({
         );
     }
 
-    if (status === "completed") {
+    if (
+        status ===
+        "completed"
+    ) {
+
         return (
             <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                 Completed
@@ -50,7 +72,11 @@ function DocumentStatusBadge({
         );
     }
 
-    if (status === "not-required") {
+    if (
+        status ===
+        "not-required"
+    ) {
+
         return (
             <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
                 Not Required
@@ -58,7 +84,11 @@ function DocumentStatusBadge({
         );
     }
 
-    if (status === "generated") {
+    if (
+        status ===
+        "generated"
+    ) {
+
         return (
             <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                 Generated
@@ -66,7 +96,11 @@ function DocumentStatusBadge({
         );
     }
 
-    if (status === "uploaded") {
+    if (
+        status ===
+        "uploaded"
+    ) {
+
         return (
             <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
                 Uploaded
@@ -80,6 +114,126 @@ function DocumentStatusBadge({
         </span>
     );
 }
+
+// ======================================================
+// Amount Mode Badge
+// ======================================================
+
+function RemainingModeBadge({
+    mode,
+}: {
+    mode?:
+    | "AUTO"
+    | "MANUAL";
+}) {
+
+    if (
+        mode ===
+        "MANUAL"
+    ) {
+
+        return (
+            <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                Manual
+            </span>
+        );
+    }
+
+    return (
+        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+            Auto
+        </span>
+    );
+}
+
+// ======================================================
+// Finance Type Badge
+// ======================================================
+
+function FinanceTypeBadge({
+    type,
+}: {
+    type?:
+    | "FINANCE"
+    | "CASH"
+    | null;
+}) {
+
+    if (
+        type ===
+        "FINANCE"
+    ) {
+
+        return (
+            <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                Finance
+            </span>
+        );
+    }
+
+    if (
+        type ===
+        "CASH"
+    ) {
+
+        return (
+            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                Cash
+            </span>
+        );
+    }
+
+    return (
+        <span className="text-sm text-gray-400">
+            -
+        </span>
+    );
+}
+
+// ======================================================
+// Amount Formatter
+// ======================================================
+
+const formatAmount = (
+    value:
+        | string
+        | number
+        | null
+        | undefined
+) => {
+
+    if (
+        value ===
+        null ||
+        value ===
+        undefined ||
+        String(
+            value
+        ).trim() ===
+        ""
+    ) {
+
+        return "₹0";
+    }
+
+    const parsed =
+        Number(
+            value
+        );
+
+    if (
+        Number.isNaN(
+            parsed
+        )
+    ) {
+
+        return `₹${value}`;
+    }
+
+    return `₹${parsed.toLocaleString(
+        "en-IN"
+    )}`;
+};
 
 // ======================================================
 // Bookings
@@ -102,22 +256,38 @@ function Bookings() {
     const [
         selectedBooking,
         setSelectedBooking,
-    ] = useState<any>(null);
+    ] = useState<any>(
+        null
+    );
 
     const [
         isBookingModalOpen,
         setIsBookingModalOpen,
-    ] = useState(false);
+    ] = useState(
+        false
+    );
 
     const [
         isDetailsOpen,
         setIsDetailsOpen,
-    ] = useState(false);
+    ] = useState(
+        false
+    );
 
     const [
         search,
         setSearch,
-    ] = useState("");
+    ] = useState(
+        ""
+    );
+
+    const [
+        activeSection,
+        setActiveSection,
+    ] =
+        useState<BookingSection>(
+            "RESIDENTIAL"
+        );
 
     const [
         searchParams,
@@ -131,31 +301,32 @@ function Bookings() {
     const clearBookingQueryParam =
         () => {
 
-        if (
-            !searchParams.has(
-                "bookingId"
-            )
-        ) {
-            return;
-        }
+            if (
+                !searchParams.has(
+                    "bookingId"
+                )
+            ) {
 
-        const nextParams =
-            new URLSearchParams(
-                searchParams
+                return;
+            }
+
+            const nextParams =
+                new URLSearchParams(
+                    searchParams
+                );
+
+            nextParams.delete(
+                "bookingId"
             );
 
-        nextParams.delete(
-            "bookingId"
-        );
-
-        setSearchParams(
-            nextParams,
-            {
-                replace:
-                    true,
-            }
-        );
-    };
+            setSearchParams(
+                nextParams,
+                {
+                    replace:
+                        true,
+                }
+            );
+        };
 
     // ==================================================
     // Open Booking From URL
@@ -168,19 +339,46 @@ function Bookings() {
                 "bookingId"
             );
 
-        if (!bookingId) {
+        if (
+            !bookingId
+        ) {
+
             return;
         }
 
         const booking =
             bookings.find(
-                (item) =>
+                (
+                    item
+                ) =>
                     item.id ===
                     bookingId
             );
 
-        if (!booking) {
+        if (
+            !booking
+        ) {
+
             return;
+        }
+
+        if (
+            booking.propertyType ===
+            "COMMERCIAL"
+        ) {
+
+            setActiveSection(
+                "COMMERCIAL"
+            );
+
+        } else if (
+            booking.propertyType ===
+            "RESIDENTIAL"
+        ) {
+
+            setActiveSection(
+                "RESIDENTIAL"
+            );
         }
 
         setSelectedBooking(
@@ -205,17 +403,22 @@ function Bookings() {
         if (
             !selectedBooking?.id
         ) {
+
             return;
         }
 
         const latestBooking =
             bookings.find(
-                (item) =>
+                (
+                    item
+                ) =>
                     item.id ===
                     selectedBooking.id
             );
 
-        if (latestBooking) {
+        if (
+            latestBooking
+        ) {
 
             setSelectedBooking(
                 latestBooking
@@ -228,44 +431,136 @@ function Bookings() {
     ]);
 
     // ==================================================
-    // Search
+    // Counts
+    // ==================================================
+
+    const residentialCount =
+        useMemo(
+            () =>
+                bookings.filter(
+                    (
+                        booking
+                    ) =>
+                        booking.propertyType ===
+                        "RESIDENTIAL"
+                ).length,
+            [
+                bookings,
+            ]
+        );
+
+    const commercialCount =
+        useMemo(
+            () =>
+                bookings.filter(
+                    (
+                        booking
+                    ) =>
+                        booking.propertyType ===
+                        "COMMERCIAL"
+                ).length,
+            [
+                bookings,
+            ]
+        );
+
+    // ==================================================
+    // Filter By Section + Search
     // ==================================================
 
     const filteredBookings =
-        bookings.filter(
-            (booking) => {
+        useMemo(
+            () => {
 
                 const searchText =
-                    search.toLowerCase();
+                    search
+                        .trim()
+                        .toLowerCase();
 
-                return (
-                    String(
-                        booking.flatNumber ??
-                        ""
-                    )
-                        .toLowerCase()
-                        .includes(
-                            searchText
-                        ) ||
+                return bookings.filter(
+                    (
+                        booking
+                    ) => {
 
-                    String(
-                        booking.customerName ??
-                        ""
-                    )
-                        .toLowerCase()
-                        .includes(
-                            searchText
-                        ) ||
+                        if (
+                            booking.propertyType !==
+                            activeSection
+                        ) {
 
-                    String(
-                        booking.mobile ??
-                        ""
-                    ).includes(
-                        search
-                    )
+                            return false;
+                        }
+
+                        if (
+                            !searchText
+                        ) {
+
+                            return true;
+                        }
+
+                        return (
+                            String(
+                                booking.flatNumber ??
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchText
+                                ) ||
+
+                            String(
+                                booking.customerName ??
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchText
+                                ) ||
+
+                            String(
+                                booking.mobile ??
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchText
+                                ) ||
+
+                            String(
+                                booking.bookingCode ??
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchText
+                                )
+                        );
+                    }
                 );
-            }
+            },
+            [
+                bookings,
+                activeSection,
+                search,
+            ]
         );
+
+    // ==================================================
+    // Change Section
+    // ==================================================
+
+    const handleSectionChange = (
+        section:
+            BookingSection
+    ) => {
+
+        setActiveSection(
+            section
+        );
+
+        setSearch(
+            ""
+        );
+    };
 
     // ==================================================
     // Update Booking
@@ -273,46 +568,50 @@ function Bookings() {
 
     const handleUpdateBooking =
         async (
-            updatedBooking: any
+            updatedBooking:
+                any
         ) => {
 
-        if (!isAdmin) {
+            if (
+                !isAdmin
+            ) {
 
-            alert(
-                "View only access — booking changes can only be made by an administrator."
-            );
+                alert(
+                    "View only access — booking changes can only be made by an administrator."
+                );
 
-            return;
-        }
+                return;
+            }
 
-        try {
+            try {
 
-            await updateBooking(
-                updatedBooking
-            );
+                await updateBooking(
+                    updatedBooking
+                );
 
-            setSelectedBooking(
-                updatedBooking
-            );
+                setSelectedBooking(
+                    updatedBooking
+                );
 
-            setIsBookingModalOpen(
-                false
-            );
+                setIsBookingModalOpen(
+                    false
+                );
 
-        } catch (error) {
+            } catch (error) {
 
-            console.error(
-                "Booking update failed:",
-                error
-            );
+                console.error(
+                    "Booking update failed:",
+                    error
+                );
 
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to update booking"
-            );
-        }
-    };
+                alert(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to update booking"
+                );
+            }
+        };
 
     // ==================================================
     // Delete Booking
@@ -320,74 +619,82 @@ function Bookings() {
 
     const handleDeleteBooking =
         async (
-            id: string
+            id:
+                string
         ) => {
 
-        if (!isAdmin) {
-
-            alert(
-                "View only access — bookings can only be deleted by an administrator."
-            );
-
-            return;
-        }
-
-        const confirmDelete =
-            window.confirm(
-                "Are you sure you want to delete this booking?"
-            );
-
-        if (!confirmDelete) {
-            return;
-        }
-
-        try {
-
-            await deleteBooking(
-                id
-            );
-
             if (
-                selectedBooking?.id ===
-                id
+                !isAdmin
             ) {
 
-                setSelectedBooking(
-                    null
+                alert(
+                    "View only access — bookings can only be deleted by an administrator."
                 );
 
-                setIsDetailsOpen(
-                    false
-                );
-
-                setIsBookingModalOpen(
-                    false
-                );
-
-                clearBookingQueryParam();
+                return;
             }
 
-        } catch (error) {
+            const confirmDelete =
+                window.confirm(
+                    "Are you sure you want to delete this booking?"
+                );
 
-            console.error(
-                "Booking delete failed:",
-                error
-            );
+            if (
+                !confirmDelete
+            ) {
 
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to delete booking"
-            );
-        }
-    };
+                return;
+            }
+
+            try {
+
+                await deleteBooking(
+                    id
+                );
+
+                if (
+                    selectedBooking?.id ===
+                    id
+                ) {
+
+                    setSelectedBooking(
+                        null
+                    );
+
+                    setIsDetailsOpen(
+                        false
+                    );
+
+                    setIsBookingModalOpen(
+                        false
+                    );
+
+                    clearBookingQueryParam();
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Booking delete failed:",
+                    error
+                );
+
+                alert(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to delete booking"
+                );
+            }
+        };
 
     // ==================================================
     // Open View Modal
     // ==================================================
 
     const handleOpenDetails = (
-        booking: any
+        booking:
+            any
     ) => {
 
         setIsBookingModalOpen(
@@ -410,28 +717,28 @@ function Bookings() {
     const handleCloseDetails =
         () => {
 
-        setIsDetailsOpen(
-            false
-        );
+            setIsDetailsOpen(
+                false
+            );
 
-        clearBookingQueryParam();
-    };
+            clearBookingQueryParam();
+        };
 
     // ==================================================
     // Open Edit Modal
     // ==================================================
 
     const handleOpenEdit = (
-        booking: any
+        booking:
+            any
     ) => {
 
-        if (!isAdmin) {
+        if (
+            !isAdmin
+        ) {
+
             return;
         }
-
-        // Important:
-        // Remove bookingId from URL so updating the
-        // booking does not automatically reopen Details.
 
         clearBookingQueryParam();
 
@@ -455,16 +762,18 @@ function Bookings() {
     const handleCloseEdit =
         () => {
 
-        setIsBookingModalOpen(
-            false
-        );
-    };
+            setIsBookingModalOpen(
+                false
+            );
+        };
 
     // ==================================================
     // Loading
     // ==================================================
 
-    if (loading) {
+    if (
+        loading
+    ) {
 
         return (
             <div className="rounded-2xl bg-white p-10 shadow">
@@ -476,6 +785,22 @@ function Bookings() {
             </div>
         );
     }
+
+    // ==================================================
+    // Dynamic Labels
+    // ==================================================
+
+    const unitLabel =
+        activeSection ===
+            "RESIDENTIAL"
+            ? "Flat"
+            : "Shop";
+
+    const emptyLabel =
+        activeSection ===
+            "RESIDENTIAL"
+            ? "No Residential Bookings Found"
+            : "No Commercial Bookings Found";
 
     // ==================================================
     // Return
@@ -490,26 +815,31 @@ function Bookings() {
                     Header
                 ====================================== */}
 
-                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
                     <div>
 
-                        <h1 className="text-3xl font-bold">
+                        <h1 className="text-3xl font-bold text-gray-900">
                             Bookings
                         </h1>
 
+                        <p className="mt-1 text-sm text-gray-500">
+                            Manage residential and commercial booking records.
+                        </p>
+
                         {!isAdmin && (
 
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-1 text-sm font-medium text-amber-600">
                                 View only access
                             </p>
+
                         )}
 
                     </div>
 
                     <input
                         type="text"
-                        placeholder="Search Booking..."
+                        placeholder={`Search ${unitLabel}, customer, mobile or booking code...`}
                         value={
                             search
                         }
@@ -520,8 +850,145 @@ function Bookings() {
                                 event.target.value
                             )
                         }
-                        className="w-full rounded-lg border px-4 py-2 md:w-72"
+                        className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-gray-300
+                            px-4
+                            py-2.5
+                            outline-none
+                            transition
+                            focus:border-green-600
+                            focus:ring-2
+                            focus:ring-green-100
+                            lg:w-[380px]
+                        "
                     />
+
+                </div>
+
+                {/* ======================================
+                    Residential / Commercial Tabs
+                ====================================== */}
+
+                <div
+                    className="
+                        mb-6
+                        grid
+                        grid-cols-2
+                        gap-2
+                        rounded-2xl
+                        bg-gray-100
+                        p-1.5
+                        sm:inline-grid
+                        sm:min-w-[460px]
+                    "
+                >
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            handleSectionChange(
+                                "RESIDENTIAL"
+                            )
+                        }
+                        className={`
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                            rounded-xl
+                            px-4
+                            py-3
+                            text-sm
+                            font-semibold
+                            transition
+                            ${activeSection ===
+                                "RESIDENTIAL"
+                                ? "bg-white text-green-700 shadow-sm"
+                                : "text-gray-500 hover:text-gray-800"
+                            }
+                        `}
+                    >
+
+                        <Home
+                            size={18}
+                        />
+
+                        Residential
+
+                        <span
+                            className={`
+                                rounded-full
+                                px-2
+                                py-0.5
+                                text-xs
+                                ${activeSection ===
+                                    "RESIDENTIAL"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-200 text-gray-600"
+                                }
+                            `}
+                        >
+                            {
+                                residentialCount
+                            }
+                        </span>
+
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            handleSectionChange(
+                                "COMMERCIAL"
+                            )
+                        }
+                        className={`
+                            flex
+                            items-center
+                            justify-center
+                            gap-2
+                            rounded-xl
+                            px-4
+                            py-3
+                            text-sm
+                            font-semibold
+                            transition
+                            ${activeSection ===
+                                "COMMERCIAL"
+                                ? "bg-white text-green-700 shadow-sm"
+                                : "text-gray-500 hover:text-gray-800"
+                            }
+                        `}
+                    >
+
+                        <Building2
+                            size={18}
+                        />
+
+                        Commercial
+
+                        <span
+                            className={`
+                                rounded-full
+                                px-2
+                                py-0.5
+                                text-xs
+                                ${activeSection ===
+                                    "COMMERCIAL"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-200 text-gray-600"
+                                }
+                            `}
+                        >
+                            {
+                                commercialCount
+                            }
+                        </span>
+
+                    </button>
 
                 </div>
 
@@ -531,9 +998,10 @@ function Bookings() {
 
                 {error && (
 
-                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                         {error}
                     </div>
+
                 )}
 
                 {/* ======================================
@@ -542,14 +1010,19 @@ function Bookings() {
 
                 <div className="overflow-x-auto">
 
-                    <table className="w-full min-w-[1200px] border-collapse">
+                    <table className="w-full min-w-[1550px] border-collapse">
 
                         <thead>
 
                             <tr className="bg-gray-100">
 
                                 <th className="border p-3 text-left">
-                                    Flat
+                                    {
+                                        unitLabel
+                                    }
+                                </th>
+                                <th className="border p-3 text-left">
+                                    Floor
                                 </th>
 
                                 <th className="border p-3 text-left">
@@ -561,11 +1034,19 @@ function Bookings() {
                                 </th>
 
                                 <th className="border p-3 text-left">
-                                    Amount
+                                    Booking Amount
                                 </th>
 
                                 <th className="border p-3 text-left">
-                                    Payment
+                                    Remaining Amount
+                                </th>
+
+                                <th className="border p-3 text-left">
+                                    Calculation
+                                </th>
+
+                                <th className="border p-3 text-left">
+                                    Finance Type
                                 </th>
 
                                 <th className="border p-3 text-left">
@@ -591,17 +1072,19 @@ function Bookings() {
                         <tbody>
 
                             {filteredBookings.length ===
-                            0 ? (
+                                0 ? (
 
                                 <tr>
 
                                     <td
                                         colSpan={
-                                            9
+                                            12
                                         }
                                         className="p-10 text-center text-gray-500"
                                     >
-                                        No Bookings Found
+                                        {
+                                            emptyLabel
+                                        }
                                     </td>
 
                                 </tr>
@@ -629,7 +1112,7 @@ function Bookings() {
                                                     tripartite
                                                         .document
                                                         ?.status ===
-                                                    "completed"
+                                                        "completed"
                                                         ? "completed"
                                                         : "pending"
                                                 )
@@ -644,36 +1127,80 @@ function Bookings() {
                                                 className="hover:bg-gray-50"
                                             >
 
-                                                <td className="border p-3">
+                                                <td className="border p-3 font-semibold text-gray-800">
                                                     {
-                                                        booking.flatNumber
+                                                        booking.flatNumber ||
+                                                        "-"
                                                     }
                                                 </td>
-
-                                                <td className="border p-3 font-medium">
-                                                    {
-                                                        booking.customerName
-                                                    }
-                                                </td>
-
                                                 <td className="border p-3">
                                                     {
-                                                        booking.mobile
+                                                        booking.floor === 0
+                                                            ? "Ground Floor"
+                                                            : `Floor ${booking.floor ?? "-"}`
                                                     }
                                                 </td>
 
                                                 <td className="border p-3">
-                                                    ₹{" "}
-                                                    {
-                                                        booking.bookingAmount ||
-                                                        "0"
-                                                    }
+                                                    <div className="font-medium">
+                                                        {
+                                                            booking.customerName ||
+                                                            "-"
+                                                        }
+                                                    </div>
+
+                                                   <div className="mt-1 text-xs text-gray-500">
+    {
+        booking.floor === 0
+            ? "Ground Floor"
+            : `Floor: ${booking.floor ?? "-"}`
+    }
+</div>
                                                 </td>
 
                                                 <td className="border p-3">
                                                     {
-                                                        booking.paymentMode
+                                                        booking.mobile ||
+                                                        "-"
                                                     }
+                                                </td>
+
+                                                <td className="border p-3 font-semibold">
+                                                    {
+                                                        formatAmount(
+                                                            booking.bookingAmount
+                                                        )
+                                                    }
+                                                </td>
+
+                                                <td className="border p-3 font-semibold">
+                                                    {
+                                                        booking.remainingAmount
+                                                            ? formatAmount(
+                                                                booking.remainingAmount
+                                                            )
+                                                            : "-"
+                                                    }
+                                                </td>
+
+                                                <td className="border p-3">
+
+                                                    <RemainingModeBadge
+                                                        mode={
+                                                            booking.remainingAmountMode
+                                                        }
+                                                    />
+
+                                                </td>
+
+                                                <td className="border p-3">
+
+                                                    <FinanceTypeBadge
+                                                        type={
+                                                            booking.financeType
+                                                        }
+                                                    />
+
                                                 </td>
 
                                                 <td className="border p-3">
@@ -828,6 +1355,7 @@ function Bookings() {
                     }
                     mode="edit"
                 />
+
             )}
 
         </>
