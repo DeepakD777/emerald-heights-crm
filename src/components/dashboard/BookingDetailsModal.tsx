@@ -20,14 +20,55 @@ interface BookingDetailsModalProps {
   isOpen: boolean;
 
   onClose:
-    () => void;
+  () => void;
 
   booking: any;
+  readOnly?: boolean;
 
   onUpdate:
-    (booking: any) => void;
+  (booking: any) => void;
 }
 
+const formatDateTime = (
+  value:
+    string | null | undefined
+) => {
+
+  if (!value) {
+    return "-";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "-";
+  }
+
+  return date.toLocaleString(
+    "en-IN",
+    {
+      day:
+        "2-digit",
+
+      month:
+        "short",
+
+      year:
+        "numeric",
+
+      hour:
+        "2-digit",
+
+      minute:
+        "2-digit",
+    }
+  );
+};
 // ======================================================
 // Booking Details Modal
 // ======================================================
@@ -36,6 +77,7 @@ function BookingDetailsModal({
   isOpen,
   onClose,
   booking,
+  readOnly = false,
   onUpdate,
 }: BookingDetailsModalProps) {
 
@@ -97,6 +139,15 @@ function BookingDetailsModal({
   // ======================================================
 
   const canModify = () => {
+
+    if (readOnly) {
+
+      alert(
+        "View only access — changes are disabled from Reports."
+      );
+
+      return false;
+    }
 
     if (isAdmin) {
       return true;
@@ -1293,6 +1344,25 @@ function BookingDetailsModal({
               </p>
 
             </div>
+            {booking.cancelledAt && (
+
+              <div>
+
+                <p className="text-sm text-gray-500">
+                  Cancelled At
+                </p>
+
+                <p className="font-semibold text-red-700">
+                  {
+                    formatDateTime(
+                      booking.cancelledAt
+                    )
+                  }
+                </p>
+
+              </div>
+
+            )}
 
             <div>
 
@@ -1530,15 +1600,15 @@ function BookingDetailsModal({
                         .assignedEmployee
                         .phone && (
 
-                          <p className="mt-1 text-sm text-gray-500">
-                            {
-                              booking
-                                .assignedEmployee
-                                .phone
-                            }
-                          </p>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {
+                            booking
+                              .assignedEmployee
+                              .phone
+                          }
+                        </p>
 
-                        )
+                      )
                     }
 
                   </div>
@@ -1613,12 +1683,12 @@ function BookingDetailsModal({
 
                   </div>
 
-                  {isAdmin && (
+                  {isAdmin && !readOnly && (
 
                     <div className="flex flex-wrap gap-2">
 
                       {requisition.status ===
-                      "given" ? (
+                        "given" ? (
 
                         <button
                           type="button"
@@ -1667,7 +1737,7 @@ function BookingDetailsModal({
 
                 <div className="flex flex-wrap gap-2">
 
-                  {isAdmin && (
+                  {isAdmin && !readOnly && (
                     <>
 
                       <input
@@ -1718,7 +1788,7 @@ function BookingDetailsModal({
 
                 </div>
 
-                {isAdmin && (
+                {isAdmin && !readOnly && (
 
                   <p className="text-xs text-gray-500">
                     Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
@@ -1773,7 +1843,8 @@ function BookingDetailsModal({
 
                   </div>
 
-                  {isAdmin && (
+                  {isAdmin && !readOnly && (
+
 
                     <div className="flex flex-wrap gap-2">
 
@@ -1788,7 +1859,7 @@ function BookingDetailsModal({
                       </button>
 
                       {agreement.status ===
-                      "given" ? (
+                        "given" ? (
 
                         <button
                           type="button"
@@ -1837,7 +1908,7 @@ function BookingDetailsModal({
 
                 <div className="flex flex-wrap gap-2">
 
-                  {isAdmin && (
+                  {isAdmin && !readOnly && (
                     <>
 
                       <input
@@ -1888,7 +1959,7 @@ function BookingDetailsModal({
 
                 </div>
 
-                {isAdmin && (
+                {isAdmin && !readOnly && (
 
                   <p className="text-xs text-gray-500">
                     Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
@@ -1918,11 +1989,10 @@ function BookingDetailsModal({
                       </h4>
 
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                          tripartite.required
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${tripartite.required
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-600"
+                          }`}
                       >
                         {
                           tripartite.required
@@ -1960,8 +2030,7 @@ function BookingDetailsModal({
 
                   </div>
 
-                  {isAdmin && (
-
+                  {isAdmin && !readOnly && (
                     <div className="flex flex-wrap gap-2">
 
                       <button
@@ -1969,11 +2038,10 @@ function BookingDetailsModal({
                         onClick={
                           handleTripartiteRequired
                         }
-                        className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                          tripartite.required
-                            ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            : "bg-blue-600 text-white hover:bg-blue-700"
-                        }`}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium ${tripartite.required
+                          ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                          }`}
                       >
                         {
                           tripartite.required
@@ -1985,7 +2053,7 @@ function BookingDetailsModal({
                       {tripartite.required &&
                         tripartite.document
                           ?.status !==
-                          "completed" && (
+                        "completed" && (
 
                           <button
                             type="button"
@@ -2001,7 +2069,7 @@ function BookingDetailsModal({
                       {tripartite.required &&
                         tripartite.document
                           ?.status ===
-                          "completed" && (
+                        "completed" && (
 
                           <button
                             type="button"
@@ -2025,25 +2093,25 @@ function BookingDetailsModal({
                     {tripartite.document
                       ?.fileName && (
 
-                      <div className="rounded-lg bg-green-50 p-3">
+                        <div className="rounded-lg bg-green-50 p-3">
 
-                        <p className="text-sm font-medium text-green-800">
-                          Uploaded Document
-                        </p>
+                          <p className="text-sm font-medium text-green-800">
+                            Uploaded Document
+                          </p>
 
-                        <p className="mt-1 truncate text-sm text-gray-600">
-                          {
-                            tripartite.document
-                              .fileName
-                          }
-                        </p>
+                          <p className="mt-1 truncate text-sm text-gray-600">
+                            {
+                              tripartite.document
+                                .fileName
+                            }
+                          </p>
 
-                      </div>
-                    )}
+                        </div>
+                      )}
 
                     <div className="flex flex-wrap gap-2">
 
-                      {isAdmin && (
+                      {isAdmin && !readOnly && (
                         <>
 
                           <input
@@ -2081,24 +2149,24 @@ function BookingDetailsModal({
                       {tripartite.document
                         ?.fileUrl && (
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleViewDocument(
-                              tripartite
-                                .document
-                                .fileUrl
-                            )
-                          }
-                          className="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-                        >
-                          View Document
-                        </button>
-                      )}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleViewDocument(
+                                tripartite
+                                  .document
+                                  .fileUrl
+                              )
+                            }
+                            className="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                          >
+                            View Document
+                          </button>
+                        )}
 
                     </div>
 
-                    {isAdmin && (
+                    {isAdmin && !readOnly && (
 
                       <p className="text-xs text-gray-500">
                         Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.

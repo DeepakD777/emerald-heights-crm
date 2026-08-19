@@ -1174,6 +1174,13 @@ const formatBooking = (
                 )
                     .toISOString()
                 : null,
+        archivedAt:
+            booking.archivedAt
+                ? new Date(
+                    booking.archivedAt
+                )
+                    .toISOString()
+                : null,
 
         remarks:
             extraData
@@ -3031,6 +3038,12 @@ export const updateBooking = async (
 // DELETE BOOKING
 // ======================================================
 
+// ======================================================
+// DELETE / ARCHIVE BOOKING
+// Bookings page se remove hoga,
+// Reports history me preserve rahega.
+// ======================================================
+
 export const deleteBooking =
     async (
         req: Request,
@@ -3045,8 +3058,7 @@ export const deleteBooking =
                 );
 
             const existingBooking =
-                await prisma
-                    .booking
+                await prisma.booking
                     .findUnique({
 
                         where: {
@@ -3071,6 +3083,26 @@ export const deleteBooking =
                     });
             }
 
+            if (
+                existingBooking
+                    .archivedAt
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Booking is already archived",
+                    });
+            }
+
+            const archiveTime =
+                new Date();
+
             await prisma
                 .$transaction(
                     async (
@@ -3078,16 +3110,32 @@ export const deleteBooking =
                     ) => {
 
                         // ==================================
-                        // Delete Booking
+                        // Soft Archive Booking
+                        // DO NOT permanently delete
                         // ==================================
 
-                        await tx
-                            .booking
-                            .delete({
+                        await tx.booking
+                            .update({
 
                                 where: {
                                     id:
                                         bookingId,
+                                },
+
+                                data: {
+
+                                    archivedAt:
+                                        archiveTime,
+
+                                    status:
+                                        BookingStatus
+                                            .CANCELLED,
+
+                                    cancelledAt:
+                                        existingBooking
+                                            .cancelledAt ??
+                                        archiveTime,
+
                                 },
                             });
 
@@ -3096,8 +3144,7 @@ export const deleteBooking =
                         // ==================================
 
                         const remainingBookings =
-                            await tx
-                                .booking
+                            await tx.booking
                                 .findMany({
 
                                     where: {
@@ -3105,6 +3152,9 @@ export const deleteBooking =
                                         propertyId:
                                             existingBooking
                                                 .propertyId,
+
+                                        archivedAt:
+                                            null,
 
                                         status: {
 
@@ -3136,8 +3186,7 @@ export const deleteBooking =
                                 remainingBookings
                             );
 
-                        await tx
-                            .property
+                        await tx.property
                             .update({
 
                                 where: {
@@ -3160,13 +3209,15 @@ export const deleteBooking =
                     true,
 
                 message:
-                    "Booking deleted successfully",
+                    "Booking archived successfully",
             });
 
-        } catch (error) {
+        } catch (
+        error
+        ) {
 
             console.error(
-                "Delete booking error:",
+                "Archive booking error:",
                 error
             );
 
@@ -3178,11 +3229,194 @@ export const deleteBooking =
                         false,
 
                     message:
-                        "Failed to delete booking",
+                        "Failed to archive booking",
 
                     error:
-                        error instanceof
-                            Error
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown error",
+                });
+        }
+    };
+    // ======================================================
+// PERMANENT DELETE BOOKING
+// Reports page only
+// Database history permanently remove hogi.
+// ======================================================
+
+export const permanentlyDeleteBooking =
+    async (
+        req: Request,
+        res: Response
+    ) => {
+
+        try {
+
+            const bookingId =
+                String(
+                    req.params.id
+                );
+
+            // ==============================================
+            // Existing Booking
+            // ==============================================
+
+            const existingBooking =
+                await prisma.booking
+                    .findUnique({
+
+                        where: {
+                            id:
+                                bookingId,
+                        },
+
+                        select: {
+                            id:
+                                true,
+
+                            propertyId:
+                                true,
+                        },
+                    });
+
+            if (
+                !existingBooking
+            ) {
+
+                return res
+                    .status(404)
+                    .json({
+
+                        success:
+                            false,
+
+                        message:
+                            "Booking not found",
+                    });
+            }
+
+            // ==============================================
+            // Permanent Delete Transaction
+            // ==============================================
+
+            await prisma
+                .$transaction(
+                    async (
+                        tx
+                    ) => {
+
+                        // ----------------------------------
+                        // Permanently delete booking
+                        //
+                        // Booking Documents + NOC records
+                        // cascade delete through Prisma DB
+                        // relations.
+                        // ----------------------------------
+
+                        await tx.booking
+                            .delete({
+
+                                where: {
+                                    id:
+                                        bookingId,
+                                },
+                            });
+
+                        // ----------------------------------
+                        // Find remaining active bookings
+                        // for this property
+                        // ----------------------------------
+
+                        const remainingBookings =
+                            await tx.booking
+                                .findMany({
+
+                                    where: {
+
+                                        propertyId:
+                                            existingBooking
+                                                .propertyId,
+
+                                        archivedAt:
+                                            null,
+
+                                        status: {
+
+                                            in: [
+                                                BookingStatus
+                                                    .PENDING,
+
+                                                BookingStatus
+                                                    .CONFIRMED,
+
+                                                BookingStatus
+                                                    .COMPLETED,
+                                            ],
+                                        },
+                                    },
+
+                                    select: {
+                                        status:
+                                            true,
+                                    },
+                                });
+
+                        // ----------------------------------
+                        // Recalculate Property Status
+                        // ----------------------------------
+
+                        const nextPropertyStatus =
+                            getPropertyStatusFromBookings(
+                                remainingBookings
+                            );
+
+                        await tx.property
+                            .update({
+
+                                where: {
+                                    id:
+                                        existingBooking
+                                            .propertyId,
+                                },
+
+                                data: {
+                                    status:
+                                        nextPropertyStatus,
+                                },
+                            });
+                    }
+                );
+
+            return res.json({
+
+                success:
+                    true,
+
+                message:
+                    "Booking permanently deleted successfully",
+            });
+
+        } catch (
+            error
+        ) {
+
+            console.error(
+                "Permanent delete booking error:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+
+                    success:
+                        false,
+
+                    message:
+                        "Failed to permanently delete booking",
+
+                    error:
+                        error instanceof Error
                             ? error.message
                             : "Unknown error",
                 });

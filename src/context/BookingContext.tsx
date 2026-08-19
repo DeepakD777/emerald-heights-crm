@@ -98,6 +98,7 @@ interface Booking {
     // ==================================================
 
     bookingAmount: string;
+
     propertyType?:
     | "RESIDENTIAL"
     | "COMMERCIAL"
@@ -113,10 +114,14 @@ interface Booking {
     | "FINANCE"
     | "CASH"
     | null;
+
     paymentMode: string;
     bookingDate: string;
 
     cancelledAt:
+    string | null;
+
+    archivedAt:
     string | null;
 
     remarks: string;
@@ -170,16 +175,25 @@ interface BookingContextType {
     string | null;
 
     addBooking: (
-        booking: Booking
+        booking:
+            Booking
     ) => Promise<void>;
 
     updateBooking: (
-        booking: Booking
+        booking:
+            Booking
     ) => Promise<void>;
 
     deleteBooking: (
-        id: string
+        id:
+            string
     ) => Promise<void>;
+
+    permanentlyDeleteBooking: (
+        id:
+            string
+    ) => Promise<void>;
+
 
     refreshBookings:
     () => Promise<void>;
@@ -204,7 +218,10 @@ const getRequestHeaders = (
         getAuthToken();
 
     const headers:
-        Record<string, string> = {};
+        Record<
+            string,
+            string
+        > = {};
 
     if (
         includeJson
@@ -446,21 +463,25 @@ const normalizeBooking = (
                     )
                     : ""
             ),
+
         propertyType:
             booking?.propertyType ??
-            booking?.property?.type ??
+            booking?.property
+                ?.type ??
             null,
 
         remainingAmount:
             booking?.remainingAmount !=
                 null
                 ? String(
-                    booking.remainingAmount
+                    booking
+                        .remainingAmount
                 )
                 : "",
 
         remainingAmountMode:
-            booking?.remainingAmountMode ??
+            booking
+                ?.remainingAmountMode ??
             "AUTO",
 
         financeType:
@@ -475,13 +496,22 @@ const normalizeBooking = (
             booking?.bookingDate
                 ? String(
                     booking.bookingDate
-                ).split("T")[0]
+                ).split(
+                    "T"
+                )[0]
                 : "",
 
         cancelledAt:
             booking?.cancelledAt
                 ? String(
                     booking.cancelledAt
+                )
+                : null,
+
+        archivedAt:
+            booking?.archivedAt
+                ? String(
+                    booking.archivedAt
                 )
                 : null,
 
@@ -510,7 +540,8 @@ const normalizeBooking = (
             "",
 
         afterDiscountAmount:
-            booking?.afterDiscountAmount ??
+            booking
+                ?.afterDiscountAmount ??
             "",
 
         plan:
@@ -539,13 +570,15 @@ const normalizeBooking = (
 
         employeeId:
             booking?.employeeId ??
-            booking?.assignedEmployee
+            booking
+                ?.assignedEmployee
                 ?.id ??
             null,
 
         assignedEmployee:
             normalizeAssignedEmployee(
-                booking?.assignedEmployee ??
+                booking
+                    ?.assignedEmployee ??
                 booking?.employee
             ),
 
@@ -588,7 +621,8 @@ const normalizeBooking = (
 // ======================================================
 
 const createApiPayload = (
-    booking: Booking
+    booking:
+        Booking
 ) => {
 
     return {
@@ -653,11 +687,13 @@ const createApiPayload = (
 
         bookingAmount:
             booking.bookingAmount,
+
         remainingAmount:
             booking.remainingAmount,
 
         remainingAmountMode:
-            booking.remainingAmountMode,
+            booking
+                .remainingAmountMode,
 
         financeType:
             booking.financeType,
@@ -669,7 +705,8 @@ const createApiPayload = (
             booking.discount,
 
         afterDiscountAmount:
-            booking.afterDiscountAmount,
+            booking
+                .afterDiscountAmount,
 
         plan:
             booking.plan,
@@ -711,7 +748,9 @@ const BookingContext =
     createContext<
         BookingContextType |
         undefined
-    >(undefined);
+    >(
+        undefined
+    );
 
 // ======================================================
 // Provider
@@ -746,7 +785,9 @@ export function BookingProvider({
     ] =
         useState<
             string | null
-        >(null);
+        >(
+            null
+        );
 
     // ==================================================
     // GET BOOKINGS
@@ -793,9 +834,10 @@ export function BookingProvider({
                     Array.isArray(
                         result.data
                     )
-                        ? result.data.map(
-                            normalizeBooking
-                        )
+                        ? result.data
+                            .map(
+                                normalizeBooking
+                            )
                         : [];
 
                 setBookings(
@@ -830,11 +872,14 @@ export function BookingProvider({
     // INITIAL LOAD
     // ==================================================
 
-    useEffect(() => {
+    useEffect(
+        () => {
 
-        void refreshBookings();
+            void refreshBookings();
 
-    }, []);
+        },
+        []
+    );
 
     // ==================================================
     // ADD BOOKING
@@ -1015,7 +1060,7 @@ export function BookingProvider({
         };
 
     // ==================================================
-    // DELETE BOOKING
+    // DELETE / ARCHIVE BOOKING
     // ==================================================
 
     const deleteBooking =
@@ -1053,29 +1098,20 @@ export function BookingProvider({
 
                     throw new Error(
                         result.message ||
-                        "Failed to delete booking"
+                        "Failed to archive booking"
                     );
                 }
 
-                setBookings(
-                    (
-                        previous
-                    ) =>
-                        previous.filter(
-                            (
-                                booking
-                            ) =>
-                                booking.id !==
-                                id
-                        )
-                );
+                // Temporary local removal from Booking page.
+                // Backend record remains preserved in database.
+                await refreshBookings();
 
             } catch (
             error
             ) {
 
                 console.error(
-                    "Delete booking error:",
+                    "Archive booking error:",
                     error
                 );
 
@@ -1083,13 +1119,77 @@ export function BookingProvider({
                     error instanceof
                         Error
                         ? error.message
-                        : "Failed to delete booking"
+                        : "Failed to archive booking"
                 );
 
                 throw error;
             }
         };
+    // ==================================================
+    // PERMANENT DELETE BOOKING
+    // Reports page only
+    // ==================================================
 
+    const permanentlyDeleteBooking =
+        async (
+            id:
+                string
+        ) => {
+
+            try {
+
+                setError(
+                    null
+                );
+
+                const response =
+                    await fetch(
+                        `${API_URL}/${id}/permanent`,
+                        {
+                            method:
+                                "DELETE",
+
+                            headers:
+                                getRequestHeaders(),
+                        }
+                    );
+
+                const result =
+                    await response
+                        .json();
+
+                if (
+                    !response.ok ||
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Failed to permanently delete booking"
+                    );
+                }
+
+                await refreshBookings();
+
+            } catch (
+            error
+            ) {
+
+                console.error(
+                    "Permanent delete booking error:",
+                    error
+                );
+
+                setError(
+                    error instanceof
+                        Error
+                        ? error.message
+                        : "Failed to permanently delete booking"
+                );
+
+                throw error;
+            }
+        };
     // ==================================================
     // Provider
     // ==================================================
@@ -1105,7 +1205,7 @@ export function BookingProvider({
                 addBooking,
                 updateBooking,
                 deleteBooking,
-
+                permanentlyDeleteBooking,
                 refreshBookings,
             }}
         >

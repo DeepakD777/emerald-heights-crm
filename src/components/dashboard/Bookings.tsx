@@ -17,6 +17,7 @@ import {
     useBooking,
 } from "../../context/BookingContext";
 
+
 import {
     useAuth,
 } from "../../context/AuthContext";
@@ -441,6 +442,7 @@ function Bookings() {
                     (
                         booking
                     ) =>
+                        !booking.archivedAt &&
                         booking.propertyType ===
                         "RESIDENTIAL"
                 ).length,
@@ -456,6 +458,7 @@ function Bookings() {
                     (
                         booking
                     ) =>
+                        !booking.archivedAt &&
                         booking.propertyType ===
                         "COMMERCIAL"
                 ).length,
@@ -481,6 +484,12 @@ function Bookings() {
                     (
                         booking
                     ) => {
+                        if (
+                            booking.archivedAt
+                        ) {
+
+                            return false;
+                        }
 
                         if (
                             booking.propertyType !==
@@ -1149,13 +1158,13 @@ function Bookings() {
                                                         }
                                                     </div>
 
-                                                   <div className="mt-1 text-xs text-gray-500">
-    {
-        booking.floor === 0
-            ? "Ground Floor"
-            : `Floor: ${booking.floor ?? "-"}`
-    }
-</div>
+                                                    <div className="mt-1 text-xs text-gray-500">
+                                                        {
+                                                            booking.floor === 0
+                                                                ? "Ground Floor"
+                                                                : `Floor: ${booking.floor ?? "-"}`
+                                                        }
+                                                    </div>
                                                 </td>
 
                                                 <td className="border p-3">

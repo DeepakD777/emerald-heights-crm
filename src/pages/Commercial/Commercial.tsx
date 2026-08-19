@@ -800,7 +800,7 @@ function Commercial() {
                 // BookingModal ki saari filled fields
                 ...bookingData,
 
-                // Correct Commercial property
+                // Correct selected commercial property
                 propertyId:
                     selectedShop.propertyId ??
                     selectedShop.id,
@@ -810,7 +810,7 @@ function Commercial() {
                     bookingData.employeeId ??
                     undefined,
 
-                // Default booking status
+                // New booking default status
                 status:
                     bookingData.status ??
                     "CONFIRMED",
@@ -838,7 +838,6 @@ function Commercial() {
             );
         }
     };
-
     // ==================================================
     // Reset
     // ==================================================
