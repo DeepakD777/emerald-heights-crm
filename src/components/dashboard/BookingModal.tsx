@@ -17,21 +17,23 @@ interface BookingModalProps {
     isOpen: boolean;
 
     onClose:
-        () => void;
+    () => void;
 
     onConfirm:
-        (bookingData: any) => void;
+    (bookingData: any) => void;
 
     booking?: any;
 
     mode?:
-        | "create"
-        | "edit";
+    | "create"
+    | "edit";
 
     flat: {
         number: string;
         tower: string;
-        floor: number;
+        floor:
+        number |
+        string;
         status?: string;
     } | null;
 }
@@ -120,7 +122,7 @@ const getRoleLabel = (
 ) => {
 
     switch (
-        role
+    role
     ) {
 
         case "SALES_MANAGER":
@@ -145,6 +147,7 @@ const getRoleLabel = (
 const getFloorLabel = (
     floor:
         number |
+        string |
         null |
         undefined
 ) => {
@@ -159,64 +162,138 @@ const getFloorLabel = (
         return "-";
     }
 
+    // ----------------------------------------------
+    // Commercial floors may already arrive as text
+    // e.g. "Ground Floor", "1st Floor"
+    // ----------------------------------------------
+
     if (
-        floor === 0
+        typeof floor ===
+        "string"
+    ) {
+
+        const trimmedFloor =
+            floor.trim();
+
+        if (!trimmedFloor) {
+            return "-";
+        }
+
+        const normalizedFloor =
+            trimmedFloor
+                .toLowerCase();
+
+        if (
+            normalizedFloor ===
+            "ground floor" ||
+            normalizedFloor ===
+            "ground"
+        ) {
+
+            return "Ground Floor";
+        }
+
+        const numericMatch =
+            normalizedFloor.match(
+                /^(-?\d+)(?:st|nd|rd|th)?(?:\s*floor)?$/
+            );
+
+        if (
+            !numericMatch
+        ) {
+
+            return trimmedFloor;
+        }
+
+        floor =
+            Number(
+                numericMatch[1]
+            );
+    }
+
+    const numericFloor =
+        Number(
+            floor
+        );
+
+    if (
+        !Number.isFinite(
+            numericFloor
+        )
+    ) {
+
+        return "-";
+    }
+
+    if (
+        numericFloor ===
+        0
     ) {
 
         return "Ground Floor";
     }
 
     if (
-        floor === 1
+        numericFloor ===
+        1
     ) {
 
         return "1st Floor";
     }
 
     if (
-        floor === 2
+        numericFloor ===
+        2
     ) {
 
         return "2nd Floor";
     }
 
     if (
-        floor === 3
+        numericFloor ===
+        3
     ) {
 
         return "3rd Floor";
     }
 
     const lastDigit =
-        floor % 10;
+        numericFloor %
+        10;
 
     const lastTwoDigits =
-        floor % 100;
+        numericFloor %
+        100;
 
     let suffix =
         "th";
 
     if (
-        lastTwoDigits < 11 ||
-        lastTwoDigits > 13
+        lastTwoDigits <
+        11 ||
+        lastTwoDigits >
+        13
     ) {
 
         if (
-            lastDigit === 1
+            lastDigit ===
+            1
         ) {
 
             suffix =
                 "st";
 
         } else if (
-            lastDigit === 2
+            lastDigit ===
+            2
         ) {
 
             suffix =
                 "nd";
 
         } else if (
-            lastDigit === 3
+            lastDigit ===
+            3
         ) {
 
             suffix =
@@ -224,7 +301,7 @@ const getFloorLabel = (
         }
     }
 
-    return `${floor}${suffix} Floor`;
+    return `${numericFloor}${suffix} Floor`;
 };
 
 // ======================================================
@@ -458,7 +535,7 @@ function BookingModal({
                     );
 
                 } catch (
-                    error
+                error
                 ) {
 
                     console.error(
@@ -506,17 +583,17 @@ function BookingModal({
 
         if (
             mode ===
-                "edit" &&
+            "edit" &&
             booking
         ) {
 
             const savedMode:
                 RemainingAmountMode =
-                    booking
-                        .remainingAmountMode ===
+                booking
+                    .remainingAmountMode ===
                     "MANUAL"
-                        ? "MANUAL"
-                        : "AUTO";
+                    ? "MANUAL"
+                    : "AUTO";
 
             const savedAfterDiscountAmount =
                 booking
@@ -530,7 +607,7 @@ function BookingModal({
 
             const normalizedRemainingAmount =
                 savedMode ===
-                "AUTO"
+                    "AUTO"
                     ? calculateRemainingAmount(
                         savedAfterDiscountAmount,
                         savedBookingAmount
@@ -543,14 +620,14 @@ function BookingModal({
 
             const savedFinanceType:
                 FinanceType =
-                    booking.financeType ===
+                booking.financeType ===
                     "FINANCE"
-                        ? "FINANCE"
-                        : booking
-                            .financeType ===
-                          "CASH"
-                            ? "CASH"
-                            : "";
+                    ? "FINANCE"
+                    : booking
+                        .financeType ===
+                        "CASH"
+                        ? "CASH"
+                        : "";
 
             setFormData({
 
@@ -707,21 +784,21 @@ function BookingModal({
 
                 if (
                     name ===
-                        "totalAmount" ||
+                    "totalAmount" ||
                     name ===
-                        "discount"
+                    "discount"
                 ) {
 
                     const nextTotal =
                         name ===
-                        "totalAmount"
+                            "totalAmount"
                             ? value
                             : previous
                                 .totalAmount;
 
                     const nextDiscount =
                         name ===
-                        "discount"
+                            "discount"
                             ? value
                             : previous
                                 .discount;
@@ -746,13 +823,13 @@ function BookingModal({
 
                     if (
                         name ===
-                            "totalAmount" ||
+                        "totalAmount" ||
                         name ===
-                            "discount" ||
+                        "discount" ||
                         name ===
-                            "bookingAmount" ||
+                        "bookingAmount" ||
                         name ===
-                            "remainingAmountMode"
+                        "remainingAmountMode"
                     ) {
 
                         nextData
@@ -804,7 +881,7 @@ function BookingModal({
             const finalRemainingAmount =
                 formData
                     .remainingAmountMode ===
-                "AUTO"
+                    "AUTO"
                     ? calculateRemainingAmount(
                         formData
                             .afterDiscountAmount,
@@ -854,7 +931,7 @@ function BookingModal({
 
                 status:
                     mode ===
-                    "edit"
+                        "edit"
                         ? booking?.status ??
                         "booked"
                         : "booked",
@@ -897,7 +974,7 @@ function BookingModal({
             }
             title={
                 mode ===
-                "edit"
+                    "edit"
                     ? `Edit Booking - ${flat.number}`
                     : `Booking - ${flat.number}`
             }
@@ -1013,9 +1090,9 @@ function BookingModal({
                                         }
                                         disabled={
                                             member.status !==
-                                                "ACTIVE" &&
+                                            "ACTIVE" &&
                                             member.id !==
-                                                formData.employeeId
+                                            formData.employeeId
                                         }
                                     >
 
@@ -1033,7 +1110,7 @@ function BookingModal({
 
                                         {
                                             member.status !==
-                                            "ACTIVE"
+                                                "ACTIVE"
                                                 ? " (Inactive)"
                                                 : ""
                                         }
@@ -1452,12 +1529,11 @@ function BookingModal({
                                     rounded-lg
                                     border
                                     p-2
-                                    ${
-                                        formData
-                                            .remainingAmountMode ===
+                                    ${formData
+                                        .remainingAmountMode ===
                                         "AUTO"
-                                            ? "bg-gray-100 text-gray-700"
-                                            : "bg-white"
+                                        ? "bg-gray-100 text-gray-700"
+                                        : "bg-white"
                                     }
                                 `}
                             />
@@ -1465,7 +1541,7 @@ function BookingModal({
                             {
                                 formData
                                     .remainingAmountMode ===
-                                "AUTO"
+                                    "AUTO"
                                     ? (
 
                                         <p className="mt-1 text-xs text-gray-500">
@@ -1787,7 +1863,7 @@ function BookingModal({
 
                         {
                             mode ===
-                            "edit"
+                                "edit"
                                 ? "Update Booking"
                                 : "Confirm Booking"
                         }
