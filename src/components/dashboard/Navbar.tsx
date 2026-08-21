@@ -20,6 +20,13 @@ import {
 import {
     useAuth,
 } from "../../context/AuthContext";
+import {
+    useNotifications,
+} from "../../hooks/useNotifications";
+
+import {
+    buildNocNotificationItems,
+} from "../../utils/nocNotificationAdapter";
 
 // ======================================================
 // Types
@@ -39,10 +46,10 @@ interface NotificationItem {
     flatNumber: string;
 
     type:
-        | "requisition"
-        | "agreement"
-        | "tripartite";
-
+    | "requisition"
+    | "agreement"
+    | "tripartite"
+    | "noc";
     title: string;
 
     status: string;
@@ -62,6 +69,11 @@ function Navbar({
     const {
         bookings,
     } = useBooking();
+    const {
+        notifications:
+        backendNotifications,
+    } = useNotifications();
+
 
     const {
         user,
@@ -84,7 +96,7 @@ function Navbar({
         user?.role?.trim() ||
         (
             user?.userType ===
-            "ADMIN"
+                "ADMIN"
                 ? "Administrator"
                 : "Employee"
         );
@@ -117,9 +129,9 @@ function Navbar({
 
             if (
                 requisitionStatus !==
-                    "given" &&
+                "given" &&
                 requisitionStatus !==
-                    "completed"
+                "completed"
             ) {
 
                 notifications.push({
@@ -158,9 +170,9 @@ function Navbar({
 
             if (
                 agreementStatus !==
-                    "given" &&
+                "given" &&
                 agreementStatus !==
-                    "completed"
+                "completed"
             ) {
 
                 notifications.push({
@@ -209,7 +221,7 @@ function Navbar({
             if (
                 tripartiteRequired &&
                 tripartiteStatus !==
-                    "completed"
+                "completed"
             ) {
 
                 notifications.push({
@@ -236,6 +248,16 @@ function Navbar({
                 });
             }
         }
+
+    );
+    const nocNotifications =
+        buildNocNotificationItems(
+            backendNotifications,
+            bookings
+        );
+
+    notifications.push(
+        ...nocNotifications
     );
 
     // ======================================================
@@ -508,8 +530,8 @@ function Navbar({
                         {notificationCount >
                             0 && (
 
-                            <span
-                                className="
+                                <span
+                                    className="
                                     absolute
                                     -right-1
                                     -top-1
@@ -525,12 +547,12 @@ function Navbar({
                                     font-bold
                                     text-white
                                 "
-                            >
-                                {
-                                    notificationCount
-                                }
-                            </span>
-                        )}
+                                >
+                                    {
+                                        notificationCount
+                                    }
+                                </span>
+                            )}
 
                     </button>
 
@@ -593,7 +615,7 @@ function Navbar({
                                         pending item
                                         {
                                             notificationCount !==
-                                            1
+                                                1
                                                 ? "s"
                                                 : ""
                                         }
@@ -613,7 +635,7 @@ function Navbar({
                             ================================== */}
 
                             {notificationCount ===
-                            0 ? (
+                                0 ? (
 
                                 <div
                                     className="
@@ -711,10 +733,9 @@ function Navbar({
                                                             justify-center
                                                             rounded-full
 
-                                                            ${
-                                                                getNotificationBackground(
-                                                                    notification.type
-                                                                )
+                                                            ${getNotificationBackground(
+                                                            notification.type
+                                                        )
                                                             }
                                                         `}
                                                     >

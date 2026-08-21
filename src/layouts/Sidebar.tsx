@@ -31,6 +31,13 @@ import {
 import {
     useAuth,
 } from "../context/AuthContext";
+import {
+    useNotifications,
+} from "../hooks/useNotifications";
+
+import {
+    buildNocNotificationItems,
+} from "../utils/nocNotificationAdapter";
 
 // ======================================================
 // Types
@@ -129,6 +136,10 @@ function Sidebar({
     const {
         bookings,
     } = useBooking();
+    const {
+        notifications:
+        backendNotifications,
+    } = useNotifications();
 
     const {
         user,
@@ -190,6 +201,14 @@ function Sidebar({
             notificationCount++;
         }
     });
+    const nocNotifications =
+        buildNocNotificationItems(
+            backendNotifications,
+            bookings
+        );
+
+    notificationCount +=
+        nocNotifications.length;
 
     // ==================================================
     // Visible Menu
@@ -280,10 +299,9 @@ function Sidebar({
                     lg:static
                     lg:translate-x-0
 
-                    ${
-                        isOpen
-                            ? "translate-x-0"
-                            : "-translate-x-full"
+                    ${isOpen
+                        ? "translate-x-0"
+                        : "-translate-x-full"
                     }
                 `}
             >
@@ -416,11 +434,10 @@ function Sidebar({
                                         py-3
                                         transition-colors
 
-                                        ${
-                                            isActive
-                                                ? "bg-green-700 text-white"
-                                                : "text-green-100 hover:bg-green-800"
-                                        }
+                                        ${isActive
+                                        ? "bg-green-700 text-white"
+                                        : "text-green-100 hover:bg-green-800"
+                                    }
                                     `
                                 }
                             >
@@ -446,8 +463,8 @@ function Sidebar({
                                     {isNotification &&
                                         notificationCount > 0 && (
 
-                                        <span
-                                            className="
+                                            <span
+                                                className="
                                                 flex
                                                 h-5
                                                 min-w-5
@@ -460,11 +477,11 @@ function Sidebar({
                                                 font-bold
                                                 text-white
                                             "
-                                        >
-                                            {notificationCount}
-                                        </span>
+                                            >
+                                                {notificationCount}
+                                            </span>
 
-                                    )}
+                                        )}
 
                                 </div>
 

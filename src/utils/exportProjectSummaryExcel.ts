@@ -1,5 +1,11 @@
 import ExcelJS from "exceljs";
+import {
+    getNocs,
+} from "../services/nocService";
 
+import type {
+    NocRecord,
+} from "../services/nocService";
 // ======================================================
 // Types
 // ======================================================
@@ -10,6 +16,18 @@ type BookingRecord =
 type PropertyType =
     | "RESIDENTIAL"
     | "COMMERCIAL";
+
+export type ExcelPropertyFilter =
+    | "ALL"
+    | "RESIDENTIAL"
+    | "COMMERCIAL";
+
+export interface ProjectExcelExportOptions {
+    propertyType?: ExcelPropertyFilter;
+
+    fromDate?: string;
+    toDate?: string;
+}
 
 // ======================================================
 // Constants
@@ -210,7 +228,7 @@ const isCancelledBooking = (
         normalizeStatus(
             booking?.status
         ) ===
-            "cancelled" ||
+        "cancelled" ||
         Boolean(
             booking?.archivedAt
         )
@@ -283,14 +301,14 @@ const getRemainingAmount = (
 
     if (
         rawRemaining !==
-            null &&
+        null &&
         rawRemaining !==
-            undefined &&
+        undefined &&
         String(
             rawRemaining
         )
             .trim() !==
-            ""
+        ""
     ) {
 
         return toNumber(
@@ -321,6 +339,78 @@ const getRemainingAmount = (
         bookingAmount,
         0
     );
+};
+const isBookingInDateRange = (
+    booking: BookingRecord,
+    fromDate?: string,
+    toDate?: string
+) => {
+
+    if (
+        !fromDate &&
+        !toDate
+    ) {
+        return true;
+    }
+
+    const rawDate =
+        booking?.bookingDate;
+
+    if (!rawDate) {
+        return false;
+    }
+
+    const bookingDate =
+        new Date(
+            String(rawDate)
+        );
+
+    if (
+        Number.isNaN(
+            bookingDate.getTime()
+        )
+    ) {
+        return false;
+    }
+
+    const bookingDay =
+        new Date(
+            bookingDate.getFullYear(),
+            bookingDate.getMonth(),
+            bookingDate.getDate()
+        );
+
+    if (fromDate) {
+
+        const from =
+            new Date(
+                `${fromDate}T00:00:00`
+            );
+
+        if (
+            bookingDay <
+            from
+        ) {
+            return false;
+        }
+    }
+
+    if (toDate) {
+
+        const to =
+            new Date(
+                `${toDate}T23:59:59`
+            );
+
+        if (
+            bookingDay >
+            to
+        ) {
+            return false;
+        }
+    }
+
+    return true;
 };
 
 // ======================================================
@@ -401,9 +491,9 @@ const getFloorLabel = (
 
     if (
         lastTwoDigits <
-            11 ||
+        11 ||
         lastTwoDigits >
-            13
+        13
     ) {
 
         if (
@@ -814,23 +904,23 @@ const styleDataRow = (
 
 interface TableOptions {
     headers:
-        string[];
+    string[];
 
     rows:
+    Array<
         Array<
-            Array<
-                unknown
-            >
-        >;
+            unknown
+        >
+    >;
 
     widths:
-        number[];
+    number[];
 
     currencyColumns?:
-        number[];
+    number[];
 
     dateColumns?:
-        number[];
+    number[];
 }
 
 const writeTable = (
@@ -1034,22 +1124,22 @@ const buildProjectGroups = (
             string,
             {
                 project:
-                    string;
+                string;
 
                 bookingCount:
-                    number;
+                number;
 
                 bookingAmount:
-                    number;
+                number;
 
                 remainingAmount:
-                    number;
+                number;
 
                 finalAmount:
-                    number;
+                number;
 
                 employees:
-                    Set<string>;
+                Set<string>;
             }
         >();
 
@@ -1165,28 +1255,28 @@ const buildEmployeeSummary = (
             string,
             {
                 name:
-                    string;
+                string;
 
                 role:
-                    string;
+                string;
 
                 residential:
-                    number;
+                number;
 
                 commercial:
-                    number;
+                number;
 
                 total:
-                    number;
+                number;
 
                 received:
-                    number;
+                number;
 
                 remaining:
-                    number;
+                number;
 
                 finalAmount:
-                    number;
+                number;
             }
         >();
 
@@ -1399,15 +1489,71 @@ const getBookingRow = (
 export const exportProjectSummaryExcel =
     async (
         bookings:
-            BookingRecord[]
+            BookingRecord[],
+
+        options:
+            ProjectExcelExportOptions =
+            {}
     ) => {
 
-        const safeBookings =
+        const propertyFilter =
+            options.propertyType ??
+            "ALL";
+
+        const sourceBookings =
             Array.isArray(
                 bookings
             )
                 ? bookings
                 : [];
+
+        const safeBookings =
+            sourceBookings.filter(
+                (
+                    booking
+                ) => {
+
+                    const matchesProperty =
+                        propertyFilter ===
+                        "ALL" ||
+                        getPropertyType(
+                            booking
+                        ) ===
+                        propertyFilter;
+
+                    const matchesDate =
+                        isBookingInDateRange(
+                            booking,
+                            options.fromDate,
+                            options.toDate
+                        );
+
+                    return (
+                        matchesProperty &&
+                        matchesDate
+                    );
+                }
+            );
+        const nocs =
+            await getNocs();
+
+        const nocByBookingId =
+            new Map<
+                string,
+                NocRecord
+            >();
+
+        nocs.forEach(
+            (
+                noc
+            ) => {
+
+                nocByBookingId.set(
+                    noc.bookingId,
+                    noc
+                );
+            }
+        );
 
         const activeBookings =
             safeBookings.filter(
@@ -1715,9 +1861,9 @@ export const exportProjectSummaryExcel =
 
                 if (
                     index >=
-                        1 &&
+                    1 &&
                     index <=
-                        3
+                    3
                 ) {
 
                     [
@@ -1766,204 +1912,220 @@ export const exportProjectSummaryExcel =
         // Residential Tower Summary
         // --------------------------------------------------
 
+
+
         let summaryRow =
             13;
 
-        styleSectionHeader(
-            summarySheet,
-            summaryRow,
-            "Residential - Tower Wise Booking Summary",
-            6
-        );
+        if (
+            propertyFilter !==
+            "COMMERCIAL"
+        ) {
 
-        summaryRow +=
-            1;
+            styleSectionHeader(
+                summarySheet,
+                summaryRow,
+                "Residential - Tower Wise Booking Summary",
+                6
+            );
 
-        summarySheet.getRow(
-            summaryRow
-        ).values = [
-            "Tower",
-            "Booked Flats",
-            "Final Sale Value",
-            "Received",
-            "Remaining",
-            "Sales Members",
-        ];
+            summaryRow +=
+                1;
 
-        styleHeaderRow(
             summarySheet.getRow(
                 summaryRow
-            )
-        );
-
-        summaryRow +=
-            1;
-
-        residentialGroups.forEach(
-            (
-                group
-            ) => {
-
-                const row =
-                    summarySheet.getRow(
-                        summaryRow
-                    );
-
-                row.values = [
-                    group.project,
-                    group.bookingCount,
-                    group.finalAmount,
-                    group.bookingAmount,
-                    group.remainingAmount,
-                    Array.from(
-                        group.employees
-                    )
-                        .sort()
-                        .join(
-                            ", "
-                        ),
+            ).values = [
+                    "Tower",
+                    "Booked Flats",
+                    "Final Sale Value",
+                    "Received",
+                    "Remaining",
+                    "Sales Members",
                 ];
 
-                styleDataRow(
-                    row
-                );
+            styleHeaderRow(
+                summarySheet.getRow(
+                    summaryRow
+                )
+            );
 
-                [
-                    3,
-                    4,
-                    5,
-                ].forEach(
-                    (
-                        column
-                    ) => {
+            summaryRow +=
+                1;
 
-                        row.getCell(
-                            column
+            residentialGroups.forEach(
+                (
+                    group
+                ) => {
+
+                    const row =
+                        summarySheet.getRow(
+                            summaryRow
+                        );
+
+                    row.values = [
+                        group.project,
+                        group.bookingCount,
+                        group.finalAmount,
+                        group.bookingAmount,
+                        group.remainingAmount,
+
+                        Array.from(
+                            group.employees
                         )
-                            .numFmt =
-                            RUPEE_FORMAT;
-                    }
-                );
+                            .sort()
+                            .join(
+                                ", "
+                            ),
+                    ];
+
+                    styleDataRow(
+                        row
+                    );
+
+                    [
+                        3,
+                        4,
+                        5,
+                    ].forEach(
+                        (
+                            column
+                        ) => {
+
+                            row.getCell(
+                                column
+                            )
+                                .numFmt =
+                                RUPEE_FORMAT;
+                        }
+                    );
+
+                    summaryRow +=
+                        1;
+                }
+            );
+
+            if (
+                residentialGroups.length ===
+                0
+            ) {
+
+                summarySheet.getCell(
+                    summaryRow,
+                    1
+                ).value =
+                    "No residential bookings";
 
                 summaryRow +=
                     1;
             }
-        );
-
-        if (
-            residentialGroups.length ===
-            0
-        ) {
-
-            summarySheet.getCell(
-                summaryRow,
-                1
-            ).value =
-                "No residential bookings";
 
             summaryRow +=
-                1;
+                2;
         }
-
-        summaryRow +=
-            2;
 
         // --------------------------------------------------
         // Commercial Project Summary
         // Commercial / Commercial 1 separated automatically
         // --------------------------------------------------
 
-        styleSectionHeader(
-            summarySheet,
-            summaryRow,
-            "Commercial - Project Wise Booking Summary",
-            6
-        );
-
-        summaryRow +=
-            1;
-
-        summarySheet.getRow(
-            summaryRow
-        ).values = [
-            "Commercial Project",
-            "Booked Shops",
-            "Final Sale Value",
-            "Received",
-            "Remaining",
-            "Sales Members",
-        ];
-
-        styleHeaderRow(
-            summarySheet.getRow(
-                summaryRow
-            )
-        );
-
-        summaryRow +=
-            1;
-
-        commercialGroups.forEach(
-            (
-                group
-            ) => {
-
-                const row =
-                    summarySheet.getRow(
-                        summaryRow
-                    );
-
-                row.values = [
-                    group.project,
-                    group.bookingCount,
-                    group.finalAmount,
-                    group.bookingAmount,
-                    group.remainingAmount,
-                    Array.from(
-                        group.employees
-                    )
-                        .sort()
-                        .join(
-                            ", "
-                        ),
-                ];
-
-                styleDataRow(
-                    row
-                );
-
-                [
-                    3,
-                    4,
-                    5,
-                ].forEach(
-                    (
-                        column
-                    ) => {
-
-                        row.getCell(
-                            column
-                        )
-                            .numFmt =
-                            RUPEE_FORMAT;
-                    }
-                );
-
-                summaryRow +=
-                    1;
-            }
-        );
-
         if (
-            commercialGroups.length ===
-            0
+            propertyFilter !==
+            "RESIDENTIAL"
         ) {
 
-            summarySheet.getCell(
+            styleSectionHeader(
+                summarySheet,
                 summaryRow,
-                1
-            ).value =
-                "No commercial bookings";
+                "Commercial - Project Wise Booking Summary",
+                6
+            );
+
+            summaryRow +=
+                1;
+
+            summarySheet.getRow(
+                summaryRow
+            ).values = [
+                    "Commercial Project",
+                    "Booked Shops",
+                    "Final Sale Value",
+                    "Received",
+                    "Remaining",
+                    "Sales Members",
+                ];
+
+            styleHeaderRow(
+                summarySheet.getRow(
+                    summaryRow
+                )
+            );
+
+            summaryRow +=
+                1;
+
+            commercialGroups.forEach(
+                (
+                    group
+                ) => {
+
+                    const row =
+                        summarySheet.getRow(
+                            summaryRow
+                        );
+
+                    row.values = [
+                        group.project,
+                        group.bookingCount,
+                        group.finalAmount,
+                        group.bookingAmount,
+                        group.remainingAmount,
+
+                        Array.from(
+                            group.employees
+                        )
+                            .sort()
+                            .join(
+                                ", "
+                            ),
+                    ];
+
+                    styleDataRow(
+                        row
+                    );
+
+                    [
+                        3,
+                        4,
+                        5,
+                    ].forEach(
+                        (
+                            column
+                        ) => {
+
+                            row.getCell(
+                                column
+                            )
+                                .numFmt =
+                                RUPEE_FORMAT;
+                        }
+                    );
+
+                    summaryRow +=
+                        1;
+                }
+            );
+
+            if (
+                commercialGroups.length ===
+                0
+            ) {
+
+                summarySheet.getCell(
+                    summaryRow,
+                    1
+                ).value =
+                    "No commercial bookings";
+            }
         }
 
         summarySheet
@@ -2206,7 +2368,7 @@ export const exportProjectSummaryExcel =
                             const collectionPercentage =
                                 employee
                                     .finalAmount >
-                                0
+                                    0
                                     ? (
                                         employee
                                             .received /
@@ -2334,53 +2496,53 @@ export const exportProjectSummaryExcel =
                         (
                             booking
                         ) => [
-                            getPropertyType(
+                                getPropertyType(
+                                    booking
+                                ),
                                 booking
-                            ),
-                            booking
-                                ?.tower ||
-                            "-",
-                            booking
-                                ?.flatNumber ||
-                            "-",
-                            booking
-                                ?.bookingCode ||
-                            "-",
-                            booking
-                                ?.customerName ||
-                            "-",
-                            booking
-                                ?.mobile ||
-                            "-",
-                            toExcelDate(
+                                    ?.tower ||
+                                "-",
                                 booking
-                                    ?.bookingDate
-                            ),
-                            getFinalAmount(
+                                    ?.flatNumber ||
+                                "-",
                                 booking
-                            ),
-                            getBookingAmount(
+                                    ?.bookingCode ||
+                                "-",
                                 booking
-                            ),
-                            getRemainingAmount(
+                                    ?.customerName ||
+                                "-",
                                 booking
-                            ),
-                            booking
-                                ?.paymentMode ||
-                            "-",
-                            booking
-                                ?.financeType ||
-                            "-",
-                            getEmployeeName(
+                                    ?.mobile ||
+                                "-",
+                                toExcelDate(
+                                    booking
+                                        ?.bookingDate
+                                ),
+                                getFinalAmount(
+                                    booking
+                                ),
+                                getBookingAmount(
+                                    booking
+                                ),
+                                getRemainingAmount(
+                                    booking
+                                ),
                                 booking
-                            ),
-                            getStatusLabel(
+                                    ?.paymentMode ||
+                                "-",
                                 booking
-                            ),
-                            booking
-                                ?.remarks ||
-                            "-",
-                        ]
+                                    ?.financeType ||
+                                "-",
+                                getEmployeeName(
+                                    booking
+                                ),
+                                getStatusLabel(
+                                    booking
+                                ),
+                                booking
+                                    ?.remarks ||
+                                "-",
+                            ]
                     ),
 
                 widths: [
@@ -2476,46 +2638,46 @@ export const exportProjectSummaryExcel =
                         (
                             booking
                         ) => [
-                            getPropertyType(
+                                getPropertyType(
+                                    booking
+                                ),
                                 booking
-                            ),
-                            booking
-                                ?.bookingCode ||
-                            "-",
-                            booking
-                                ?.tower ||
-                            "-",
-                            booking
-                                ?.flatNumber ||
-                            "-",
-                            booking
-                                ?.customerName ||
-                            "-",
-                            booking
-                                ?.mobile ||
-                            "-",
-                            getEmployeeName(
+                                    ?.bookingCode ||
+                                "-",
                                 booking
-                            ),
-                            toExcelDate(
+                                    ?.tower ||
+                                "-",
                                 booking
-                                    ?.bookingDate
-                            ),
-                            toExcelDate(
+                                    ?.flatNumber ||
+                                "-",
                                 booking
-                                    ?.cancelledAt
-                            ),
-                            getBookingAmount(
+                                    ?.customerName ||
+                                "-",
                                 booking
-                            ),
-                            getRemainingAmount(
+                                    ?.mobile ||
+                                "-",
+                                getEmployeeName(
+                                    booking
+                                ),
+                                toExcelDate(
+                                    booking
+                                        ?.bookingDate
+                                ),
+                                toExcelDate(
+                                    booking
+                                        ?.cancelledAt
+                                ),
+                                getBookingAmount(
+                                    booking
+                                ),
+                                getRemainingAmount(
+                                    booking
+                                ),
                                 booking
-                            ),
-                            booking
-                                ?.paymentMode ||
-                            "-",
-                            "CANCELLED",
-                        ]
+                                    ?.paymentMode ||
+                                "-",
+                                "CANCELLED",
+                            ]
                     ),
 
                 widths: [
@@ -2545,7 +2707,267 @@ export const exportProjectSummaryExcel =
                 ],
             }
         );
+        // ==================================================
+        // 7. Document Status
+        // ==================================================
 
+        const documentStatusSheet =
+            workbook.addWorksheet(
+                "Document Status",
+                {
+                    views: [
+                        {
+                            state:
+                                "frozen",
+
+                            ySplit:
+                                4,
+                        },
+                    ],
+                }
+            );
+
+        applyTitle(
+            documentStatusSheet,
+            "BOOKING DOCUMENT STATUS SUMMARY",
+            17
+        );
+
+        applyGeneratedInfo(
+            documentStatusSheet,
+            17
+        );
+
+        styleSectionHeader(
+            documentStatusSheet,
+            3,
+            `Document Status Records: ${activeBookings.length}`,
+            17
+        );
+
+        writeTable(
+            documentStatusSheet,
+            4,
+            {
+                headers: [
+                    "Property Type",
+                    "Booking Code",
+                    "Tower / Project",
+                    "Unit",
+                    "Customer",
+                    "Sales Member",
+                    "Booking Date",
+
+                    "Requisition Status",
+                    "Requisition Uploaded",
+
+                    "Agreement Status",
+                    "Agreement Uploaded",
+
+                    "Tripartite Requirement",
+                    "Tripartite Status",
+                    "Tripartite Uploaded",
+
+                    "NOC Requirement",
+                    "NOC Status",
+                    "NOC Uploaded",
+                ],
+
+                rows:
+                    activeBookings.map(
+                        (
+                            booking
+                        ) => {
+
+                            const requisition =
+                                booking
+                                    ?.documents
+                                    ?.requisitionLetter;
+
+                            const agreement =
+                                booking
+                                    ?.documents
+                                    ?.agreementToSell;
+
+                            const tripartite =
+                                booking
+                                    ?.documents
+                                    ?.tripartiteAgreement;
+
+                            const tripartiteRequired =
+                                tripartite
+                                    ?.required ===
+                                true;
+
+                            const noc =
+                                nocByBookingId.get(
+                                    booking.id
+                                );
+
+                            const nocStatus =
+                                !noc ||
+                                    !noc.isRequired
+                                    ? "NOT REQUIRED"
+                                    : noc.status ===
+                                        "ISSUED"
+                                        ? "ISSUED / GIVEN"
+                                        : noc.status
+                                            .replace(
+                                                /_/g,
+                                                " "
+                                            );
+
+                            return [
+                                getPropertyType(
+                                    booking
+                                ),
+
+                                booking
+                                    ?.bookingCode ||
+                                "-",
+
+                                booking
+                                    ?.tower ||
+                                "-",
+
+                                booking
+                                    ?.flatNumber ||
+                                "-",
+
+                                booking
+                                    ?.customerName ||
+                                "-",
+
+                                getEmployeeName(
+                                    booking
+                                ),
+
+                                toExcelDate(
+                                    booking
+                                        ?.bookingDate
+                                ),
+
+                                String(
+                                    requisition
+                                        ?.status ??
+                                    "pending"
+                                )
+                                    .replace(
+                                        /_/g,
+                                        " "
+                                    )
+                                    .toUpperCase(),
+
+                                requisition
+                                    ?.fileUrl
+                                    ? "YES"
+                                    : "NO",
+
+                                String(
+                                    agreement
+                                        ?.status ??
+                                    "pending"
+                                )
+                                    .replace(
+                                        /_/g,
+                                        " "
+                                    )
+                                    .toUpperCase(),
+
+                                agreement
+                                    ?.fileUrl
+                                    ? "YES"
+                                    : "NO",
+
+                                tripartiteRequired
+                                    ? "REQUIRED"
+                                    : "NOT REQUIRED",
+
+                                tripartiteRequired
+                                    ? String(
+                                        tripartite
+                                            ?.document
+                                            ?.status ??
+                                        "pending"
+                                    )
+                                        .replace(
+                                            /_/g,
+                                            " "
+                                        )
+                                        .toUpperCase()
+                                    : "NOT REQUIRED",
+
+                                tripartiteRequired
+                                    ? tripartite
+                                        ?.document
+                                        ?.fileUrl
+                                        ? "YES"
+                                        : "NO"
+                                    : "NOT REQUIRED",
+
+                                !noc || !noc.isRequired
+                                    ? "NOT REQUIRED"
+                                    : "REQUIRED",
+
+                                nocStatus,
+
+                                !noc || !noc.isRequired
+                                    ? "NOT REQUIRED"
+                                    : noc.fileUrl
+                                        ? "YES"
+                                        : "NO",
+                            ];
+                        }
+                    ),
+
+                widths: [
+                    18,
+                    20,
+                    20,
+                    12,
+                    24,
+                    24,
+                    16,
+                    20,
+                    20,
+                    20,
+                    20,
+                    22,
+                    20,
+                    20,
+                    22,
+                    22,
+                    22,
+                ],
+
+                dateColumns: [
+                    7,
+                ],
+            }
+        );
+        // ==================================================
+        // Remove Non-Selected Property Detail Sheet
+        // ==================================================
+
+        if (
+            propertyFilter ===
+            "RESIDENTIAL"
+        ) {
+
+            workbook.removeWorksheet(
+                commercialSheet.id
+            );
+        }
+
+        if (
+            propertyFilter ===
+            "COMMERCIAL"
+        ) {
+
+            workbook.removeWorksheet(
+                residentialSheet.id
+            );
+        }
         // ==================================================
         // General Sheet Styling
         // ==================================================
@@ -2566,7 +2988,7 @@ export const exportProjectSummaryExcel =
 
                         ySplit:
                             worksheet.name ===
-                            "Project Summary"
+                                "Project Summary"
                                 ? 3
                                 : 4,
                     },
@@ -2580,10 +3002,10 @@ export const exportProjectSummaryExcel =
 
                         if (
                             rowNumber %
-                                2 ===
-                                0 &&
+                            2 ===
+                            0 &&
                             rowNumber >
-                                4
+                            4
                         ) {
 
                             row.eachCell(
@@ -2595,11 +3017,11 @@ export const exportProjectSummaryExcel =
                                         !cell.fill ||
                                         (
                                             cell.fill as
-                                                ExcelJS.FillPattern
+                                            ExcelJS.FillPattern
                                         )
                                             .fgColor
                                             ?.argb ===
-                                            undefined
+                                        undefined
                                     ) {
 
                                         cell.fill = {
@@ -2636,7 +3058,7 @@ export const exportProjectSummaryExcel =
             new Blob(
                 [
                     buffer as
-                        BlobPart,
+                    BlobPart,
                 ],
                 {
                     type:

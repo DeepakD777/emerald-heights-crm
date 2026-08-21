@@ -24,9 +24,7 @@ import {
 } from "../../context/AuthContext";
 
 import BookingDetailsModal from "../../components/dashboard/BookingDetailsModal";
-import {
-    exportProjectSummaryExcel,
-} from "../../utils/exportProjectSummaryExcel";
+import ProjectExcelExportModal from "../../components/dashboard/ProjectExcelExportModal";
 
 // ======================================================
 // Helpers
@@ -205,6 +203,13 @@ function Reports() {
     const [
         isDetailsOpen,
         setIsDetailsOpen,
+    ] =
+        useState(
+            false
+        );
+    const [
+        isExcelExportOpen,
+        setIsExcelExportOpen,
     ] =
         useState(
             false
@@ -506,26 +511,11 @@ function Reports() {
 
                     <button
                         type="button"
-                        onClick={async () => {
-
-                            try {
-
-                                await exportProjectSummaryExcel(
-                                    bookings
-                                );
-
-                            } catch (error) {
-
-                                console.error(
-                                    "Excel export error:",
-                                    error
-                                );
-
-                                alert(
-                                    "Failed to export project summary Excel."
-                                );
-                            }
-                        }}
+                        onClick={() =>
+                            setIsExcelExportOpen(
+                                true
+                            )
+                        }
                         className="inline-flex w-fit items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
                     >
 
@@ -1442,6 +1432,19 @@ function Reports() {
             {/* ==================================================
                 Booking Details - Reports Read Only
             ================================================== */}
+            <ProjectExcelExportModal
+                isOpen={
+                    isExcelExportOpen
+                }
+                onClose={() =>
+                    setIsExcelExportOpen(
+                        false
+                    )
+                }
+                bookings={
+                    bookings
+                }
+            />
 
             <BookingDetailsModal
                 isOpen={

@@ -2,6 +2,7 @@ import { AlertTriangle, Bell, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useBooking } from "../../context/BookingContext";
+import NocNotificationsPanel from "./NocNotificationsPanel"
 
 function Notifications() {
 
@@ -506,7 +507,7 @@ function Notifications() {
                 )}
 
             </div>
-
+            <NocNotificationsPanel />
         </div>
 
     );
