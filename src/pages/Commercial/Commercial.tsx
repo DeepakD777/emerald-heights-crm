@@ -126,8 +126,84 @@ function chunkArray<T>(
 }
 
 const getShopColor = (
-    status: string
+    status: string,
+    section: CommercialSection
 ) => {
+
+    // ==================================================
+    // COMMERCIAL 1 - Separate Teal Based Palette
+    // ==================================================
+
+    if (
+        section ===
+        "Commercial 1"
+    ) {
+
+        if (
+            status ===
+            "finedine"
+        ) {
+            return `
+                bg-indigo-50
+                border-indigo-500
+                text-indigo-700
+                hover:bg-indigo-100
+                hover:border-indigo-600
+            `;
+        }
+
+        if (
+            status ===
+            "booked"
+        ) {
+            return `
+                bg-rose-50
+                border-rose-500
+                text-rose-700
+                hover:bg-rose-100
+                hover:border-rose-600
+            `;
+        }
+
+        if (
+            status ===
+            "hold"
+        ) {
+            return `
+                bg-orange-50
+                border-orange-500
+                text-orange-700
+                hover:bg-orange-100
+                hover:border-orange-600
+            `;
+        }
+
+        if (
+            status ===
+            "sold"
+        ) {
+            return `
+                bg-slate-100
+                border-slate-500
+                text-slate-700
+                hover:bg-slate-200
+                hover:border-slate-600
+            `;
+        }
+
+        return `
+            bg-teal-50
+            border-teal-500
+            text-teal-700
+            hover:bg-teal-100
+            hover:border-teal-600
+        `;
+    }
+
+    // ==================================================
+    // COMMERCIAL - Existing Palette
+    // ==================================================
+
     if (
         status ===
         "finedine"
@@ -187,7 +263,6 @@ const getShopColor = (
         hover:border-green-500
     `;
 };
-
 const getStatusText = (
     status: string
 ) => {
@@ -783,61 +858,61 @@ function Commercial() {
     // ==================================================
 
     const handleConfirmBooking =
-    async (
-        bookingData: any
-    ) => {
+        async (
+            bookingData: any
+        ) => {
 
-        if (
-            !selectedShop
-        ) {
-            return;
-        }
+            if (
+                !selectedShop
+            ) {
+                return;
+            }
 
-        try {
+            try {
 
-            await createBooking({
+                await createBooking({
 
-                // BookingModal ki saari filled fields
-                ...bookingData,
+                    // BookingModal ki saari filled fields
+                    ...bookingData,
 
-                // Correct selected commercial property
-                propertyId:
-                    selectedShop.propertyId ??
-                    selectedShop.id,
+                    // Correct selected commercial property
+                    propertyId:
+                        selectedShop.propertyId ??
+                        selectedShop.id,
 
-                // Assigned Sales Member
-                employeeId:
-                    bookingData.employeeId ??
-                    undefined,
+                    // Assigned Sales Member
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
 
-                // New booking default status
-                status:
-                    bookingData.status ??
-                    "CONFIRMED",
-            });
+                    // New booking default status
+                    status:
+                        bookingData.status ??
+                        "CONFIRMED",
+                });
 
-            await loadProperties();
+                await loadProperties();
 
-            setIsBookingModalOpen(
-                false
-            );
+                setIsBookingModalOpen(
+                    false
+                );
 
-            setSelectedShop(
-                null
-            );
+                setSelectedShop(
+                    null
+                );
 
-        } catch (err) {
+            } catch (err) {
 
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Booking failed";
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Booking failed";
 
-            alert(
-                message
-            );
-        }
-    };
+                alert(
+                    message
+                );
+            }
+        };
     // ==================================================
     // Reset
     // ==================================================
@@ -1022,21 +1097,21 @@ function Commercial() {
                             font-semibold
                             transition-all
 
-                            ${selectedSection ===
+                          ${selectedSection ===
                                 "Commercial 1"
                                 ? `
-                                        border-green-600
-                                        bg-green-600
-                                        text-white
-                                        shadow-md
-                                      `
+            border-teal-600
+            bg-teal-600
+            text-white
+            shadow-md
+      `
                                 : `
-                                        border-gray-300
-                                        bg-white
-                                        text-gray-700
-                                        hover:border-green-500
-                                        hover:bg-green-50
-                                      `
+            border-gray-300
+            bg-white
+            text-gray-700
+            hover:border-teal-500
+            hover:bg-teal-50
+      `
                             }
                         `}
                     >
@@ -1348,7 +1423,26 @@ function Commercial() {
                 Shop Map
             ========================================== */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+            <div
+                className={`
+        rounded-2xl
+        border
+        p-6
+        shadow
+
+        ${selectedSection ===
+                        "Commercial 1"
+                        ? `
+                    border-teal-200
+                    bg-teal-50/40
+                  `
+                        : `
+                    border-transparent
+                    bg-white
+                  `
+                    }
+    `}
+            >
 
                 <div className="mb-6 text-center">
 
@@ -1403,11 +1497,10 @@ function Commercial() {
 
                         <div
                             className="
-                                mx-auto
-                                w-[760px]
-                                min-w-[760px]
-                                space-y-4
-                            "
+        mx-auto
+        w-[760px]
+        min-w-[760px]
+    "
                         >
 
                             {zigZagRows.map(
@@ -1420,113 +1513,111 @@ function Commercial() {
                                         key={
                                             rowIndex
                                         }
-                                        className="
-                                            relative
-                                            h-[110px]
-                                            w-full
-                                        "
                                     >
 
-                                        {row.map(
-                                            (
-                                                property,
-                                                columnIndex
-                                            ) => {
+                                        {/* ==========================================
+                    STRAIGHT SHOP ROW
+                ========================================== */}
 
-                                                const status =
-                                                    getFrontendStatus(
-                                                        property
-                                                    );
+                                        <div className="grid grid-cols-4 gap-4">
 
-                                                const baseLeft =
-                                                    columnIndex *
-                                                    171;
+                                            {row.map(
+                                                (
+                                                    property
+                                                ) => {
 
-                                                const rowOffset =
-                                                    rowIndex %
-                                                        2 ===
-                                                        1
-                                                        ? 86
-                                                        : 0;
+                                                    const status =
+                                                        getFrontendStatus(
+                                                            property
+                                                        );
 
-                                                const left =
-                                                    baseLeft +
-                                                    rowOffset;
+                                                    return (
 
-                                                return (
-
-                                                    <button
-                                                        key={
-                                                            property.id
-                                                        }
-                                                        type="button"
-                                                        onClick={() =>
-                                                            handleShopClick(
-                                                                property
-                                                            )
-                                                        }
-                                                        style={{
-                                                            left:
-                                                                `${left}px`,
-                                                        }}
-                                                        className={`
-                                                            absolute
-                                                            top-0
-
-                                                            flex
-                                                            h-[110px]
-                                                            w-[155px]
-
-                                                            flex-col
-                                                            items-center
-                                                            justify-center
-
-                                                            rounded-xl
-                                                            border-2
-                                                            p-3
-                                                            text-center
-
-                                                            transition-all
-                                                            duration-200
-
-                                                            hover:-translate-y-1
-                                                            hover:scale-[1.02]
-                                                            hover:shadow-lg
-
-                                                            focus:outline-none
-                                                            focus:ring-2
-                                                            focus:ring-green-400
-                                                            focus:ring-offset-2
-
-                                                            ${getShopColor(
-                                                            status
-                                                        )}
-                                                        `}
-                                                    >
-
-                                                        <span className="text-base font-bold">
-                                                            {
-                                                                property.unitNumber
+                                                        <button
+                                                            key={
+                                                                property.id
                                                             }
-                                                        </span>
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleShopClick(
+                                                                    property
+                                                                )
+                                                            }
+                                                            className={`
+                                        flex
+                                        h-[110px]
+                                        w-full
 
-                                                        <span className="mt-2 text-xs">
-                                                            {property.area
-                                                                ? `${property.area} sqft`
-                                                                : "Area not set"}
-                                                        </span>
+                                        flex-col
+                                        items-center
+                                        justify-center
 
-                                                        <span className="mt-2 text-xs font-bold uppercase">
-                                                            {getStatusText(
-                                                                status
+                                        rounded-xl
+                                        border-2
+                                        p-3
+                                        text-center
+
+                                        transition-all
+                                        duration-200
+
+                                        hover:-translate-y-1
+                                        hover:scale-[1.02]
+                                        hover:shadow-lg
+
+                                        focus:outline-none
+                                        focus:ring-2
+                                        focus:ring-green-400
+                                        focus:ring-offset-2
+${getShopColor(
+                                                                status,
+                                                                selectedSection
                                                             )}
-                                                        </span>
+                                    `}
+                                                        >
 
-                                                    </button>
+                                                            <span className="text-base font-bold">
+                                                                {
+                                                                    property.unitNumber
+                                                                }
+                                                            </span>
 
-                                                );
-                                            }
-                                        )}
+                                                            <span className="mt-2 text-xs">
+                                                                {
+                                                                    property.area
+                                                                        ? `${property.area} sqft`
+                                                                        : "Area not set"
+                                                                }
+                                                            </span>
+
+                                                            <span className="mt-2 text-xs font-bold uppercase">
+                                                                {
+                                                                    getStatusText(
+                                                                        status
+                                                                    )
+                                                                }
+                                                            </span>
+
+                                                        </button>
+
+                                                    );
+                                                }
+                                            )}
+
+                                        </div>
+
+                                        {/* ==========================================
+                    SIMPLE DIVIDER LINE
+                ========================================== */}
+
+                                        {
+                                            rowIndex <
+                                            zigZagRows.length -
+                                            1 && (
+
+                                                <div className="my-5 h-px w-full bg-gray-300" />
+
+                                            )
+                                        }
 
                                     </div>
 

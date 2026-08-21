@@ -1019,7 +1019,7 @@ function Bookings() {
 
                 <div className="overflow-x-auto">
 
-                    <table className="w-full min-w-[1550px] border-collapse">
+                    <table className="w-full min-w-[1700px] border-collapse">
 
                         <thead>
 
@@ -1048,6 +1048,9 @@ function Bookings() {
 
                                 <th className="border p-3 text-left">
                                     Remaining Amount
+                                </th>
+                                <th className="border p-3 text-left">
+                                    Current Installment
                                 </th>
 
                                 <th className="border p-3 text-left">
@@ -1087,7 +1090,7 @@ function Bookings() {
 
                                     <td
                                         colSpan={
-                                            12
+                                            13
                                         }
                                         className="p-10 text-center text-gray-500"
                                     >
@@ -1126,6 +1129,11 @@ function Bookings() {
                                                         : "pending"
                                                 )
                                                 : "not-required";
+                                        const currentInstallment =
+                                            booking
+                                                .installmentSummary
+                                                ?.currentInstallment ??
+                                            null;
 
                                         return (
 
@@ -1190,6 +1198,78 @@ function Bookings() {
                                                             )
                                                             : "-"
                                                     }
+                                                </td>
+                                                <td className="border p-3">
+
+                                                    {
+                                                        currentInstallment
+                                                            ? (
+
+                                                                <div className="min-w-[180px]">
+
+                                                                    <div className="font-semibold text-gray-800">
+                                                                        {
+                                                                            currentInstallment
+                                                                                .stageName
+                                                                        }
+                                                                    </div>
+
+                                                                    <div className="mt-1 flex flex-wrap items-center gap-2">
+
+                                                                        <span
+                                                                            className={`
+                                inline-flex
+                                rounded-full
+                                px-2.5
+                                py-1
+                                text-xs
+                                font-semibold
+                                ${currentInstallment
+                                                                                    .status ===
+                                                                                    "PAID"
+                                                                                    ? "bg-green-100 text-green-700"
+                                                                                    : currentInstallment
+                                                                                        .status ===
+                                                                                        "PARTIAL"
+                                                                                        ? "bg-amber-100 text-amber-700"
+                                                                                        : "bg-gray-100 text-gray-600"
+                                                                                }
+                            `}
+                                                                        >
+                                                                            {
+                                                                                currentInstallment
+                                                                                    .status
+                                                                            }
+                                                                        </span>
+
+                                                                        <span className="text-xs text-gray-500">
+                                                                            {
+                                                                                formatAmount(
+                                                                                    currentInstallment
+                                                                                        .paidAmount
+                                                                                )
+                                                                            }
+                                                                            {" / "}
+                                                                            {
+                                                                                formatAmount(
+                                                                                    currentInstallment
+                                                                                        .plannedAmount
+                                                                                )
+                                                                            }
+                                                                        </span>
+
+                                                                    </div>
+
+                                                                </div>
+                                                            )
+                                                            : (
+
+                                                                <span className="text-sm text-gray-400">
+                                                                    No Payment
+                                                                </span>
+                                                            )
+                                                    }
+
                                                 </td>
 
                                                 <td className="border p-3">

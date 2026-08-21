@@ -210,6 +210,8 @@ financeType FinanceType?
   employee  Employee?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   documents BookingDocument[]
   nocs      Noc[]
+  installmentStages   BookingInstallmentStage[]
+  installmentPayments BookingInstallmentPayment[]
 
   @@index([customerId])
   @@index([propertyId])
@@ -217,7 +219,53 @@ financeType FinanceType?
   @@index([status])
   @@map("bookings")
 }
+  model BookingInstallmentStage {
+  id        String @id @default(cuid())
+  bookingId String
 
+  // Fixed stage order: 1 to 10
+  sequence Int
+
+  // Snapshot of the installment plan at booking time
+  stageName       String
+  percentage      Float
+  plannedAmount   Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payments BookingInstallmentPayment[]
+
+  @@unique([bookingId, sequence])
+  @@index([bookingId])
+  @@map("booking_installment_stages")
+}
+
+model BookingInstallmentPayment {
+  id            String @id @default(cuid())
+  bookingId     String
+  installmentId String
+
+  amount      Float
+  paymentDate DateTime @default(now())
+
+  paymentMode String?
+  referenceNo String?
+  remarks     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  installment BookingInstallmentStage @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([installmentId])
+  @@index([paymentDate])
+  @@map("booking_installment_payments")
+}
 model BookingDocument {
   id        String         @id @default(cuid())
   bookingId String

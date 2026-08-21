@@ -1,4 +1,6 @@
-import { Router } from "express";
+import {
+    Router,
+} from "express";
 
 import {
     getBookings,
@@ -8,6 +10,10 @@ import {
     deleteBooking,
     permanentlyDeleteBooking,
 } from "../controllers/booking.controller";
+
+import {
+    addInstallmentPayment,
+} from "../controllers/booking-installment.controller";
 
 import {
     authenticate,
@@ -37,8 +43,10 @@ router.get(
 );
 
 // ======================================================
-// Admin only
+// Admin Only
 // ======================================================
+
+// Create Booking
 
 router.post(
     "/",
@@ -47,6 +55,8 @@ router.post(
     createBooking
 );
 
+// Update Booking
+
 router.put(
     "/:id",
     authenticate,
@@ -54,7 +64,23 @@ router.put(
     updateBooking
 );
 
-// Bookings page -> Soft Archive
+// ======================================================
+// Installment Payment
+// Admin Only
+// ======================================================
+
+router.post(
+    "/:id/installment-payments",
+    authenticate,
+    requireAdmin,
+    addInstallmentPayment
+);
+
+// ======================================================
+// Bookings Page
+// Soft Archive
+// ======================================================
+
 router.delete(
     "/:id",
     authenticate,
@@ -62,7 +88,11 @@ router.delete(
     deleteBooking
 );
 
-// Reports page -> Permanent Delete
+// ======================================================
+// Reports Page
+// Permanent Delete
+// ======================================================
+
 router.delete(
     "/:id/permanent",
     authenticate,

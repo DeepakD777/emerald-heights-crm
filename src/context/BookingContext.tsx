@@ -65,6 +65,97 @@ interface AssignedEmployee {
     role: string;
     status: string;
 }
+// ======================================================
+// Installment Payment
+// ======================================================
+
+interface InstallmentPayment {
+    id: string;
+    amount: number;
+
+    paymentDate:
+    string | null;
+
+    paymentMode:
+    string | null;
+
+    referenceNo:
+    string | null;
+
+    remarks:
+    string | null;
+}
+
+// ======================================================
+// Installment Stage
+// ======================================================
+
+interface InstallmentStage {
+    id: string;
+
+    sequence:
+    number;
+
+    stageName:
+    string;
+
+    percentage:
+    number;
+
+    plannedAmount:
+    number;
+
+    paidAmount:
+    number;
+
+    balanceAmount:
+    number;
+
+    status:
+    | "PENDING"
+    | "PARTIAL"
+    | "PAID";
+
+    lastPaymentDate:
+    string | null;
+
+    lastPaymentMode:
+    string | null;
+
+    payments:
+    InstallmentPayment[];
+}
+
+// ======================================================
+// Installment Summary
+// ======================================================
+
+interface InstallmentSummary {
+    totalPlannedAmount:
+    number;
+
+    totalReceivedAmount:
+    number;
+
+    totalBalanceAmount:
+    number;
+
+    currentInstallment:
+    {
+        id: string;
+        sequence: number;
+        stageName: string;
+        percentage: number;
+        plannedAmount: number;
+        paidAmount: number;
+        balanceAmount: number;
+
+        status:
+        | "PENDING"
+        | "PARTIAL"
+        | "PAID";
+    } | null;
+}
 
 // ======================================================
 // Booking
@@ -156,6 +247,15 @@ interface Booking {
 
     documents:
     BookingDocuments;
+    // ==================================================
+    // Installments
+    // ==================================================
+
+    installmentStages:
+    InstallmentStage[];
+
+    installmentSummary:
+    InstallmentSummary;
 
     bookingCode?: string;
 }
@@ -581,7 +681,224 @@ const normalizeBooking = (
                     ?.assignedEmployee ??
                 booking?.employee
             ),
+        // ==================================================
+        // Installments
+        // ==================================================
 
+        installmentStages:
+            Array.isArray(
+                booking
+                    ?.installmentStages
+            )
+                ? booking
+                    .installmentStages
+                    .map(
+                        (
+                            stage: any
+                        ) => ({
+
+                            id:
+                                String(
+                                    stage.id ??
+                                    ""
+                                ),
+
+                            sequence:
+                                Number(
+                                    stage.sequence ??
+                                    0
+                                ),
+
+                            stageName:
+                                stage.stageName ??
+                                "",
+
+                            percentage:
+                                Number(
+                                    stage.percentage ??
+                                    0
+                                ),
+
+                            plannedAmount:
+                                Number(
+                                    stage.plannedAmount ??
+                                    0
+                                ),
+
+                            paidAmount:
+                                Number(
+                                    stage.paidAmount ??
+                                    0
+                                ),
+
+                            balanceAmount:
+                                Number(
+                                    stage.balanceAmount ??
+                                    0
+                                ),
+
+                            status:
+                                stage.status ??
+                                "PENDING",
+
+                            lastPaymentDate:
+                                stage
+                                    .lastPaymentDate ??
+                                null,
+
+                            lastPaymentMode:
+                                stage
+                                    .lastPaymentMode ??
+                                null,
+
+                            payments:
+                                Array.isArray(
+                                    stage.payments
+                                )
+                                    ? stage
+                                        .payments
+                                        .map(
+                                            (
+                                                payment:
+                                                    any
+                                            ) => ({
+
+                                                id:
+                                                    String(
+                                                        payment.id ??
+                                                        ""
+                                                    ),
+
+                                                amount:
+                                                    Number(
+                                                        payment.amount ??
+                                                        0
+                                                    ),
+
+                                                paymentDate:
+                                                    payment.paymentDate ??
+                                                    null,
+
+                                                paymentMode:
+                                                    payment.paymentMode ??
+                                                    null,
+
+                                                referenceNo:
+                                                    payment.referenceNo ??
+                                                    null,
+
+                                                remarks:
+                                                    payment.remarks ??
+                                                    null,
+                                            })
+                                        )
+                                    : [],
+                        })
+                    )
+                : [],
+
+        installmentSummary: {
+
+            totalPlannedAmount:
+                Number(
+                    booking
+                        ?.installmentSummary
+                        ?.totalPlannedAmount ??
+                    0
+                ),
+
+            totalReceivedAmount:
+                Number(
+                    booking
+                        ?.installmentSummary
+                        ?.totalReceivedAmount ??
+                    0
+                ),
+
+            totalBalanceAmount:
+                Number(
+                    booking
+                        ?.installmentSummary
+                        ?.totalBalanceAmount ??
+                    0
+                ),
+
+            currentInstallment:
+                booking
+                    ?.installmentSummary
+                    ?.currentInstallment
+                    ? {
+
+                        id:
+                            String(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .id ??
+                                ""
+                            ),
+
+                        sequence:
+                            Number(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .sequence ??
+                                0
+                            ),
+
+                        stageName:
+                            booking
+                                .installmentSummary
+                                .currentInstallment
+                                .stageName ??
+                            "",
+
+                        percentage:
+                            Number(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .percentage ??
+                                0
+                            ),
+
+                        plannedAmount:
+                            Number(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .plannedAmount ??
+                                0
+                            ),
+
+                        paidAmount:
+                            Number(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .paidAmount ??
+                                0
+                            ),
+
+                        balanceAmount:
+                            Number(
+                                booking
+                                    .installmentSummary
+                                    .currentInstallment
+                                    .balanceAmount ??
+                                0
+                            ),
+
+                        status:
+                            booking
+                                .installmentSummary
+                                .currentInstallment
+                                .status ??
+                            "PENDING",
+                    }
+                    : null,
+        },
         documents: {
 
             requisitionLetter:

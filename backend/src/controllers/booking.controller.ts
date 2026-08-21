@@ -8,6 +8,7 @@ import {
     DocumentType,
     FinanceType,
     PropertyStatus,
+    PropertyType,
     RemainingAmountMode,
 } from "../generated/prisma/enums";
 
@@ -327,6 +328,158 @@ const calculateRemainingAmount = (
 };
 
 // ======================================================
+// Installment Plans
+// ======================================================
+
+type InstallmentPlanItem = {
+    sequence: number;
+    stageName: string;
+    percentage: number;
+};
+
+const RESIDENTIAL_INSTALLMENT_PLAN:
+    InstallmentPlanItem[] = [
+        {
+            sequence: 1,
+            stageName:
+                "Booking Amount",
+            percentage: 10,
+        },
+        {
+            sequence: 2,
+            stageName:
+                "On Completion up to Plinth",
+            percentage: 15,
+        },
+        {
+            sequence: 3,
+            stageName:
+                "After Completion of 1/3rd Floor Slabs (4th Floor Slab)",
+            percentage: 10,
+        },
+        {
+            sequence: 4,
+            stageName:
+                "After Completion of 2/3rd Floor Slabs (7th Floor Slab)",
+            percentage: 10,
+        },
+        {
+            sequence: 5,
+            stageName:
+                "After Completion of Entire Frame Structure",
+            percentage: 10,
+        },
+        {
+            sequence: 6,
+            stageName:
+                "After 50% Completion of Brick Work & Internal Plaster (up to 5th Floor)",
+            percentage: 10,
+        },
+        {
+            sequence: 7,
+            stageName:
+                "After 100% Completion of Brick Work & Internal Plaster (up to 5th Floor)",
+            percentage: 10,
+        },
+        {
+            sequence: 8,
+            stageName:
+                "After Completion of Flooring & External Plaster",
+            percentage: 10,
+        },
+        {
+            sequence: 9,
+            stageName:
+                "After Completion of Plumbing, Internal Electrification & Finishing Work",
+            percentage: 10,
+        },
+        {
+            sequence: 10,
+            stageName:
+                "At the Time of Possession & Registration of Sale Deed",
+            percentage: 5,
+        },
+    ];
+
+const COMMERCIAL_INSTALLMENT_PLAN:
+    InstallmentPlanItem[] = [
+        {
+            sequence: 1,
+            stageName:
+                "Booking Amount",
+            percentage: 10,
+        },
+        {
+            sequence: 2,
+            stageName:
+                "On Completion up to Plinth",
+            percentage: 15,
+        },
+        {
+            sequence: 3,
+            stageName:
+                "After Completion of 1/3rd Floor Slabs (1st Floor Slab)",
+            percentage: 10,
+        },
+        {
+            sequence: 4,
+            stageName:
+                "After Completion of 2/3rd Floor Slabs (3rd Floor Slab)",
+            percentage: 10,
+        },
+        {
+            sequence: 5,
+            stageName:
+                "After Completion of Entire Frame Structure",
+            percentage: 10,
+        },
+        {
+            sequence: 6,
+            stageName:
+                "After 50% Completion of Brick Work & Internal Plaster (up to 1st Floor)",
+            percentage: 10,
+        },
+        {
+            sequence: 7,
+            stageName:
+                "After 100% Completion of Brick Work & Internal Plaster (up to 3rd Floor)",
+            percentage: 10,
+        },
+        {
+            sequence: 8,
+            stageName:
+                "After Completion of Flooring & External Plaster",
+            percentage: 10,
+        },
+        {
+            sequence: 9,
+            stageName:
+                "After Completion of Plumbing, Internal Electrification & Finishing Work",
+            percentage: 10,
+        },
+        {
+            sequence: 10,
+            stageName:
+                "At the Time of Possession & Registration of Sale Deed",
+            percentage: 5,
+        },
+    ];
+
+// ======================================================
+// Get Installment Plan By Property Type
+// ======================================================
+
+const getInstallmentPlan = (
+    propertyType:
+        PropertyType
+): InstallmentPlanItem[] => {
+
+    return propertyType ===
+        PropertyType.COMMERCIAL
+        ? COMMERCIAL_INSTALLMENT_PLAN
+        : RESIDENTIAL_INSTALLMENT_PLAN;
+};
+// ======================================================
 // Document Data Builder
 // ======================================================
 
@@ -641,6 +794,7 @@ const syncBookingDocuments =
             !tripartite
         ) {
 
+
             return;
         }
 
@@ -897,6 +1051,187 @@ const formatBooking = (
             DocumentType
                 .TRIPARTITE_AGREEMENT
         );
+    // ==================================================
+    // Installment Summary
+    // ==================================================
+
+    const installmentStages =
+        (
+            booking.installmentStages ??
+            []
+        ).map(
+            (
+                stage: any
+            ) => {
+
+                const payments =
+                    stage.payments ??
+                    [];
+
+                const paidAmount =
+                    payments.reduce(
+                        (
+                            total: number,
+                            payment: any
+                        ) =>
+                            total +
+                            Number(
+                                payment.amount ??
+                                0
+                            ),
+                        0
+                    );
+
+                const plannedAmount =
+                    Number(
+                        stage.plannedAmount ??
+                        0
+                    );
+
+                const balanceAmount =
+                    Math.max(
+                        plannedAmount -
+                        paidAmount,
+                        0
+                    );
+
+                const paymentStatus =
+                    paidAmount <= 0
+                        ? "PENDING"
+                        : paidAmount <
+                            plannedAmount
+                            ? "PARTIAL"
+                            : "PAID";
+
+                const lastPayment =
+                    payments.length >
+                        0
+                        ? payments[
+                        payments.length -
+                        1
+                        ]
+                        : null;
+
+                return {
+
+                    id:
+                        stage.id,
+
+                    sequence:
+                        stage.sequence,
+
+                    stageName:
+                        stage.stageName,
+
+                    percentage:
+                        stage.percentage,
+
+                    plannedAmount,
+
+                    paidAmount,
+
+                    balanceAmount,
+
+                    status:
+                        paymentStatus,
+
+                    lastPaymentDate:
+                        lastPayment
+                            ?.paymentDate
+                            ? new Date(
+                                lastPayment
+                                    .paymentDate
+                            ).toISOString()
+                            : null,
+
+                    lastPaymentMode:
+                        lastPayment
+                            ?.paymentMode ??
+                        null,
+
+                    payments:
+                        payments.map(
+                            (
+                                payment: any
+                            ) => ({
+                                id:
+                                    payment.id,
+
+                                amount:
+                                    Number(
+                                        payment.amount ??
+                                        0
+                                    ),
+
+                                paymentDate:
+                                    payment
+                                        .paymentDate
+                                        ? new Date(
+                                            payment
+                                                .paymentDate
+                                        ).toISOString()
+                                        : null,
+
+                                paymentMode:
+                                    payment
+                                        .paymentMode ??
+                                    null,
+
+                                referenceNo:
+                                    payment
+                                        .referenceNo ??
+                                    null,
+
+                                remarks:
+                                    payment
+                                        .remarks ??
+                                    null,
+                            })
+                        ),
+                };
+            }
+        );
+
+    const totalInstallmentReceived =
+        installmentStages.reduce(
+            (
+                total: number,
+                stage: any
+            ) =>
+                total +
+                stage.paidAmount,
+            0
+        );
+
+    const totalInstallmentPlanned =
+        installmentStages.reduce(
+            (
+                total: number,
+                stage: any
+            ) =>
+                total +
+                stage.plannedAmount,
+            0
+        );
+
+    const totalInstallmentBalance =
+        Math.max(
+            totalInstallmentPlanned -
+            totalInstallmentReceived,
+            0
+        );
+
+    const currentInstallment =
+        [...installmentStages]
+            .reverse()
+            .find(
+                (
+                    stage: any
+                ) =>
+                    stage.paidAmount >
+                    0
+            ) ??
+        null;
 
     return {
 
@@ -1198,6 +1533,53 @@ const formatBooking = (
         bookingCode:
             booking.bookingCode,
 
+
+        // ----------------------------------------------
+        // Installments
+        // ----------------------------------------------
+
+        installmentStages,
+
+        installmentSummary: {
+
+            totalPlannedAmount:
+                totalInstallmentPlanned,
+
+            totalReceivedAmount:
+                totalInstallmentReceived,
+
+            totalBalanceAmount:
+                totalInstallmentBalance,
+
+            currentInstallment:
+                currentInstallment
+                    ? {
+                        id:
+                            currentInstallment.id,
+
+                        sequence:
+                            currentInstallment.sequence,
+
+                        stageName:
+                            currentInstallment.stageName,
+
+                        percentage:
+                            currentInstallment.percentage,
+
+                        plannedAmount:
+                            currentInstallment.plannedAmount,
+
+                        paidAmount:
+                            currentInstallment.paidAmount,
+
+                        balanceAmount:
+                            currentInstallment.balanceAmount,
+
+                        status:
+                            currentInstallment.status,
+                    }
+                    : null,
+        },
         // ----------------------------------------------
         // Documents
         // ----------------------------------------------
@@ -1260,6 +1642,24 @@ export const getBookings =
 
                             documents:
                                 true,
+                            installmentStages: {
+
+                                orderBy: {
+                                    sequence:
+                                        "asc",
+                                },
+
+                                include: {
+
+                                    payments: {
+
+                                        orderBy: {
+                                            paymentDate:
+                                                "asc",
+                                        },
+                                    },
+                                },
+                            },
                         },
 
                         orderBy: {
@@ -1336,6 +1736,25 @@ export const getBookingById =
 
                             documents:
                                 true,
+
+                            installmentStages: {
+
+                                orderBy: {
+                                    sequence:
+                                        "asc",
+                                },
+
+                                include: {
+
+                                    payments: {
+
+                                        orderBy: {
+                                            paymentDate:
+                                                "asc",
+                                        },
+                                    },
+                                },
+                            },
                         },
                     });
 
@@ -1449,7 +1868,7 @@ export const createBooking =
 
                 documents,
             } = payload;
-
+       
             // ==================================================
             // Required Customer Fields
             // ==================================================
@@ -2062,7 +2481,102 @@ export const createBooking =
                                             notes,
                                         },
                                     });
+                            // ==================================
+                            // Create Installment Plan Snapshot
+                            // ==================================
 
+                            const finalSaleValue =
+                                parsedAfterDiscountAmount ??
+                                Math.max(
+                                    (parsedTotalAmount ?? 0) -
+                                    (parsedDiscount ?? 0),
+                                    0
+                                );
+
+                            const installmentPlan =
+                                getInstallmentPlan(
+                                    currentProperty.type
+                                );
+
+                            for (
+                                const installment of
+                                installmentPlan
+                            ) {
+
+                                const createdStage =
+                                    await tx
+                                        .bookingInstallmentStage
+                                        .create({
+
+                                            data: {
+
+                                                bookingId:
+                                                    newBooking.id,
+
+                                                sequence:
+                                                    installment.sequence,
+
+                                                stageName:
+                                                    installment.stageName,
+
+                                                percentage:
+                                                    installment.percentage,
+
+                                                plannedAmount:
+                                                    (
+                                                        finalSaleValue *
+                                                        installment.percentage
+                                                    ) /
+                                                    100,
+                                            },
+                                        });
+
+                                // ----------------------------------
+                                // Initial Booking Amount Payment
+                                // Stage 1 = Booking Amount
+                                // ----------------------------------
+
+                                if (
+                                    installment.sequence ===
+                                    1 &&
+                                    parsedBookingAmount !=
+                                    null &&
+                                    parsedBookingAmount >
+                                    0
+                                ) {
+
+                                    await tx
+                                        .bookingInstallmentPayment
+                                        .create({
+
+                                            data: {
+
+                                                bookingId:
+                                                    newBooking.id,
+
+                                                installmentId:
+                                                    createdStage.id,
+
+                                                amount:
+                                                    parsedBookingAmount,
+
+                                                paymentDate:
+                                                    bookingDate
+                                                        ? new Date(
+                                                            bookingDate
+                                                        )
+                                                        : new Date(),
+
+                                                paymentMode:
+                                                    paymentMode ??
+                                                    "Cash",
+
+                                                remarks:
+                                                    "Initial booking payment",
+                                            },
+                                        });
+                                }
+                            }
                             // ==================================
                             // Requisition Letter
                             // ==================================
@@ -2185,6 +2699,25 @@ export const createBooking =
 
                             documents:
                                 true,
+
+                            installmentStages: {
+
+                                orderBy: {
+                                    sequence:
+                                        "asc",
+                                },
+
+                                include: {
+
+                                    payments: {
+
+                                        orderBy: {
+                                            paymentDate:
+                                                "asc",
+                                        },
+                                    },
+                                },
+                            },
                         },
                     });
 
@@ -2994,10 +3527,37 @@ export const updateBooking = async (
                     },
 
                     include: {
-                        customer: true,
-                        property: true,
-                        employee: true,
-                        documents: true,
+
+                        customer:
+                            true,
+
+                        property:
+                            true,
+
+                        employee:
+                            true,
+
+                        documents:
+                            true,
+
+                        installmentStages: {
+
+                            orderBy: {
+                                sequence:
+                                    "asc",
+                            },
+
+                            include: {
+
+                                payments: {
+
+                                    orderBy: {
+                                        paymentDate:
+                                            "asc",
+                                    },
+                                },
+                            },
+                        },
                     },
                 });
 
@@ -3238,7 +3798,7 @@ export const deleteBooking =
                 });
         }
     };
-    // ======================================================
+// ======================================================
 // PERMANENT DELETE BOOKING
 // Reports page only
 // Database history permanently remove hogi.
@@ -3397,7 +3957,7 @@ export const permanentlyDeleteBooking =
             });
 
         } catch (
-            error
+        error
         ) {
 
             console.error(

@@ -4,6 +4,10 @@ import {
     useState,
 } from "react";
 
+import type {
+    CSSProperties,
+} from "react";
+
 import {
     RotateCcw,
     Search,
@@ -24,9 +28,10 @@ import type {
 import {
     createBooking,
 } from "../../services/bookingService";
+
 import {
     useAutoRefresh,
-} from "../../hooks/useAutoRefresh"
+} from "../../hooks/useAutoRefresh";
 
 // ======================================================
 // Types
@@ -47,6 +52,20 @@ type Status =
     | "hold"
     | "booked"
     | "sold";
+
+type ResidentialFacing =
+    | "North"
+    | "South"
+    | "East"
+    | "West";
+
+type FacingFilter =
+    | "all"
+    | ResidentialFacing;
+
+type KitchenFilter =
+    | "all"
+    | "back-side";
 
 // ======================================================
 // Constants
@@ -77,7 +96,9 @@ const RESIDENTIAL_BLOCKS: {
 const normalizeStatus = (
     status: PropertyStatus
 ) => {
-    return String(status).toLowerCase();
+    return String(
+        status
+    ).toLowerCase();
 };
 
 const naturalSort = (
@@ -98,32 +119,14 @@ const naturalSort = (
     );
 };
 
-function chunkArray<T>(
-    items: T[],
-    size: number
-): T[][] {
-    const rows: T[][] = [];
-
-    for (
-        let index = 0;
-        index < items.length;
-        index += size
-    ) {
-        rows.push(
-            items.slice(
-                index,
-                index + size
-            )
-        );
-    }
-
-    return rows;
-}
-
 const getStatusColor = (
     status: string
 ) => {
-    switch (status) {
+
+    switch (
+    status
+    ) {
+
         case "booked":
             return `
                 bg-red-50
@@ -164,7 +167,11 @@ const getStatusColor = (
 const getStatusText = (
     status: string
 ) => {
-    switch (status) {
+
+    switch (
+    status
+    ) {
+
         case "booked":
             return "BOOKED";
 
@@ -180,6 +187,253 @@ const getStatusText = (
 };
 
 // ======================================================
+// Unit Number Helper
+// ======================================================
+
+const getUnitNumericValue = (
+    property: Property
+) => {
+
+    const rawValue =
+        String(
+            property.unitNumber ??
+            ""
+        );
+
+    const match =
+        rawValue.match(
+            /(\d+)$/
+        );
+
+    if (
+        !match
+    ) {
+        return null;
+    }
+
+    const value =
+        Number(
+            match[1]
+        );
+
+    return Number.isFinite(
+        value
+    )
+        ? value
+        : null;
+};
+
+// ======================================================
+// Residential Facing Helper
+// ======================================================
+
+const getResidentialFacing = (
+    property: Property
+): ResidentialFacing | "" => {
+
+    const value =
+        getUnitNumericValue(
+            property
+        );
+
+    if (
+        value === null
+    ) {
+        return "";
+    }
+
+    const isEven =
+        value % 2 === 0;
+
+    // ==============================================
+    // A Block - Amogh
+    // Odd  -> South
+    // Even -> North
+    // ==============================================
+
+    if (
+        property.block ===
+        "A Block"
+    ) {
+        return isEven
+            ? "North"
+            : "South";
+    }
+
+    // ==============================================
+    // B Block - Ekash / B1
+    // Odd  -> West
+    // Even -> East
+    // ==============================================
+
+    if (
+        property.block ===
+        "B Block"
+    ) {
+        return isEven
+            ? "East"
+            : "West";
+    }
+
+    // ==============================================
+    // C1 Tower - Ishan
+    // Odd  -> East
+    // Even -> West
+    // ==============================================
+
+    if (
+        property.block ===
+        "C1 Tower"
+    ) {
+        return isEven
+            ? "West"
+            : "East";
+    }
+
+    return "";
+};
+
+// ======================================================
+// Residential Kitchen Helper
+// ======================================================
+
+const getResidentialKitchen = (
+    property: Property
+) => {
+
+    const value =
+        getUnitNumericValue(
+            property
+        );
+
+    if (
+        value === null
+    ) {
+        return "";
+    }
+
+    const suffix =
+        value % 100;
+
+    // ==============================================
+    // A Block - Back Side Kitchen
+    //
+    // Floor 1 -> 101, 106, 110
+    // Floor 2 -> 201, 206, 210
+    // etc.
+    // ==============================================
+
+    if (
+        property.block ===
+        "A Block" &&
+        [1, 6, 10].includes(
+            suffix
+        )
+    ) {
+        return "Back Side Kitchen";
+    }
+
+    return "";
+};
+
+// ======================================================
+// Flat Card
+// ======================================================
+
+interface FlatCardProps {
+    property: Property;
+
+    onClick: () => void;
+
+    className?: string;
+
+    style?: CSSProperties;
+}
+
+function FlatCard({
+    property,
+    onClick,
+    className = "",
+    style,
+}: FlatCardProps) {
+
+    const status =
+        normalizeStatus(
+            property.status
+        );
+
+    return (
+
+        <button
+            type="button"
+            onClick={
+                onClick
+            }
+            style={
+                style
+            }
+            className={`
+                flex
+                flex-col
+                items-center
+                justify-center
+
+                rounded-xl
+                border-2
+                p-4
+                text-center
+
+                transition-all
+                duration-200
+
+                hover:-translate-y-1
+                hover:scale-[1.02]
+                hover:shadow-lg
+
+                focus:outline-none
+                focus:ring-2
+                focus:ring-green-400
+                focus:ring-offset-2
+
+                ${getStatusColor(
+                status
+            )}
+
+                ${className}
+            `}
+        >
+
+            <span className="text-lg font-bold">
+                {
+                    property.unitNumber
+                }
+            </span>
+
+            <span className="mt-2 text-xs">
+                {
+                    property.area
+                        ? `${property.area} sqft`
+                        : "Area not set"
+                }
+            </span>
+
+            <span className="mt-1 text-xs">
+                Residential
+            </span>
+
+            <span className="mt-3 text-xs font-bold tracking-wide">
+                {
+                    getStatusText(
+                        status
+                    )
+                }
+            </span>
+
+        </button>
+    );
+}
+
+// ======================================================
 // Residential
 // ======================================================
 
@@ -192,17 +446,26 @@ function Residential() {
     const [
         properties,
         setProperties,
-    ] = useState<Property[]>([]);
+    ] =
+        useState<Property[]>(
+            []
+        );
 
     const [
         loading,
         setLoading,
-    ] = useState(true);
+    ] =
+        useState(
+            true
+        );
 
     const [
         error,
         setError,
-    ] = useState("");
+    ] =
+        useState(
+            ""
+        );
 
     // ==================================================
     // Navigation
@@ -211,21 +474,26 @@ function Residential() {
     const [
         selectedBlock,
         setSelectedBlock,
-    ] = useState<ResidentialBlock>(
-        "A Block"
-    );
+    ] =
+        useState<ResidentialBlock>(
+            "A Block"
+        );
 
     const [
         selectedSection,
         setSelectedSection,
-    ] = useState<ResidentialSection>(
-        "B"
-    );
+    ] =
+        useState<ResidentialSection>(
+            "B"
+        );
 
     const [
         selectedFloor,
         setSelectedFloor,
-    ] = useState(1);
+    ] =
+        useState(
+            1
+        );
 
     // ==================================================
     // Filters
@@ -234,14 +502,34 @@ function Residential() {
     const [
         search,
         setSearch,
-    ] = useState("");
+    ] =
+        useState(
+            ""
+        );
 
     const [
         selectedStatus,
         setSelectedStatus,
-    ] = useState<Status>(
-        "all"
-    );
+    ] =
+        useState<Status>(
+            "all"
+        );
+
+    const [
+        selectedFacing,
+        setSelectedFacing,
+    ] =
+        useState<FacingFilter>(
+            "all"
+        );
+
+    const [
+        selectedKitchen,
+        setSelectedKitchen,
+    ] =
+        useState<KitchenFilter>(
+            "all"
+        );
 
     // ==================================================
     // Modal
@@ -250,19 +538,26 @@ function Residential() {
     const [
         selectedFlat,
         setSelectedFlat,
-    ] = useState<any>(null);
+    ] =
+        useState<any>(
+            null
+        );
 
     const [
         isFlatModalOpen,
         setIsFlatModalOpen,
-    ] = useState(false);
+    ] =
+        useState(
+            false
+        );
 
     // ==================================================
     // Internal Backend Mapping
     // ==================================================
 
     const selectedBPhase =
-        selectedSection === "B"
+        selectedSection ===
+            "B"
             ? "Phase 1"
             : "Phase 2";
 
@@ -277,9 +572,16 @@ function Residential() {
 
             try {
 
-                if (showLoading) {
-                    setLoading(true);
-                    setError("");
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        true
+                    );
+
+                    setError(
+                        ""
+                    );
                 }
 
                 const response =
@@ -292,18 +594,30 @@ function Residential() {
                     response.data
                 );
 
-                setError("");
+                setError(
+                    ""
+                );
 
-            } catch (err) {
+            } catch (
+            err
+            ) {
 
                 const message =
-                    err instanceof Error
+                    err instanceof
+                        Error
                         ? err.message
                         : "Failed to load residential inventory";
 
-                if (showLoading) {
-                    setError(message);
+                if (
+                    showLoading
+                ) {
+
+                    setError(
+                        message
+                    );
+
                 } else {
+
                     console.error(
                         "Residential auto refresh failed:",
                         err
@@ -312,18 +626,30 @@ function Residential() {
 
             } finally {
 
-                if (showLoading) {
-                    setLoading(false);
+                if (
+                    showLoading
+                ) {
+                    setLoading(
+                        false
+                    );
                 }
             }
         };
 
-    useEffect(() => {
-        void loadProperties(true);
-    }, []);
+    useEffect(
+        () => {
+            void loadProperties(
+                true
+            );
+        },
+        []
+    );
 
     useAutoRefresh(
-        () => loadProperties(false),
+        () =>
+            loadProperties(
+                false
+            ),
         5000
     );
 
@@ -332,32 +658,44 @@ function Residential() {
     // ==================================================
 
     const blockCounts =
-        useMemo(() => {
-            return {
-                "A Block":
-                    properties.filter(
-                        (property) =>
-                            property.block ===
-                            "A Block"
-                    ).length,
+        useMemo(
+            () => {
 
-                "B Block":
-                    properties.filter(
-                        (property) =>
-                            property.block ===
-                            "B Block"
-                    ).length,
+                return {
 
-                "C1 Tower":
-                    properties.filter(
-                        (property) =>
-                            property.block ===
-                            "C1 Tower"
-                    ).length,
-            };
-        }, [
-            properties,
-        ]);
+                    "A Block":
+                        properties.filter(
+                            (
+                                property
+                            ) =>
+                                property.block ===
+                                "A Block"
+                        ).length,
+
+                    "B Block":
+                        properties.filter(
+                            (
+                                property
+                            ) =>
+                                property.block ===
+                                "B Block"
+                        ).length,
+
+                    "C1 Tower":
+                        properties.filter(
+                            (
+                                property
+                            ) =>
+                                property.block ===
+                                "C1 Tower"
+                        ).length,
+                };
+
+            },
+            [
+                properties,
+            ]
+        );
 
     // ==================================================
     // B / B1 Counts
@@ -365,7 +703,9 @@ function Residential() {
 
     const bCount =
         properties.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.block ===
                 "B Block" &&
                 property.phase ===
@@ -374,7 +714,9 @@ function Residential() {
 
     const b1Count =
         properties.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.block ===
                 "B Block" &&
                 property.phase ===
@@ -386,157 +728,204 @@ function Residential() {
     // ==================================================
 
     const sectionProperties =
-        useMemo(() => {
+        useMemo(
+            () => {
 
-            return properties
-                .filter(
-                    (property) => {
+                return properties
+                    .filter(
+                        (
+                            property
+                        ) => {
 
-                        if (
-                            property.type !==
-                            "RESIDENTIAL"
-                        ) {
-                            return false;
+                            if (
+                                property.type !==
+                                "RESIDENTIAL"
+                            ) {
+                                return false;
+                            }
+
+                            if (
+                                property.block !==
+                                selectedBlock
+                            ) {
+                                return false;
+                            }
+
+                            if (
+                                selectedBlock ===
+                                "B Block"
+                            ) {
+
+                                return (
+                                    property.phase ===
+                                    selectedBPhase
+                                );
+                            }
+
+                            return true;
                         }
+                    )
+                    .sort(
+                        naturalSort
+                    );
 
-                        if (
-                            property.block !==
-                            selectedBlock
-                        ) {
-                            return false;
-                        }
-
-                        if (
-                            selectedBlock ===
-                            "B Block"
-                        ) {
-                            return (
-                                property.phase ===
-                                selectedBPhase
-                            );
-                        }
-
-                        return true;
-                    }
-                )
-                .sort(
-                    naturalSort
-                );
-
-        }, [
-            properties,
-            selectedBlock,
-            selectedBPhase,
-        ]);
+            },
+            [
+                properties,
+                selectedBlock,
+                selectedBPhase,
+            ]
+        );
 
     // ==================================================
     // Floors
     // ==================================================
 
     const floors =
-        useMemo(() => {
+        useMemo(
+            () => {
 
-            return Array.from(
-                new Set(
-                    sectionProperties
-                        .map(
-                            (property) =>
-                                Number(
-                                    property.floor
-                                )
-                        )
-                        .filter(
-                            (floor) =>
-                                Number.isFinite(
+                return Array.from(
+                    new Set(
+                        sectionProperties
+                            .map(
+                                (
+                                    property
+                                ) =>
+                                    Number(
+                                        property.floor
+                                    )
+                            )
+                            .filter(
+                                (
                                     floor
-                                )
-                        )
-                )
-            ).sort(
-                (a, b) =>
-                    a - b
-            );
+                                ) =>
+                                    Number.isFinite(
+                                        floor
+                                    )
+                            )
+                    )
+                ).sort(
+                    (
+                        a,
+                        b
+                    ) =>
+                        a -
+                        b
+                );
 
-        }, [
-            sectionProperties,
-        ]);
+            },
+            [
+                sectionProperties,
+            ]
+        );
 
     // ==================================================
     // Current Floor
     // ==================================================
 
     const currentFlats =
-        useMemo(() => {
+        useMemo(
+            () => {
 
-            return sectionProperties
-                .filter(
-                    (property) =>
-                        Number(
-                            property.floor
-                        ) ===
-                        selectedFloor
-                )
-                .sort(
-                    naturalSort
-                );
+                return sectionProperties
+                    .filter(
+                        (
+                            property
+                        ) =>
+                            Number(
+                                property.floor
+                            ) ===
+                            selectedFloor
+                    )
+                    .sort(
+                        naturalSort
+                    );
 
-        }, [
-            sectionProperties,
-            selectedFloor,
-        ]);
+            },
+            [
+                sectionProperties,
+                selectedFloor,
+            ]
+        );
 
     // ==================================================
-    // Filters
+    // Filtered Flats
     // ==================================================
 
     const filteredFlats =
-        useMemo(() => {
+        useMemo(
+            () => {
 
-            const searchText =
-                search
-                    .trim()
-                    .toLowerCase();
+                const searchText =
+                    search
+                        .trim()
+                        .toLowerCase();
 
-            return currentFlats.filter(
-                (property) => {
+                return currentFlats.filter(
+                    (
+                        property
+                    ) => {
 
-                    const status =
-                        normalizeStatus(
-                            property.status
-                        );
-
-                    const matchesSearch =
-                        !searchText ||
-                        String(
-                            property.unitNumber ??
-                            ""
-                        )
-                            .toLowerCase()
-                            .includes(
-                                searchText
+                        const status =
+                            normalizeStatus(
+                                property.status
                             );
 
-                    const matchesStatus =
-                        selectedStatus ===
-                        "all" ||
-                        status ===
-                        selectedStatus;
+                        const matchesSearch =
+                            !searchText ||
+                            String(
+                                property.unitNumber ??
+                                ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchText
+                                );
 
-                    return (
-                        matchesSearch &&
-                        matchesStatus
-                    );
-                }
-            );
+                        const matchesStatus =
+                            selectedStatus ===
+                            "all" ||
+                            status ===
+                            selectedStatus;
 
-        }, [
-            currentFlats,
-            search,
-            selectedStatus,
-        ]);
+                        const matchesFacing =
+                            selectedFacing ===
+                            "all" ||
+                            getResidentialFacing(
+                                property
+                            ) ===
+                            selectedFacing;
+
+                        const matchesKitchen =
+                            selectedKitchen ===
+                            "all" ||
+                            getResidentialKitchen(
+                                property
+                            ) ===
+                            "Back Side Kitchen";
+
+                        return (
+                            matchesSearch &&
+                            matchesStatus &&
+                            matchesFacing &&
+                            matchesKitchen
+                        );
+                    }
+                );
+
+            },
+            [
+                currentFlats,
+                search,
+                selectedStatus,
+                selectedFacing,
+                selectedKitchen,
+            ]
+        );
 
     // ==================================================
-    // Current Floor Statistics
+    // Statistics
     // ==================================================
 
     const totalFlats =
@@ -544,28 +933,36 @@ function Residential() {
 
     const availableFlats =
         currentFlats.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.status ===
                 "AVAILABLE"
         ).length;
 
     const bookedFlats =
         currentFlats.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.status ===
                 "BOOKED"
         ).length;
 
     const holdFlats =
         currentFlats.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.status ===
                 "HOLD"
         ).length;
 
     const soldFlats =
         currentFlats.filter(
-            (property) =>
+            (
+                property
+            ) =>
                 property.status ===
                 "SOLD"
         ).length;
@@ -576,7 +973,9 @@ function Residential() {
 
     const selectedBlockData =
         RESIDENTIAL_BLOCKS.find(
-            (item) =>
+            (
+                item
+            ) =>
                 item.value ===
                 selectedBlock
         );
@@ -600,46 +999,95 @@ function Residential() {
                     : "Ekash";
 
     // ==================================================
-    // Zig-Zag
+    // A Block Flat Map
     // ==================================================
 
-    const zigZagRows =
-        useMemo(() => {
+    const aBlockFlatMap =
+        useMemo(
+            () => {
 
-            return chunkArray(
+                const map =
+                    new Map<
+                        number,
+                        Property
+                    >();
+
+                filteredFlats.forEach(
+                    (
+                        property
+                    ) => {
+
+                        const value =
+                            getUnitNumericValue(
+                                property
+                            );
+
+                        if (
+                            value ===
+                            null
+                        ) {
+                            return;
+                        }
+
+                        const suffix =
+                            value %
+                            100;
+
+                        map.set(
+                            suffix,
+                            property
+                        );
+                    }
+                );
+
+                return map;
+
+            },
+            [
                 filteredFlats,
-                4
-            );
-
-        }, [
-            filteredFlats,
-        ]);
+            ]
+        );
 
     // ==================================================
     // Reset Filters
     // ==================================================
 
-    const resetFilters = () => {
-        setSearch("");
+    const resetFilters =
+        () => {
 
-        setSelectedStatus(
-            "all"
-        );
-    };
+            setSearch(
+                ""
+            );
+
+            setSelectedStatus(
+                "all"
+            );
+
+            setSelectedFacing(
+                "all"
+            );
+
+            setSelectedKitchen(
+                "all"
+            );
+        };
 
     // ==================================================
     // Change Block
     // ==================================================
 
     const handleBlockChange = (
-        block: ResidentialBlock
+        block:
+            ResidentialBlock
     ) => {
 
         setSelectedBlock(
             block
         );
 
-        setSelectedFloor(1);
+        setSelectedFloor(
+            1
+        );
 
         if (
             block ===
@@ -658,14 +1106,17 @@ function Residential() {
     // ==================================================
 
     const handleSectionChange = (
-        section: ResidentialSection
+        section:
+            ResidentialSection
     ) => {
 
         setSelectedSection(
             section
         );
 
-        setSelectedFloor(1);
+        setSelectedFloor(
+            1
+        );
 
         resetFilters();
     };
@@ -675,10 +1126,12 @@ function Residential() {
     // ==================================================
 
     const mapPropertyToFlat = (
-        property: Property
+        property:
+            Property
     ) => {
 
         return {
+
             id:
                 property.id,
 
@@ -697,8 +1150,8 @@ function Residential() {
                 "",
 
             tower:
-                property.tower ??
-                "",
+                property.tower ||
+                currentTowerName,
 
             block:
                 property.block ??
@@ -707,6 +1160,16 @@ function Residential() {
             phase:
                 property.phase ??
                 "",
+
+            facing:
+                getResidentialFacing(
+                    property
+                ),
+
+            kitchen:
+                getResidentialKitchen(
+                    property
+                ),
 
             floor:
                 Number(
@@ -740,7 +1203,8 @@ function Residential() {
     // ==================================================
 
     const openFlat = (
-        property: Property
+        property:
+            Property
     ) => {
 
         setSelectedFlat(
@@ -760,7 +1224,8 @@ function Residential() {
 
     const handleSaveFlat =
         async (
-            updatedFlat: any
+            updatedFlat:
+                any
         ) => {
 
             try {
@@ -788,14 +1253,19 @@ function Residential() {
                     null
                 );
 
-            } catch (err) {
+            } catch (
+            err
+            ) {
 
                 const message =
-                    err instanceof Error
+                    err instanceof
+                        Error
                         ? err.message
                         : "Failed to update flat";
 
-                alert(message);
+                alert(
+                    message
+                );
             }
         };
 
@@ -803,78 +1273,197 @@ function Residential() {
     // Booking
     // ==================================================
 
-const handleBooking =
-    async (
-        bookingData: any
-    ) => {
+    const handleBooking =
+        async (
+            bookingData:
+                any
+        ) => {
 
-        if (
-            !selectedFlat
-        ) {
-            return;
-        }
+            if (
+                !selectedFlat
+            ) {
+                return;
+            }
 
-        try {
+            try {
 
-            await createBooking({
+                await createBooking({
 
-                // ==========================================
-                // IMPORTANT:
-                // BookingModal ki saari filled fields
-                // backend ko forward hongi.
-                // ==========================================
+                    ...bookingData,
 
-                ...bookingData,
+                    propertyId:
+                        selectedFlat.propertyId ??
+                        selectedFlat.id,
 
-                // Correct selected residential property
-                propertyId:
-                    selectedFlat.propertyId ??
-                    selectedFlat.id,
+                    employeeId:
+                        bookingData.employeeId ??
+                        undefined,
 
-                // Assigned Sales Member
-                employeeId:
-                    bookingData.employeeId ??
-                    undefined,
+                    status:
+                        bookingData.status ??
+                        "CONFIRMED",
+                });
 
-                // New booking default status
-                status:
-                    bookingData.status ??
-                    "CONFIRMED",
-            });
+                await loadProperties();
 
-            await loadProperties();
+                setIsFlatModalOpen(
+                    false
+                );
 
-            setIsFlatModalOpen(
-                false
+                setSelectedFlat(
+                    null
+                );
+
+            } catch (
+            err
+            ) {
+
+                const message =
+                    err instanceof
+                        Error
+                        ? err.message
+                        : "Booking failed";
+
+                alert(
+                    message
+                );
+            }
+        };
+
+    // ==================================================
+    // A Block Flat Slot
+    // ==================================================
+
+    const renderAFlat =
+        (
+            suffix:
+                number
+        ) => {
+
+            const property =
+                aBlockFlatMap.get(
+                    suffix
+                );
+
+            if (
+                !property
+            ) {
+
+                return (
+
+                    <div
+                        key={
+                            `a-empty-${suffix}`
+                        }
+                        className="h-[130px]"
+                    />
+
+                );
+            }
+
+            return (
+
+                <FlatCard
+                    key={
+                        property.id
+                    }
+                    property={
+                        property
+                    }
+                    onClick={() =>
+                        openFlat(
+                            property
+                        )
+                    }
+                    className="h-[130px] w-full"
+                />
+
             );
+        };
 
-            setSelectedFlat(
-                null
+    // ==================================================
+    // C1 Tower Flat Slot
+    // ==================================================
+
+    const renderC1Flat =
+        (
+            suffix:
+                number
+        ) => {
+
+            const property =
+                filteredFlats.find(
+                    (
+                        item
+                    ) => {
+
+                        const value =
+                            getUnitNumericValue(
+                                item
+                            );
+
+                        return (
+                            value !==
+                            null &&
+                            value %
+                            100 ===
+                            suffix
+                        );
+                    }
+                );
+
+            if (
+                !property
+            ) {
+
+                return (
+
+                    <div
+                        key={
+                            `c1-empty-${suffix}`
+                        }
+                        className="h-[130px]"
+                    />
+
+                );
+            }
+
+            return (
+
+                <FlatCard
+                    key={
+                        property.id
+                    }
+                    property={
+                        property
+                    }
+                    onClick={() =>
+                        openFlat(
+                            property
+                        )
+                    }
+                    className="h-[130px] w-full"
+                />
+
             );
-
-        } catch (err) {
-
-            const message =
-                err instanceof Error
-                    ? err.message
-                    : "Booking failed";
-
-            alert(
-                message
-            );
-        }
-    };
+        };
 
     // ==================================================
     // Loading
     // ==================================================
 
-    if (loading) {
+    if (
+        loading
+    ) {
+
         return (
+
             <div className="rounded-2xl bg-white p-8 shadow">
+
                 <p className="text-gray-600">
                     Loading residential inventory...
                 </p>
+
             </div>
         );
     }
@@ -883,18 +1472,26 @@ const handleBooking =
     // Error
     // ==================================================
 
-    if (error) {
+    if (
+        error
+    ) {
+
         return (
+
             <div className="rounded-2xl bg-white p-8 shadow">
 
                 <p className="font-medium text-red-600">
-                    {error}
+                    {
+                        error
+                    }
                 </p>
 
                 <button
                     type="button"
                     onClick={() => {
-                        void loadProperties(true);
+                        void loadProperties(
+                            true
+                        );
                     }}
                     className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
                 >
@@ -910,11 +1507,12 @@ const handleBooking =
     // ==================================================
 
     return (
+
         <div className="space-y-6">
 
-            {/* ==========================================
+            {/* ==================================================
                 Header
-            ========================================== */}
+            ================================================== */}
 
             <div>
 
@@ -928,9 +1526,9 @@ const handleBooking =
 
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 Select Block
-            ========================================== */}
+            ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
@@ -940,70 +1538,79 @@ const handleBooking =
 
                 <div className="flex flex-wrap gap-3">
 
-                    {RESIDENTIAL_BLOCKS.map(
-                        (item) => (
+                    {
+                        RESIDENTIAL_BLOCKS.map(
+                            (
+                                item
+                            ) => (
 
-                            <button
-                                key={
-                                    item.value
-                                }
-                                type="button"
-                                onClick={() =>
-                                    handleBlockChange(
+                                <button
+                                    key={
                                         item.value
-                                    )
-                                }
-                                className={`
-                                    rounded-xl
-                                    border
-                                    px-6
-                                    py-3
-                                    font-semibold
-                                    transition-all
+                                    }
+                                    type="button"
+                                    onClick={() =>
+                                        handleBlockChange(
+                                            item.value
+                                        )
+                                    }
+                                    className={`
+                                        rounded-xl
+                                        border
+                                        px-6
+                                        py-3
+                                        font-semibold
+                                        transition-all
 
-                                    ${selectedBlock ===
-                                        item.value
-                                        ? `
+                                        ${selectedBlock ===
+                                            item.value
+                                            ? `
                                                 border-green-600
                                                 bg-green-600
                                                 text-white
                                                 shadow-md
                                               `
-                                        : `
+                                            : `
                                                 border-gray-300
                                                 bg-white
                                                 text-gray-700
                                                 hover:border-green-500
                                                 hover:bg-green-50
                                               `
-                                    }
-                                `}
-                            >
+                                        }
+                                    `}
+                                >
 
-                                {item.label}
-
-                                <span className="ml-2 text-xs opacity-80">
                                     {
-                                        blockCounts[
-                                        item.value
-                                        ]
-                                    } Flats
-                                </span>
+                                        item.label
+                                    }
 
-                            </button>
+                                    <span className="ml-2 text-xs opacity-80">
 
+                                        {
+                                            blockCounts[
+                                            item.value
+                                            ]
+                                        } Flats
+
+                                    </span>
+
+                                </button>
+
+                            )
                         )
-                    )}
+                    }
 
                 </div>
 
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 B / B1 Section
-            ========================================== */}
+            ================================================== */}
 
-            {selectedBlock ===
+            {
+                selectedBlock ===
                 "B Block" && (
 
                     <div className="rounded-2xl bg-white p-6 shadow">
@@ -1030,14 +1637,14 @@ const handleBooking =
                                     )
                                 }
                                 className={`
-                                rounded-xl
-                                border
-                                px-6
-                                py-3
-                                font-medium
-                                transition-all
+                                    rounded-xl
+                                    border
+                                    px-6
+                                    py-3
+                                    font-medium
+                                    transition-all
 
-                                ${selectedSection ===
+                                    ${selectedSection ===
                                         "B"
                                         ? `
                                             border-green-600
@@ -1053,13 +1660,17 @@ const handleBooking =
                                             hover:bg-green-50
                                           `
                                     }
-                            `}
+                                `}
                             >
+
                                 B
 
                                 <span className="ml-2 text-xs opacity-80">
-                                    {bCount} Flats
+                                    {
+                                        bCount
+                                    } Flats
                                 </span>
+
                             </button>
 
                             <button
@@ -1070,14 +1681,14 @@ const handleBooking =
                                     )
                                 }
                                 className={`
-                                rounded-xl
-                                border
-                                px-6
-                                py-3
-                                font-medium
-                                transition-all
+                                    rounded-xl
+                                    border
+                                    px-6
+                                    py-3
+                                    font-medium
+                                    transition-all
 
-                                ${selectedSection ===
+                                    ${selectedSection ===
                                         "B1"
                                         ? `
                                             border-green-600
@@ -1093,23 +1704,29 @@ const handleBooking =
                                             hover:bg-green-50
                                           `
                                     }
-                            `}
+                                `}
                             >
+
                                 B1
 
                                 <span className="ml-2 text-xs opacity-80">
-                                    {b1Count} Flats
+                                    {
+                                        b1Count
+                                    } Flats
                                 </span>
+
                             </button>
 
                         </div>
 
                     </div>
-                )}
 
-            {/* ==========================================
+                )
+            }
+
+            {/* ==================================================
                 Current Section + Floors
-            ========================================== */}
+            ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
@@ -1118,11 +1735,15 @@ const handleBooking =
                     <div>
 
                         <h2 className="text-xl font-bold text-gray-800">
-                            {currentSectionName}
+                            {
+                                currentSectionName
+                            }
                         </h2>
 
                         <p className="text-sm text-gray-500">
-                            Tower: {currentTowerName}
+                            Tower: {
+                                currentTowerName
+                            }
                         </p>
 
                     </div>
@@ -1132,7 +1753,9 @@ const handleBooking =
                         Total Flats:{" "}
 
                         <span className="font-semibold text-gray-800">
-                            {sectionProperties.length}
+                            {
+                                sectionProperties.length
+                            }
                         </span>
 
                     </div>
@@ -1141,61 +1764,70 @@ const handleBooking =
 
                 <div className="flex flex-wrap gap-2">
 
-                    {floors.map(
-                        (floor) => (
+                    {
+                        floors.map(
+                            (
+                                floor
+                            ) => (
 
-                            <button
-                                key={
-                                    floor
-                                }
-                                type="button"
-                                onClick={() => {
-                                    setSelectedFloor(
+                                <button
+                                    key={
                                         floor
-                                    );
+                                    }
+                                    type="button"
+                                    onClick={() => {
 
-                                    resetFilters();
-                                }}
-                                className={`
-                                    rounded-lg
-                                    border
-                                    px-4
-                                    py-2
-                                    text-sm
-                                    font-semibold
-                                    transition-all
+                                        setSelectedFloor(
+                                            floor
+                                        );
 
-                                    ${selectedFloor ===
-                                        floor
-                                        ? `
+                                        resetFilters();
+                                    }}
+                                    className={`
+                                        rounded-lg
+                                        border
+                                        px-4
+                                        py-2
+                                        text-sm
+                                        font-semibold
+                                        transition-all
+
+                                        ${selectedFloor ===
+                                            floor
+                                            ? `
                                                 border-blue-600
                                                 bg-blue-600
                                                 text-white
                                                 shadow-md
                                               `
-                                        : `
+                                            : `
                                                 border-gray-300
                                                 bg-white
                                                 text-gray-700
                                                 hover:border-blue-400
                                                 hover:bg-blue-50
                                               `
-                                    }
-                                `}
-                            >
-                                Floor {floor}
-                            </button>
+                                        }
+                                    `}
+                                >
 
+                                    Floor {
+                                        floor
+                                    }
+
+                                </button>
+
+                            )
                         )
-                    )}
+                    }
 
                 </div>
 
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 Statistics
-            ========================================== */}
+            ================================================== */}
 
             <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
 
@@ -1206,7 +1838,9 @@ const handleBooking =
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-gray-800">
-                        {totalFlats}
+                        {
+                            totalFlats
+                        }
                     </p>
 
                 </div>
@@ -1218,7 +1852,9 @@ const handleBooking =
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-green-700">
-                        {availableFlats}
+                        {
+                            availableFlats
+                        }
                     </p>
 
                 </div>
@@ -1230,7 +1866,9 @@ const handleBooking =
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-red-700">
-                        {bookedFlats}
+                        {
+                            bookedFlats
+                        }
                     </p>
 
                 </div>
@@ -1242,7 +1880,9 @@ const handleBooking =
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-yellow-700">
-                        {holdFlats}
+                        {
+                            holdFlats
+                        }
                     </p>
 
                 </div>
@@ -1254,32 +1894,65 @@ const handleBooking =
                     </p>
 
                     <p className="mt-1 text-3xl font-bold text-gray-700">
-                        {soldFlats}
+                        {
+                            soldFlats
+                        }
                     </p>
 
                 </div>
 
             </div>
 
-            {/* ==========================================
-                Filters
-            ========================================== */}
+            {/* ==================================================
+    Filters
+================================================== */}
 
-            <div className="rounded-2xl bg-white p-5 shadow">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow">
 
-                <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                <div
+                    className="
+            grid
+            grid-cols-1
+            gap-4
 
-                    <div className="flex-1">
+            md:grid-cols-2
 
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
+            xl:grid-cols-[minmax(280px,1.5fr)_minmax(150px,0.7fr)_minmax(150px,0.7fr)_minmax(190px,0.9fr)_120px]
+            xl:items-end
+        "
+                >
+
+                    {/* Search Flat */}
+
+                    <div className="w-full">
+
+                        <label className="mb-1.5 block text-sm font-medium text-gray-600">
                             Search Flat
                         </label>
 
-                        <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
+                        <div
+                            className="
+                    flex
+                    h-[46px]
+                    items-center
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-gray-50
+                    px-3
+
+                    transition
+
+                    focus-within:border-green-500
+                    focus-within:bg-white
+                    focus-within:ring-2
+                    focus-within:ring-green-100
+                "
+                        >
 
                             <Search
                                 size={18}
-                                className="text-gray-400"
+                                className="shrink-0 text-gray-400"
                             />
 
                             <input
@@ -1295,16 +1968,26 @@ const handleBooking =
                                     )
                                 }
                                 placeholder="Search flat number..."
-                                className="ml-2 w-full outline-none"
+                                className="
+                        ml-2
+                        w-full
+                        bg-transparent
+                        text-sm
+                        text-gray-800
+                        outline-none
+                        placeholder:text-gray-400
+                    "
                             />
 
                         </div>
 
                     </div>
 
-                    <div className="w-full md:w-52">
+                    {/* Status */}
 
-                        <label className="mb-1 block text-sm font-medium text-gray-600">
+                    <div className="w-full">
+
+                        <label className="mb-1.5 block text-sm font-medium text-gray-600">
                             Status
                         </label>
 
@@ -1316,12 +1999,28 @@ const handleBooking =
                                 event
                             ) =>
                                 setSelectedStatus(
-                                    event.target
-                                        .value as
+                                    event.target.value as
                                     Status
                                 )
                             }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                            className="
+                    h-[46px]
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-gray-50
+                    px-3
+                    text-sm
+                    text-gray-800
+                    outline-none
+                    transition
+
+                    focus:border-green-500
+                    focus:bg-white
+                    focus:ring-2
+                    focus:ring-green-100
+                "
                         >
 
                             <option value="all">
@@ -1348,12 +2047,152 @@ const handleBooking =
 
                     </div>
 
+                    {/* Facing */}
+
+                    <div className="w-full">
+
+                        <label className="mb-1.5 block text-sm font-medium text-gray-600">
+                            Facing
+                        </label>
+
+                        <select
+                            value={
+                                selectedFacing
+                            }
+                            onChange={(
+                                event
+                            ) =>
+                                setSelectedFacing(
+                                    event.target.value as
+                                    FacingFilter
+                                )
+                            }
+                            className="
+                    h-[46px]
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-gray-50
+                    px-3
+                    text-sm
+                    text-gray-800
+                    outline-none
+                    transition
+
+                    focus:border-green-500
+                    focus:bg-white
+                    focus:ring-2
+                    focus:ring-green-100
+                "
+                        >
+
+                            <option value="all">
+                                All Facing
+                            </option>
+
+                            <option value="North">
+                                North
+                            </option>
+
+                            <option value="South">
+                                South
+                            </option>
+
+                            <option value="East">
+                                East
+                            </option>
+
+                            <option value="West">
+                                West
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {/* Kitchen */}
+
+                    <div className="w-full">
+
+                        <label className="mb-1.5 block text-sm font-medium text-gray-600">
+                            Kitchen
+                        </label>
+
+                        <select
+                            value={
+                                selectedKitchen
+                            }
+                            onChange={(
+                                event
+                            ) =>
+                                setSelectedKitchen(
+                                    event.target.value as
+                                    KitchenFilter
+                                )
+                            }
+                            className="
+                    h-[46px]
+                    w-full
+                    rounded-xl
+                    border
+                    border-gray-300
+                    bg-gray-50
+                    px-3
+                    text-sm
+                    text-gray-800
+                    outline-none
+                    transition
+
+                    focus:border-green-500
+                    focus:bg-white
+                    focus:ring-2
+                    focus:ring-green-100
+                "
+                        >
+
+                            <option value="all">
+                                All Kitchen
+                            </option>
+
+                            <option value="back-side">
+                                Back Side Kitchen
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {/* Reset */}
+
                     <button
                         type="button"
                         onClick={
                             resetFilters
                         }
-                        className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 font-medium text-gray-600 transition hover:bg-gray-100"
+                        className="
+                flex
+                h-[46px]
+                w-full
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                border
+                border-gray-300
+                bg-white
+                px-4
+                text-sm
+                font-semibold
+                text-gray-600
+                transition
+
+                hover:border-gray-400
+                hover:bg-gray-50
+
+                md:col-span-2
+                xl:col-span-1
+            "
                     >
 
                         <RotateCcw
@@ -1368,206 +2207,525 @@ const handleBooking =
 
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 Flats
-            ========================================== */}
+            ================================================== */}
 
             <div className="rounded-2xl bg-white p-6 shadow">
 
                 <div className="mb-6 text-center">
 
                     <h2 className="text-xl font-bold text-gray-800">
-                        {currentSectionName}
+                        {
+                            currentSectionName
+                        }
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-500">
-                        Floor {selectedFloor}
+                        Floor {
+                            selectedFloor
+                        }
                     </p>
 
                 </div>
 
-                {filteredFlats.length ===
-                    0 ? (
+                {
+                    filteredFlats.length ===
+                        0 ? (
 
-                    <div className="rounded-xl border border-dashed p-12 text-center">
+                        <div className="rounded-xl border border-dashed p-12 text-center">
 
-                        <p className="text-lg font-semibold text-gray-700">
-                            No Flats Found
-                        </p>
+                            <p className="text-lg font-semibold text-gray-700">
+                                No Flats Found
+                            </p>
 
-                        <p className="mt-1 text-sm text-gray-500">
-                            Try changing your search or status filter.
-                        </p>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Try changing your filters.
+                            </p>
 
-                        <button
-                            type="button"
-                            onClick={
-                                resetFilters
-                            }
-                            className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700"
-                        >
-                            Reset Filters
-                        </button>
-
-                    </div>
-
-                ) : (
-
-                    <div
-                        className="
-                            max-h-[620px]
-                            overflow-auto
-                            rounded-2xl
-                            border
-                            bg-gray-50
-                            px-6
-                            py-8
-                        "
-                    >
-
-                        <div
-                            className="
-                                mx-auto
-                                w-[760px]
-                                min-w-[760px]
-                                space-y-4
-                            "
-                        >
-
-                            {zigZagRows.map(
-                                (
-                                    row,
-                                    rowIndex
-                                ) => (
-
-                                    <div
-                                        key={
-                                            rowIndex
-                                        }
-                                        className="
-                                            relative
-                                            h-[130px]
-                                            w-full
-                                        "
-                                    >
-
-                                        {row.map(
-                                            (
-                                                property,
-                                                columnIndex
-                                            ) => {
-
-                                                const status =
-                                                    normalizeStatus(
-                                                        property.status
-                                                    );
-
-                                                const baseLeft =
-                                                    columnIndex *
-                                                    171;
-
-                                                const rowOffset =
-                                                    rowIndex %
-                                                        2 ===
-                                                        1
-                                                        ? 86
-                                                        : 0;
-
-                                                const left =
-                                                    baseLeft +
-                                                    rowOffset;
-
-                                                return (
-
-                                                    <button
-                                                        key={
-                                                            property.id
-                                                        }
-                                                        type="button"
-                                                        onClick={() =>
-                                                            openFlat(
-                                                                property
-                                                            )
-                                                        }
-                                                        style={{
-                                                            left:
-                                                                `${left}px`,
-                                                        }}
-                                                        className={`
-                                                            absolute
-                                                            top-0
-
-                                                            flex
-                                                            h-[130px]
-                                                            w-[155px]
-
-                                                            flex-col
-                                                            items-center
-                                                            justify-center
-
-                                                            rounded-xl
-                                                            border-2
-                                                            p-4
-                                                            text-center
-
-                                                            transition-all
-                                                            duration-200
-
-                                                            hover:-translate-y-1
-                                                            hover:scale-[1.02]
-                                                            hover:shadow-lg
-
-                                                            focus:outline-none
-                                                            focus:ring-2
-                                                            focus:ring-green-400
-                                                            focus:ring-offset-2
-
-                                                            ${getStatusColor(
-                                                            status
-                                                        )}
-                                                        `}
-                                                    >
-
-                                                        <span className="text-lg font-bold">
-                                                            {
-                                                                property.unitNumber
-                                                            }
-                                                        </span>
-
-                                                        <span className="mt-2 text-xs">
-                                                            {property.area
-                                                                ? `${property.area} sqft`
-                                                                : "Area not set"}
-                                                        </span>
-
-                                                        <span className="mt-1 text-xs">
-                                                            Residential
-                                                        </span>
-
-                                                        <span className="mt-3 text-xs font-bold tracking-wide">
-                                                            {getStatusText(
-                                                                status
-                                                            )}
-                                                        </span>
-
-                                                    </button>
-
-                                                );
-                                            }
-                                        )}
-
-                                    </div>
-
-                                )
-                            )}
+                            <button
+                                type="button"
+                                onClick={
+                                    resetFilters
+                                }
+                                className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white hover:bg-green-700"
+                            >
+                                Reset Filters
+                            </button>
 
                         </div>
 
-                    </div>
+                    ) : (
 
-                )}
+                        <div
+                            className="
+                                max-h-[620px]
+                                overflow-auto
+                                rounded-2xl
+                                border
+                                bg-gray-50
+                                px-6
+                                py-8
+                            "
+                        >
 
-                {/* Legend */}
+                            {
+                                selectedBlock ===
+                                    "A Block"
+                                    ? (
+
+                                        // ==================================
+                                        // A BLOCK - AMOGH
+                                        // ==================================
+
+                                        <div className="mx-auto w-[1040px] min-w-[1040px]">
+
+                                            {/* Even Row */}
+
+                                            <div className="grid grid-cols-6 gap-4">
+
+                                                {
+                                                    [
+                                                        2,
+                                                        4,
+                                                        6,
+                                                    ].map(
+                                                        renderAFlat
+                                                    )
+                                                }
+
+                                                {/* STAIRS */}
+
+                                                <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100">
+
+                                                    <div className="text-center">
+
+                                                        <p className="text-sm font-bold tracking-wide text-slate-700">
+                                                            STAIRS
+                                                        </p>
+
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            Common Area
+                                                        </p>
+
+                                                    </div>
+
+                                                </div>
+
+                                                {
+                                                    [
+                                                        8,
+                                                        10,
+                                                    ].map(
+                                                        renderAFlat
+                                                    )
+                                                }
+
+                                            </div>
+
+                                            {/* COMMON AREA */}
+
+                                            <div className="my-5 flex items-center gap-4">
+
+                                                <div className="h-px flex-1 bg-gray-300" />
+
+                                                <div className="rounded-full border border-gray-300 bg-white px-5 py-1.5 text-xs font-bold tracking-[0.18em] text-gray-500 shadow-sm">
+                                                    COMMON AREA
+                                                </div>
+
+                                                <div className="h-px flex-1 bg-gray-300" />
+
+                                            </div>
+
+                                            {/* Odd Row */}
+
+                                            <div className="grid grid-cols-6 gap-4">
+
+                                                {
+                                                    [
+                                                        1,
+                                                        3,
+                                                        5,
+                                                    ].map(
+                                                        renderAFlat
+                                                    )
+                                                }
+
+                                                {/* GARDEN */}
+
+                                                <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-green-300 bg-green-100">
+
+                                                    <div className="text-center">
+
+                                                        <p className="text-sm font-bold tracking-wide text-green-800">
+                                                            GARDEN
+                                                        </p>
+
+                                                        <p className="mt-1 text-xs text-green-600">
+                                                            Common Area
+                                                        </p>
+
+                                                    </div>
+
+                                                </div>
+
+                                                {
+                                                    [
+                                                        7,
+                                                        9,
+                                                    ].map(
+                                                        renderAFlat
+                                                    )
+                                                }
+
+                                            </div>
+
+                                        </div>
+
+                                    )
+                                    : (
+
+                                        selectedBlock ===
+                                            "B Block"
+                                            ? (
+
+                                                // ==================================
+                                                // B BLOCK / B1 - EKASH
+                                                // ==================================
+
+                                                <div className="mx-auto w-[520px] min-w-[520px]">
+
+                                                    {/* Even Row */}
+
+                                                    <div className="grid grid-cols-2 gap-6">
+
+                                                        {
+                                                            filteredFlats
+                                                                .filter(
+                                                                    (
+                                                                        property
+                                                                    ) => {
+
+                                                                        const value =
+                                                                            getUnitNumericValue(
+                                                                                property
+                                                                            );
+
+                                                                        return (
+                                                                            value !==
+                                                                            null &&
+                                                                            value %
+                                                                            2 ===
+                                                                            0
+                                                                        );
+                                                                    }
+                                                                )
+                                                                .sort(
+                                                                    (
+                                                                        a,
+                                                                        b
+                                                                    ) =>
+                                                                        (
+                                                                            getUnitNumericValue(
+                                                                                a
+                                                                            ) ??
+                                                                            0
+                                                                        ) -
+                                                                        (
+                                                                            getUnitNumericValue(
+                                                                                b
+                                                                            ) ??
+                                                                            0
+                                                                        )
+                                                                )
+                                                                .map(
+                                                                    (
+                                                                        property
+                                                                    ) => (
+
+                                                                        <FlatCard
+                                                                            key={
+                                                                                property.id
+                                                                            }
+                                                                            property={
+                                                                                property
+                                                                            }
+                                                                            onClick={() =>
+                                                                                openFlat(
+                                                                                    property
+                                                                                )
+                                                                            }
+                                                                            className="h-[130px] w-full"
+                                                                        />
+
+                                                                    )
+                                                                )
+                                                        }
+
+                                                    </div>
+
+                                                    {/* COMMON AREA */}
+
+                                                    <div className="my-6 flex items-center gap-4">
+
+                                                        <div className="h-px flex-1 bg-gray-300" />
+
+                                                        <div
+                                                            className="
+                                                                rounded-full
+                                                                border
+                                                                border-gray-300
+                                                                bg-white
+                                                                px-5
+                                                                py-1.5
+                                                                text-xs
+                                                                font-bold
+                                                                tracking-[0.18em]
+                                                                text-gray-500
+                                                                shadow-sm
+                                                            "
+                                                        >
+                                                            COMMON AREA
+                                                        </div>
+
+                                                        <div className="h-px flex-1 bg-gray-300" />
+
+                                                    </div>
+
+                                                    {/* Odd Row */}
+
+                                                    <div className="grid grid-cols-2 gap-6">
+
+                                                        {
+                                                            filteredFlats
+                                                                .filter(
+                                                                    (
+                                                                        property
+                                                                    ) => {
+
+                                                                        const value =
+                                                                            getUnitNumericValue(
+                                                                                property
+                                                                            );
+
+                                                                        return (
+                                                                            value !==
+                                                                            null &&
+                                                                            value %
+                                                                            2 ===
+                                                                            1
+                                                                        );
+                                                                    }
+                                                                )
+                                                                .sort(
+                                                                    (
+                                                                        a,
+                                                                        b
+                                                                    ) =>
+                                                                        (
+                                                                            getUnitNumericValue(
+                                                                                a
+                                                                            ) ??
+                                                                            0
+                                                                        ) -
+                                                                        (
+                                                                            getUnitNumericValue(
+                                                                                b
+                                                                            ) ??
+                                                                            0
+                                                                        )
+                                                                )
+                                                                .map(
+                                                                    (
+                                                                        property
+                                                                    ) => (
+
+                                                                        <FlatCard
+                                                                            key={
+                                                                                property.id
+                                                                            }
+                                                                            property={
+                                                                                property
+                                                                            }
+                                                                            onClick={() =>
+                                                                                openFlat(
+                                                                                    property
+                                                                                )
+                                                                            }
+                                                                            className="h-[130px] w-full"
+                                                                        />
+
+                                                                    )
+                                                                )
+                                                        }
+
+                                                    </div>
+
+                                                </div>
+
+                                            )
+                                            : (
+
+                                                // ==================================
+                                                // C1 TOWER - ISHAN
+                                                // ==================================
+
+                                                <div className="mx-auto w-[1180px] min-w-[1180px]">
+
+                                                    {/* Even Row */}
+
+                                                    <div className="grid grid-cols-7 gap-4">
+
+                                                        {
+                                                            [
+                                                                2,
+                                                                4,
+                                                                6,
+                                                            ].map(
+                                                                renderC1Flat
+                                                            )
+                                                        }
+
+                                                        {/* STAIRS */}
+
+                                                        <div
+                                                            className="
+                                                                flex
+                                                                h-[130px]
+                                                                items-center
+                                                                justify-center
+                                                                rounded-xl
+                                                                border-2
+                                                                border-dashed
+                                                                border-slate-300
+                                                                bg-slate-100
+                                                            "
+                                                        >
+
+                                                            <div className="text-center">
+
+                                                                <p className="text-sm font-bold tracking-wide text-slate-700">
+                                                                    STAIRS
+                                                                </p>
+
+                                                                <p className="mt-1 text-xs text-slate-500">
+                                                                    Common Area
+                                                                </p>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        {
+                                                            [
+                                                                8,
+                                                                10,
+                                                                12,
+                                                            ].map(
+                                                                renderC1Flat
+                                                            )
+                                                        }
+
+                                                    </div>
+
+                                                    {/* COMMON PASSAGE */}
+
+                                                    <div className="my-5 flex items-center gap-4">
+
+                                                        <div className="h-px flex-1 bg-gray-300" />
+
+                                                        <div
+                                                            className="
+                                                                rounded-full
+                                                                border
+                                                                border-gray-300
+                                                                bg-white
+                                                                px-6
+                                                                py-1.5
+                                                                text-xs
+                                                                font-bold
+                                                                tracking-[0.18em]
+                                                                text-gray-500
+                                                                shadow-sm
+                                                            "
+                                                        >
+                                                            COMMON PASSAGE
+                                                        </div>
+
+                                                        <div className="h-px flex-1 bg-gray-300" />
+
+                                                    </div>
+
+                                                    {/* Odd Row */}
+
+                                                    <div className="grid grid-cols-7 gap-4">
+
+                                                        {
+                                                            [
+                                                                1,
+                                                                3,
+                                                                5,
+                                                            ].map(
+                                                                renderC1Flat
+                                                            )
+                                                        }
+
+                                                        {/* LIFT */}
+
+                                                        <div
+                                                            className="
+                                                                flex
+                                                                h-[130px]
+                                                                items-center
+                                                                justify-center
+                                                                rounded-xl
+                                                                border-2
+                                                                border-dashed
+                                                                border-blue-300
+                                                                bg-blue-50
+                                                            "
+                                                        >
+
+                                                            <div className="text-center">
+
+                                                                <p className="text-sm font-bold tracking-wide text-blue-700">
+                                                                    LIFT
+                                                                </p>
+
+                                                                <p className="mt-1 text-xs text-blue-500">
+                                                                    Common Area
+                                                                </p>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        {
+                                                            [
+                                                                7,
+                                                                9,
+                                                                11,
+                                                            ].map(
+                                                                renderC1Flat
+                                                            )
+                                                        }
+
+                                                    </div>
+
+                                                </div>
+
+                                            )
+                                    )
+                            }
+
+                        </div>
+
+                    )
+                }
+
+                {/* ==================================================
+                    Legend
+                ================================================== */}
 
                 <div className="mt-8 flex flex-wrap justify-center gap-6 border-t pt-5 text-sm">
 
@@ -1595,9 +2753,9 @@ const handleBooking =
 
             </div>
 
-            {/* ==========================================
+            {/* ==================================================
                 Modal
-            ========================================== */}
+            ================================================== */}
 
             <FlatModal
                 isOpen={

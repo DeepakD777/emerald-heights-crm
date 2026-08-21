@@ -1269,6 +1269,12 @@ const buildEmployeeSummary = (
                 total:
                 number;
 
+                active:
+                number;
+
+                cancelled:
+                number;
+
                 received:
                 number;
 
@@ -1326,6 +1332,12 @@ const buildEmployeeSummary = (
                         total:
                             0,
 
+                        active:
+                            0,
+
+                        cancelled:
+                            0,
+
                         received:
                             0,
 
@@ -1348,39 +1360,52 @@ const buildEmployeeSummary = (
                     booking
                 );
 
+            employee.total +=
+                1;
+
             if (
                 propertyType ===
                 "RESIDENTIAL"
             ) {
 
-                employee
-                    .residential +=
+                employee.residential +=
                     1;
 
             } else {
 
-                employee
-                    .commercial +=
+                employee.commercial +=
                     1;
             }
 
-            employee.total +=
-                1;
-
-            employee.received +=
-                getBookingAmount(
+            if (
+                isCancelledBooking(
                     booking
-                );
+                )
+            ) {
 
-            employee.remaining +=
-                getRemainingAmount(
-                    booking
-                );
+                employee.cancelled +=
+                    1;
 
-            employee.finalAmount +=
-                getFinalAmount(
-                    booking
-                );
+            } else {
+
+                employee.active +=
+                    1;
+
+                employee.received +=
+                    getBookingAmount(
+                        booking
+                    );
+
+                employee.remaining +=
+                    getRemainingAmount(
+                        booking
+                    );
+
+                employee.finalAmount +=
+                    getFinalAmount(
+                        booking
+                    );
+            }
         }
     );
 
@@ -1411,7 +1436,153 @@ const buildEmployeeSummary = (
             }
         );
 };
+// ======================================================
+// Exact Price Wise Booking Summary
+// ======================================================
 
+const buildPriceWiseSummary = (
+    bookings:
+        BookingRecord[]
+) => {
+
+    const priceGroups =
+        new Map<
+            number,
+            {
+                price:
+                number;
+
+                totalBookings:
+                number;
+
+                activeBookings:
+                number;
+
+                cancelledBookings:
+                number;
+
+                residentialBookings:
+                number;
+
+                commercialBookings:
+                number;
+
+                receivedAmount:
+                number;
+
+                remainingAmount:
+                number;
+            }
+        >();
+
+    bookings.forEach(
+        (
+            booking
+        ) => {
+
+            const price =
+                getFinalAmount(
+                    booking
+                );
+
+            if (
+                !priceGroups.has(
+                    price
+                )
+            ) {
+
+                priceGroups.set(
+                    price,
+                    {
+                        price,
+
+                        totalBookings:
+                            0,
+
+                        activeBookings:
+                            0,
+
+                        cancelledBookings:
+                            0,
+
+                        residentialBookings:
+                            0,
+
+                        commercialBookings:
+                            0,
+
+                        receivedAmount:
+                            0,
+
+                        remainingAmount:
+                            0,
+                    }
+                );
+            }
+
+            const group =
+                priceGroups.get(
+                    price
+                )!;
+
+            group.totalBookings +=
+                1;
+
+            if (
+                isCancelledBooking(
+                    booking
+                )
+            ) {
+
+                group.cancelledBookings +=
+                    1;
+
+            } else {
+
+                group.activeBookings +=
+                    1;
+            }
+
+            if (
+                getPropertyType(
+                    booking
+                ) ===
+                "RESIDENTIAL"
+            ) {
+
+                group.residentialBookings +=
+                    1;
+
+            } else {
+
+                group.commercialBookings +=
+                    1;
+            }
+
+            group.receivedAmount +=
+                getBookingAmount(
+                    booking
+                );
+
+            group.remainingAmount +=
+                getRemainingAmount(
+                    booking
+                );
+        }
+    );
+
+    return Array.from(
+        priceGroups.values()
+    )
+        .sort(
+            (
+                a,
+                b
+            ) =>
+                a.price -
+                b.price
+        );
+};
 // ======================================================
 // Booking Row
 // ======================================================
@@ -1643,7 +1814,11 @@ export const exportProjectSummaryExcel =
 
         const employeeSummary =
             buildEmployeeSummary(
-                activeBookings
+                safeBookings
+            );
+        const priceWiseSummary =
+            buildPriceWiseSummary(
+                safeBookings
             );
 
         // ==================================================
@@ -2309,9 +2484,13 @@ export const exportProjectSummaryExcel =
         // 4. Employee Performance
         // ==================================================
 
+        // ======================================================
+        // 4. Sales Team Summary
+        // ======================================================
+
         const employeeSheet =
             workbook.addWorksheet(
-                "Employee Performance",
+                "Sales Team Summary",
                 {
                     views: [
                         {
@@ -2327,20 +2506,20 @@ export const exportProjectSummaryExcel =
 
         applyTitle(
             employeeSheet,
-            "EMPLOYEE BOOKING PERFORMANCE",
-            9
+            "SALES TEAM BOOKING SUMMARY",
+            11
         );
 
         applyGeneratedInfo(
             employeeSheet,
-            9
+            11
         );
 
         styleSectionHeader(
             employeeSheet,
             3,
-            "Sales Member Wise Booking & Collection Summary",
-            9
+            "Sales Member Wise Booking, Cancellation & Collection Summary",
+            11
         );
 
         writeTable(
@@ -2353,6 +2532,8 @@ export const exportProjectSummaryExcel =
                     "Residential Bookings",
                     "Commercial Bookings",
                     "Total Bookings",
+                    "Active Bookings",
+                    "Cancelled Bookings",
                     "Final Sale Value",
                     "Booking Amount Received",
                     "Remaining Amount",
@@ -2384,6 +2565,8 @@ export const exportProjectSummaryExcel =
                                 employee.residential,
                                 employee.commercial,
                                 employee.total,
+                                employee.active,
+                                employee.cancelled,
                                 employee.finalAmount,
                                 employee.received,
                                 employee.remaining,
@@ -2398,6 +2581,8 @@ export const exportProjectSummaryExcel =
                     22,
                     22,
                     18,
+                    18,
+                    20,
                     20,
                     24,
                     20,
@@ -2405,9 +2590,9 @@ export const exportProjectSummaryExcel =
                 ],
 
                 currencyColumns: [
-                    6,
-                    7,
                     8,
+                    9,
+                    10,
                 ],
             }
         );
@@ -2424,7 +2609,7 @@ export const exportProjectSummaryExcel =
                 ) {
 
                     row.getCell(
-                        9
+                        11
                     ).numFmt =
                         "0.00%";
                 }
@@ -2707,8 +2892,95 @@ export const exportProjectSummaryExcel =
                 ],
             }
         );
+        // ======================================================
+        // 7. Exact Price Wise Booking Summary
+        // ======================================================
+
+        const priceWiseSheet =
+            workbook.addWorksheet(
+                "Price Wise Summary",
+                {
+                    views: [
+                        {
+                            state:
+                                "frozen",
+
+                            ySplit:
+                                4,
+                        },
+                    ],
+                }
+            );
+
+        applyTitle(
+            priceWiseSheet,
+            "EXACT PRICE WISE BOOKING SUMMARY",
+            8
+        );
+
+        applyGeneratedInfo(
+            priceWiseSheet,
+            8
+        );
+
+        styleSectionHeader(
+            priceWiseSheet,
+            3,
+            `Price Groups: ${priceWiseSummary.length}`,
+            8
+        );
+
+        writeTable(
+            priceWiseSheet,
+            4,
+            {
+                headers: [
+                    "Exact Property Price",
+                    "Total Bookings",
+                    "Active Bookings",
+                    "Cancelled Bookings",
+                    "Residential",
+                    "Commercial",
+                    "Booking Amount Received",
+                    "Remaining Amount",
+                ],
+
+                rows:
+                    priceWiseSummary.map(
+                        (
+                            group
+                        ) => [
+                                group.price,
+                                group.totalBookings,
+                                group.activeBookings,
+                                group.cancelledBookings,
+                                group.residentialBookings,
+                                group.commercialBookings,
+                                group.receivedAmount,
+                                group.remainingAmount,
+                            ]
+                    ),
+
+                widths: [
+                    22,
+                    18,
+                    18,
+                    20,
+                    18,
+                    18,
+                    24,
+                    22,
+                ],
+
+                currencyColumns: [
+                    1,
+                    7,
+                    8,
+                ],
+            }
+        );
         // ==================================================
-        // 7. Document Status
+        // 8. Document Status
         // ==================================================
 
         const documentStatusSheet =

@@ -47,6 +47,7 @@ interface FlatModalProps {
         type: string;
 
         facing?: string;
+        kitchen?: string;
 
         price?: number | null;
 
@@ -137,7 +138,7 @@ function FlatModal({
     const getStatusStyle = () => {
 
         switch (
-            currentStatus
+        currentStatus
         ) {
 
             case "booked":
@@ -173,19 +174,19 @@ function FlatModal({
     const handleSave =
         async () => {
 
-        if (!isAdmin) {
-            return;
-        }
+            if (!isAdmin) {
+                return;
+            }
 
-        await onSave({
-            ...flat,
-            status,
-        });
+            await onSave({
+                ...flat,
+                status,
+            });
 
-        setIsEditing(
-            false
-        );
-    };
+            setIsEditing(
+                false
+            );
+        };
 
     // ==================================================
     // Booking Confirm
@@ -196,20 +197,20 @@ function FlatModal({
             bookingData: any
         ) => {
 
-        if (!isAdmin) {
-            return;
-        }
+            if (!isAdmin) {
+                return;
+            }
 
-        await onBooking(
-            bookingData
-        );
+            await onBooking(
+                bookingData
+            );
 
-        setIsBookingOpen(
-            false
-        );
+            setIsBookingOpen(
+                false
+            );
 
-        onClose();
-    };
+            onClose();
+        };
 
     // ==================================================
     // Render
@@ -249,20 +250,21 @@ function FlatModal({
                         {isAdmin &&
                             isEditing && (
 
-                            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-                                Editing
-                            </span>
+                                <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                                    Editing
+                                </span>
 
-                        )}
+                            )}
 
                     </div>
+
+
 
                     {/* Flat Details */}
 
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
                         <div className="rounded-lg bg-gray-50 p-4">
-
                             <p className="text-sm text-gray-500">
                                 Flat Number
                             </p>
@@ -270,60 +272,39 @@ function FlatModal({
                             <p className="mt-1 text-lg font-semibold">
                                 {flat.number}
                             </p>
-
                         </div>
 
                         <div className="rounded-lg bg-gray-50 p-4">
-
                             <p className="text-sm text-gray-500">
-                                Tower
+                                Block
+                            </p>
+
+                            <p className="mt-1 text-lg font-semibold">
+                                {flat.block || "-"}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg bg-gray-50 p-4">
+                            <p className="text-sm text-gray-500">
+                                Tower / Project
                             </p>
 
                             <p className="mt-1 text-lg font-semibold">
                                 {flat.tower || "-"}
                             </p>
-
                         </div>
 
                         <div className="rounded-lg bg-gray-50 p-4">
-
                             <p className="text-sm text-gray-500">
                                 Floor
                             </p>
 
                             <p className="mt-1 text-lg font-semibold">
-                                {flat.floor}
+                                Floor {flat.floor}
                             </p>
-
                         </div>
 
                         <div className="rounded-lg bg-gray-50 p-4">
-
-                            <p className="text-sm text-gray-500">
-                                Type
-                            </p>
-
-                            <p className="mt-1 text-lg font-semibold">
-                                {flat.type}
-                            </p>
-
-                        </div>
-
-                        <div className="rounded-lg bg-gray-50 p-4">
-
-                            <p className="text-sm text-gray-500">
-                                Area
-                            </p>
-
-                            <p className="mt-1 text-lg font-semibold">
-                                {flat.area ||
-                                    "Area not set"}
-                            </p>
-
-                        </div>
-
-                        <div className="rounded-lg bg-gray-50 p-4">
-
                             <p className="text-sm text-gray-500">
                                 Facing
                             </p>
@@ -331,7 +312,36 @@ function FlatModal({
                             <p className="mt-1 text-lg font-semibold">
                                 {flat.facing || "-"}
                             </p>
+                        </div>
 
+                        <div className="rounded-lg bg-gray-50 p-4">
+                            <p className="text-sm text-gray-500">
+                                Kitchen
+                            </p>
+
+                            <p className="mt-1 text-lg font-semibold">
+                                {flat.kitchen || "-"}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg bg-gray-50 p-4">
+                            <p className="text-sm text-gray-500">
+                                Area
+                            </p>
+
+                            <p className="mt-1 text-lg font-semibold">
+                                {flat.area || "Area not set"}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg bg-gray-50 p-4">
+                            <p className="text-sm text-gray-500">
+                                Type
+                            </p>
+
+                            <p className="mt-1 text-lg font-semibold">
+                                {flat.type}
+                            </p>
                         </div>
 
                     </div>
@@ -345,7 +355,7 @@ function FlatModal({
                         </p>
 
                         {!isAdmin ||
-                        !isEditing ? (
+                            !isEditing ? (
 
                             <span
                                 className={`
@@ -444,14 +454,14 @@ function FlatModal({
                                         {currentStatus ===
                                             "available" && (
 
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setIsBookingOpen(
-                                                        true
-                                                    )
-                                                }
-                                                className="
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setIsBookingOpen(
+                                                            true
+                                                        )
+                                                    }
+                                                    className="
                                                     rounded-lg
                                                     bg-green-600
                                                     px-5
@@ -460,38 +470,38 @@ function FlatModal({
                                                     transition
                                                     hover:bg-green-700
                                                 "
-                                            >
-                                                Book Flat
-                                            </button>
+                                                >
+                                                    Book Flat
+                                                </button>
 
-                                        )}
+                                            )}
 
                                         {currentStatus ===
                                             "booked" && (
 
-                                            <span className="rounded-lg bg-red-100 px-5 py-2 font-medium text-red-700">
-                                                Already Booked
-                                            </span>
+                                                <span className="rounded-lg bg-red-100 px-5 py-2 font-medium text-red-700">
+                                                    Already Booked
+                                                </span>
 
-                                        )}
+                                            )}
 
                                         {currentStatus ===
                                             "hold" && (
 
-                                            <span className="rounded-lg bg-yellow-100 px-5 py-2 font-medium text-yellow-700">
-                                                Flat On Hold
-                                            </span>
+                                                <span className="rounded-lg bg-yellow-100 px-5 py-2 font-medium text-yellow-700">
+                                                    Flat On Hold
+                                                </span>
 
-                                        )}
+                                            )}
 
                                         {currentStatus ===
                                             "sold" && (
 
-                                            <span className="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700">
-                                                Flat Sold
-                                            </span>
+                                                <span className="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700">
+                                                    Flat Sold
+                                                </span>
 
-                                        )}
+                                            )}
 
                                     </>
 

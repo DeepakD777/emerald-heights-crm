@@ -12,6 +12,7 @@ import {
 
 import Modal from "./Modal";
 import NocSection from "./NocSection";
+import BookingInstallmentSection from "./BookingInstallmentSection";
 // ======================================================
 // Props
 // ======================================================
@@ -1507,7 +1508,15 @@ function BookingDetailsModal({
           </div>
 
         </div>
+        {/* ==================================================
+    Installment & Payment Tracking
+================================================== */}
 
+        <BookingInstallmentSection
+          booking={booking}
+          readOnly={readOnly}
+          isAdmin={isAdmin}
+        />
         {/* ==================================================
             Finance & Customer Requirement
         ================================================== */}
