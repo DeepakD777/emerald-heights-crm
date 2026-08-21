@@ -9,6 +9,8 @@ import {
     ChevronDown,
     ChevronUp,
     IndianRupee,
+
+    FileSpreadsheet,
     UserRound,
     XCircle,
 } from "lucide-react";
@@ -22,6 +24,9 @@ import {
 } from "../../context/AuthContext";
 
 import BookingDetailsModal from "../../components/dashboard/BookingDetailsModal";
+import {
+    exportProjectSummaryExcel,
+} from "../../utils/exportProjectSummaryExcel";
 
 // ======================================================
 // Helpers
@@ -485,15 +490,54 @@ function Reports() {
                     Header
                 ================================================== */}
 
-                <div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Booking Reports
-                    </h1>
+                    <div>
 
-                    <p className="mt-1 text-sm text-gray-500">
-                        Booking summary, customer details and cancellation history
-                    </p>
+                        <h1 className="text-2xl font-bold text-gray-800">
+                            Booking Reports
+                        </h1>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                            Booking summary, customer details and cancellation history
+                        </p>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={async () => {
+
+                            try {
+
+                                await exportProjectSummaryExcel(
+                                    bookings
+                                );
+
+                            } catch (error) {
+
+                                console.error(
+                                    "Excel export error:",
+                                    error
+                                );
+
+                                alert(
+                                    "Failed to export project summary Excel."
+                                );
+                            }
+                        }}
+                        className="inline-flex w-fit items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
+                    >
+
+                        <FileSpreadsheet
+                            size={
+                                18
+                            }
+                        />
+
+                        Export Project Excel
+
+                    </button>
 
                 </div>
 

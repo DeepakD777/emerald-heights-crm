@@ -516,8 +516,8 @@ export const updateNoc = async (
                   remarks !== undefined
                     ? remarks
                       ? String(
-                          remarks
-                        ).trim()
+                        remarks
+                      ).trim()
                       : null
                     : undefined,
 
@@ -525,8 +525,8 @@ export const updateNoc = async (
                   fileName !== undefined
                     ? fileName
                       ? String(
-                          fileName
-                        ).trim()
+                        fileName
+                      ).trim()
                       : null
                     : undefined,
 
@@ -534,8 +534,8 @@ export const updateNoc = async (
                   fileUrl !== undefined
                     ? fileUrl
                       ? String(
-                          fileUrl
-                        ).trim()
+                        fileUrl
+                      ).trim()
                       : null
                     : undefined,
               },
@@ -579,8 +579,8 @@ export const updateNoc = async (
                   remarks !== undefined
                     ? remarks
                       ? String(
-                          remarks
-                        ).trim()
+                        remarks
+                      ).trim()
                       : null
                     : undefined,
 
@@ -588,8 +588,8 @@ export const updateNoc = async (
                   fileName !== undefined
                     ? fileName
                       ? String(
-                          fileName
-                        ).trim()
+                        fileName
+                      ).trim()
                       : null
                     : undefined,
 
@@ -597,27 +597,32 @@ export const updateNoc = async (
                   fileUrl !== undefined
                     ? fileUrl
                       ? String(
-                          fileUrl
-                        ).trim()
+                        fileUrl
+                      ).trim()
                       : null
                     : undefined,
 
                 approvedAt:
-                  normalizedStatus ===
-                  NocStatus.APPROVED
-                    ? now
+                  normalizedStatus !== undefined
+                    ? normalizedStatus === NocStatus.APPROVED
+                      ? now
+                      : normalizedStatus === NocStatus.ISSUED
+                        ? existingNoc.approvedAt
+                        : null
                     : undefined,
 
                 rejectedAt:
-                  normalizedStatus ===
-                  NocStatus.REJECTED
-                    ? now
+                  normalizedStatus !== undefined
+                    ? normalizedStatus === NocStatus.REJECTED
+                      ? now
+                      : null
                     : undefined,
 
                 issuedAt:
-                  normalizedStatus ===
-                  NocStatus.ISSUED
-                    ? now
+                  normalizedStatus !== undefined
+                    ? normalizedStatus === NocStatus.ISSUED
+                      ? now
+                      : null
                     : undefined,
               },
             });
