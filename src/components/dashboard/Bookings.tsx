@@ -235,6 +235,30 @@ const formatAmount = (
         "en-IN"
     )}`;
 };
+const getInstallmentDisplayName = (
+    sequence:
+        number |
+        null |
+        undefined
+) => {
+    if (
+        sequence ===
+        1
+    ) {
+        return "Booking Amount";
+    }
+
+    if (
+        typeof sequence ===
+        "number" &&
+        sequence >
+        1
+    ) {
+        return `Installment ${sequence - 1}`;
+    }
+
+    return "-";
+};
 
 // ======================================================
 // Bookings
@@ -1209,8 +1233,10 @@ function Bookings() {
 
                                                                     <div className="font-semibold text-gray-800">
                                                                         {
-                                                                            currentInstallment
-                                                                                .stageName
+                                                                            getInstallmentDisplayName(
+                                                                                currentInstallment
+                                                                                    .sequence
+                                                                            )
                                                                         }
                                                                     </div>
 

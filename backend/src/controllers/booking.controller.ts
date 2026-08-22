@@ -287,43 +287,102 @@ const parseNullableNumber = (
         return undefined;
     }
 
-    return numberValue;
+    return roundMoney(
+        numberValue
+    );
 };
+const roundMoney = (
+    value:
+        number
+): number => {
 
+    return Math.round(
+        (
+            value +
+            Number.EPSILON
+        ) *
+        100
+    ) / 100;
+};
+const calculateFinalSaleValue = (
+    afterDiscountAmount:
+        number |
+        null |
+        undefined,
+
+    totalAmount:
+        number |
+        null |
+        undefined,
+
+    discount:
+        number |
+        null |
+        undefined
+): number => {
+
+    if (
+        afterDiscountAmount !=
+        null
+    ) {
+        return roundMoney(
+            Math.max(
+                afterDiscountAmount,
+                0
+            )
+        );
+    }
+
+    return roundMoney(
+        Math.max(
+            (
+                totalAmount ??
+                0
+            ) -
+            (
+                discount ??
+                0
+            ),
+            0
+        )
+    );
+};
 // ======================================================
 // Remaining Amount Calculation
 //
 // AUTO:
-// After Discount Amount - Booking Amount
+// Final Sale Value - Total Received
 // Minimum remaining amount = 0
 // ======================================================
 
 const calculateRemainingAmount = (
-    afterDiscountAmount:
+    finalSaleValue:
         | number
         | null
         | undefined,
 
-    bookingAmount:
+    receivedAmount:
         | number
         | null
         | undefined
 ): number | null => {
 
     if (
-        afterDiscountAmount ==
+        finalSaleValue ==
         null ||
-        bookingAmount ==
+        receivedAmount ==
         null
     ) {
 
         return null;
     }
 
-    return Math.max(
-        afterDiscountAmount -
-        bookingAmount,
-        0
+    return roundMoney(
+        Math.max(
+            finalSaleValue -
+            receivedAmount,
+            0
+        )
     );
 };
 
@@ -1069,30 +1128,36 @@ const formatBooking = (
                     [];
 
                 const paidAmount =
-                    payments.reduce(
-                        (
-                            total: number,
-                            payment: any
-                        ) =>
-                            total +
-                            Number(
-                                payment.amount ??
-                                0
-                            ),
-                        0
+                    roundMoney(
+                        payments.reduce(
+                            (
+                                total: number,
+                                payment: any
+                            ) =>
+                                total +
+                                Number(
+                                    payment.amount ??
+                                    0
+                                ),
+                            0
+                        )
                     );
 
                 const plannedAmount =
-                    Number(
-                        stage.plannedAmount ??
-                        0
+                    roundMoney(
+                        Number(
+                            stage.plannedAmount ??
+                            0
+                        )
                     );
 
                 const balanceAmount =
-                    Math.max(
-                        plannedAmount -
-                        paidAmount,
-                        0
+                    roundMoney(
+                        Math.max(
+                            plannedAmount -
+                            paidAmount,
+                            0
+                        )
                     );
 
                 const paymentStatus =
@@ -1158,9 +1223,11 @@ const formatBooking = (
                                     payment.id,
 
                                 amount:
-                                    Number(
-                                        payment.amount ??
-                                        0
+                                    roundMoney(
+                                        Number(
+                                            payment.amount ??
+                                            0
+                                        )
                                     ),
 
                                 paymentDate:
@@ -1193,32 +1260,38 @@ const formatBooking = (
         );
 
     const totalInstallmentReceived =
-        installmentStages.reduce(
-            (
-                total: number,
-                stage: any
-            ) =>
-                total +
-                stage.paidAmount,
-            0
+        roundMoney(
+            installmentStages.reduce(
+                (
+                    total: number,
+                    stage: any
+                ) =>
+                    total +
+                    stage.paidAmount,
+                0
+            )
         );
 
     const totalInstallmentPlanned =
-        installmentStages.reduce(
-            (
-                total: number,
-                stage: any
-            ) =>
-                total +
-                stage.plannedAmount,
-            0
+        roundMoney(
+            installmentStages.reduce(
+                (
+                    total: number,
+                    stage: any
+                ) =>
+                    total +
+                    stage.plannedAmount,
+                0
+            )
         );
 
     const totalInstallmentBalance =
-        Math.max(
-            totalInstallmentPlanned -
-            totalInstallmentReceived,
-            0
+        roundMoney(
+            Math.max(
+                totalInstallmentPlanned -
+                totalInstallmentReceived,
+                0
+            )
         );
 
     const currentInstallment =
@@ -1868,7 +1941,7 @@ export const createBooking =
 
                 documents,
             } = payload;
-       
+
             // ==================================================
             // Required Customer Fields
             // ==================================================
@@ -2259,6 +2332,18 @@ export const createBooking =
             // ==================================================
             // Remaining Amount
             // ==================================================
+            const finalSaleValue =
+                calculateFinalSaleValue(
+                    parsedAfterDiscountAmount,
+                    parsedTotalAmount,
+                    parsedDiscount
+                );
+
+            const shouldPersistFinalSaleValue =
+                parsedAfterDiscountAmount !=
+                null ||
+                parsedTotalAmount !=
+                null;
 
             const finalRemainingAmountMode =
                 normalizeRemainingAmountMode(
@@ -2271,7 +2356,7 @@ export const createBooking =
                         .AUTO
 
                     ? calculateRemainingAmount(
-                        parsedAfterDiscountAmount,
+                        finalSaleValue,
                         parsedBookingAmount
                     )
 
@@ -2435,8 +2520,9 @@ export const createBooking =
                                                 undefined,
 
                                             afterDiscountAmount:
-                                                parsedAfterDiscountAmount ??
-                                                undefined,
+                                                shouldPersistFinalSaleValue
+                                                    ? finalSaleValue
+                                                    : undefined,
 
                                             plan:
                                                 plan
@@ -2485,23 +2571,41 @@ export const createBooking =
                             // Create Installment Plan Snapshot
                             // ==================================
 
-                            const finalSaleValue =
-                                parsedAfterDiscountAmount ??
-                                Math.max(
-                                    (parsedTotalAmount ?? 0) -
-                                    (parsedDiscount ?? 0),
-                                    0
-                                );
+
 
                             const installmentPlan =
                                 getInstallmentPlan(
                                     currentProperty.type
                                 );
 
+                            let plannedAmountRunningTotal =
+                                0;
+
                             for (
                                 const installment of
                                 installmentPlan
                             ) {
+
+                                const plannedAmount =
+                                    installment.sequence ===
+                                        10
+                                        ? roundMoney(
+                                            finalSaleValue -
+                                            plannedAmountRunningTotal
+                                        )
+                                        : roundMoney(
+                                            (
+                                                finalSaleValue *
+                                                installment.percentage
+                                            ) /
+                                            100
+                                        );
+
+                                plannedAmountRunningTotal =
+                                    roundMoney(
+                                        plannedAmountRunningTotal +
+                                        plannedAmount
+                                    );
 
                                 const createdStage =
                                     await tx
@@ -2522,12 +2626,7 @@ export const createBooking =
                                                 percentage:
                                                     installment.percentage,
 
-                                                plannedAmount:
-                                                    (
-                                                        finalSaleValue *
-                                                        installment.percentage
-                                                    ) /
-                                                    100,
+                                                plannedAmount,
                                             },
                                         });
 
@@ -3160,6 +3259,21 @@ export const updateBooking = async (
         // ==================================================
         // After Discount Amount
         // ==================================================
+        const nextTotalAmount =
+            totalAmount !== undefined
+                ? parseNullableNumber(
+                    totalAmount
+                ) ?? null
+                : existingBooking
+                    .totalAmount;
+
+        const nextDiscount =
+            discount !== undefined
+                ? parseNullableNumber(
+                    discount
+                ) ?? null
+                : existingBooking
+                    .discount;
 
         const nextAfterDiscountAmount =
             afterDiscountAmount !==
@@ -3167,8 +3281,24 @@ export const updateBooking = async (
                 ? parseNullableNumber(
                     afterDiscountAmount
                 ) ?? null
-                : existingBooking
-                    .afterDiscountAmount;
+                : (
+                    totalAmount !== undefined ||
+                    discount !== undefined
+                )
+                    ? calculateFinalSaleValue(
+                        null,
+                        nextTotalAmount,
+                        nextDiscount
+                    )
+                    : existingBooking
+                        .afterDiscountAmount;
+
+        const nextFinalSaleValue =
+            calculateFinalSaleValue(
+                nextAfterDiscountAmount,
+                nextTotalAmount,
+                nextDiscount
+            );
 
         // ==================================================
         // Remaining Amount Mode
@@ -3183,11 +3313,43 @@ export const updateBooking = async (
                 : existingBookingFinancial
                     .remainingAmountMode;
 
+
+
+        const installmentPaymentTotal =
+            await prisma.bookingInstallmentPayment.aggregate({
+                where: {
+                    bookingId,
+                },
+
+                _sum: {
+                    amount: true,
+                },
+            });
+
+        const totalInstallmentReceived =
+            roundMoney(
+                Number(
+                    installmentPaymentTotal
+                        ._sum
+                        .amount ??
+                    0
+                )
+            );
+
+        const effectiveReceivedAmount =
+            roundMoney(
+                totalInstallmentReceived >
+                    0
+                    ? totalInstallmentReceived
+                    : nextBookingAmount ??
+                    0
+            );
+
         // ==================================================
         // Remaining Amount
         //
         // AUTO:
-        // After Discount Amount - Booking Amount
+        // Final Sale Value - Total Received
         //
         // MANUAL:
         // Admin entered value
@@ -3203,8 +3365,8 @@ export const updateBooking = async (
         ) {
             nextRemainingAmount =
                 calculateRemainingAmount(
-                    nextAfterDiscountAmount,
-                    nextBookingAmount
+                    nextFinalSaleValue,
+                    effectiveReceivedAmount
                 );
         } else if (
             remainingAmount !==
@@ -3216,11 +3378,18 @@ export const updateBooking = async (
                 ) ?? null;
         }
 
+        const shouldUpdateFinalSaleValue =
+            totalAmount !==
+            undefined ||
+            discount !==
+            undefined ||
+            afterDiscountAmount !==
+            undefined;
+
         const shouldUpdateRemainingAmount =
             bookingAmount !==
             undefined ||
-            afterDiscountAmount !==
-            undefined ||
+            shouldUpdateFinalSaleValue ||
             remainingAmount !==
             undefined ||
             remainingAmountMode !==
@@ -3329,9 +3498,7 @@ export const updateBooking = async (
                                 totalAmount:
                                     totalAmount !==
                                         undefined
-                                        ? parseNullableNumber(
-                                            totalAmount
-                                        ) ?? null
+                                        ? nextTotalAmount
                                         : undefined,
 
                                 // --------------------------
@@ -3341,9 +3508,7 @@ export const updateBooking = async (
                                 discount:
                                     discount !==
                                         undefined
-                                        ? parseNullableNumber(
-                                            discount
-                                        ) ?? null
+                                        ? nextDiscount
                                         : undefined,
 
                                 // --------------------------
@@ -3351,9 +3516,8 @@ export const updateBooking = async (
                                 // --------------------------
 
                                 afterDiscountAmount:
-                                    afterDiscountAmount !==
-                                        undefined
-                                        ? nextAfterDiscountAmount
+                                    shouldUpdateFinalSaleValue
+                                        ? nextFinalSaleValue
                                         : undefined,
 
                                 // --------------------------
@@ -3434,6 +3598,65 @@ export const updateBooking = async (
                                     updatedNotes,
                             },
                         });
+
+                    // ======================================
+                    // Re-plan Installment Snapshot
+                    // Keeps payment history untouched
+                    // ======================================
+
+                    if (
+                        shouldUpdateFinalSaleValue
+                    ) {
+                        const installmentPlan =
+                            getInstallmentPlan(
+                                existingBooking
+                                    .property
+                                    .type
+                            );
+
+                        let plannedAmountRunningTotal =
+                            0;
+
+                        for (
+                            const installment of
+                            installmentPlan
+                        ) {
+                            const plannedAmount =
+                                installment.sequence ===
+                                    10
+                                    ? roundMoney(
+                                        nextFinalSaleValue -
+                                        plannedAmountRunningTotal
+                                    )
+                                    : roundMoney(
+                                        (
+                                            nextFinalSaleValue *
+                                            installment.percentage
+                                        ) /
+                                        100
+                                    );
+
+                            plannedAmountRunningTotal =
+                                roundMoney(
+                                    plannedAmountRunningTotal +
+                                    plannedAmount
+                                );
+
+                            await tx
+                                .bookingInstallmentStage
+                                .updateMany({
+                                    where: {
+                                        bookingId,
+                                        sequence:
+                                            installment.sequence,
+                                    },
+
+                                    data: {
+                                        plannedAmount,
+                                    },
+                                });
+                        }
+                    }
 
                     // ======================================
                     // Documents

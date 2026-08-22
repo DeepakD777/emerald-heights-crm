@@ -1514,7 +1514,7 @@ function BookingDetailsModal({
 
         <BookingInstallmentSection
           booking={booking}
-          readOnly={readOnly}
+          readOnly={true}
           isAdmin={isAdmin}
         />
         {/* ==================================================

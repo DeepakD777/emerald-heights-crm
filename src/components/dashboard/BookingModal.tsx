@@ -4,6 +4,7 @@ import {
 } from "react";
 
 import Modal from "./Modal";
+import BookingInstallmentSection from "./BookingInstallmentSection";
 
 import {
     getAuthToken,
@@ -608,10 +609,17 @@ function BookingModal({
             const normalizedRemainingAmount =
                 savedMode ===
                     "AUTO"
-                    ? calculateRemainingAmount(
-                        savedAfterDiscountAmount,
-                        savedBookingAmount
-                    )
+                    ? booking.remainingAmount !==
+                        null &&
+                        booking.remainingAmount !==
+                        undefined
+                        ? String(
+                            booking.remainingAmount
+                        )
+                        : calculateRemainingAmount(
+                            savedAfterDiscountAmount,
+                            savedBookingAmount
+                        )
                     : String(
                         booking
                             .remainingAmount ??
@@ -1677,6 +1685,14 @@ function BookingModal({
                     </div>
 
                 </div>
+                {mode === "edit" &&
+                    booking && (
+                        <BookingInstallmentSection
+                            booking={booking}
+                            readOnly={false}
+                            isAdmin={true}
+                        />
+                    )}
 
                 {/* ======================================
                     Finance & Customer Requirement

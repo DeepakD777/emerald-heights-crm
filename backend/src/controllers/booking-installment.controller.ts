@@ -27,6 +27,68 @@ type InstallmentPaymentPayload = {
     remarks?: string;
 };
 
+const roundMoney = (
+    value:
+        number
+): number => {
+
+    return Math.round(
+        (
+            value +
+            Number.EPSILON
+        ) *
+        100
+    ) / 100;
+};
+
+const calculateFinalSaleValue = (
+    afterDiscountAmount:
+        number |
+        null |
+        undefined,
+
+    totalAmount:
+        number |
+        null |
+        undefined,
+
+    discount:
+        number |
+        null |
+        undefined
+): number | null => {
+
+    if (
+        afterDiscountAmount !=
+        null
+    ) {
+        return roundMoney(
+            Math.max(
+                afterDiscountAmount,
+                0
+            )
+        );
+    }
+
+    if (
+        totalAmount !=
+        null
+    ) {
+        return roundMoney(
+            Math.max(
+                totalAmount -
+                (
+                    discount ??
+                    0
+                ),
+                0
+            )
+        );
+    }
+
+    return null;
+};
+
 // ======================================================
 // Format Installment Stage
 // ======================================================
@@ -40,30 +102,36 @@ const formatInstallmentStage = (
         [];
 
     const paidAmount =
-        payments.reduce(
-            (
-                total: number,
-                payment: any
-            ) =>
-                total +
-                Number(
-                    payment.amount ??
-                    0
-                ),
-            0
+        roundMoney(
+            payments.reduce(
+                (
+                    total: number,
+                    payment: any
+                ) =>
+                    total +
+                    Number(
+                        payment.amount ??
+                        0
+                    ),
+                0
+            )
         );
 
     const plannedAmount =
-        Number(
-            stage.plannedAmount ??
-            0
+        roundMoney(
+            Number(
+                stage.plannedAmount ??
+                0
+            )
         );
 
     const balanceAmount =
-        Math.max(
-            plannedAmount -
-            paidAmount,
-            0
+        roundMoney(
+            Math.max(
+                plannedAmount -
+                paidAmount,
+                0
+            )
         );
 
     const status =
@@ -132,9 +200,11 @@ const formatInstallmentStage = (
                         payment.id,
 
                     amount:
-                        Number(
-                            payment.amount ??
-                            0
+                        roundMoney(
+                            Number(
+                                payment.amount ??
+                                0
+                            )
                         ),
 
                     paymentDate:
@@ -224,8 +294,10 @@ export const addInstallmentPayment =
             // ==================================================
 
             const parsedAmount =
-                Number(
-                    amount
+                roundMoney(
+                    Number(
+                        amount
+                    )
                 );
 
             if (
@@ -381,36 +453,42 @@ export const addInstallmentPayment =
                             // ==================================
 
                             const alreadyPaid =
-                                installment
-                                    .payments
-                                    .reduce(
-                                        (
-                                            total:
-                                                number,
-                                            payment:
-                                                any
-                                        ) =>
-                                            total +
-                                            Number(
-                                                payment
-                                                    .amount ??
-                                                0
-                                            ),
-                                        0
-                                    );
+                                roundMoney(
+                                    installment
+                                        .payments
+                                        .reduce(
+                                            (
+                                                total:
+                                                    number,
+                                                payment:
+                                                    any
+                                            ) =>
+                                                total +
+                                                Number(
+                                                    payment
+                                                        .amount ??
+                                                    0
+                                                ),
+                                            0
+                                        )
+                                );
 
                             const plannedAmount =
-                                Number(
-                                    installment
-                                        .plannedAmount ??
-                                    0
+                                roundMoney(
+                                    Number(
+                                        installment
+                                            .plannedAmount ??
+                                        0
+                                    )
                                 );
 
                             const stageBalance =
-                                Math.max(
-                                    plannedAmount -
-                                    alreadyPaid,
-                                    0
+                                roundMoney(
+                                    Math.max(
+                                        plannedAmount -
+                                        alreadyPaid,
+                                        0
+                                    )
                                 );
 
                             // ==================================
@@ -419,7 +497,7 @@ export const addInstallmentPayment =
 
                             if (
                                 stageBalance <=
-                                0.01
+                                0
                             ) {
 
                                 throw new Error(
@@ -432,9 +510,8 @@ export const addInstallmentPayment =
                             // ==================================
 
                             if (
-                                parsedAmount -
-                                stageBalance >
-                                0.01
+                                parsedAmount >
+                                stageBalance
                             ) {
 
                                 throw new Error(
@@ -511,54 +588,28 @@ export const addInstallmentPayment =
                                     });
 
                             const totalReceived =
-                                Number(
-                                    paymentTotal
-                                        ._sum
-                                        .amount ??
-                                    0
+                                roundMoney(
+                                    Number(
+                                        paymentTotal
+                                            ._sum
+                                            .amount ??
+                                        0
+                                    )
                                 );
 
                             // ==================================
                             // Final Sale Value
                             // ==================================
 
-                            let finalSaleValue:
-                                number |
-                                null =
-                                null;
-
-                            if (
-                                booking
-                                    .afterDiscountAmount !=
-                                null
-                            ) {
-
-                                finalSaleValue =
-                                    Number(
-                                        booking
-                                            .afterDiscountAmount
-                                    );
-
-                            } else if (
-                                booking
-                                    .totalAmount !=
-                                null
-                            ) {
-
-                                finalSaleValue =
-                                    Math.max(
-                                        Number(
-                                            booking
-                                                .totalAmount
-                                        ) -
-                                        Number(
-                                            booking
-                                                .discount ??
-                                            0
-                                        ),
-                                        0
-                                    );
-                            }
+                            const finalSaleValue =
+                                calculateFinalSaleValue(
+                                    booking
+                                        .afterDiscountAmount,
+                                    booking
+                                        .totalAmount,
+                                    booking
+                                        .discount
+                                );
 
                             // ==================================
                             // Remaining Amount
@@ -591,10 +642,12 @@ export const addInstallmentPayment =
                                         data: {
 
                                             remainingAmount:
-                                                Math.max(
-                                                    finalSaleValue -
-                                                    totalReceived,
-                                                    0
+                                                roundMoney(
+                                                    Math.max(
+                                                        finalSaleValue -
+                                                        totalReceived,
+                                                        0
+                                                    )
                                                 ),
                                         },
                                     });
@@ -703,46 +756,52 @@ export const addInstallmentPayment =
             // ==================================================
 
             const totalPlannedAmount =
-                installmentStages
-                    .reduce(
-                        (
-                            total:
-                                number,
-                            stage:
-                                any
-                        ) =>
-                            total +
-                            Number(
-                                stage
-                                    .plannedAmount ??
-                                0
-                            ),
-                        0
-                    );
+                roundMoney(
+                    installmentStages
+                        .reduce(
+                            (
+                                total:
+                                    number,
+                                stage:
+                                    any
+                            ) =>
+                                total +
+                                Number(
+                                    stage
+                                        .plannedAmount ??
+                                    0
+                                ),
+                            0
+                        )
+                );
 
             const totalReceivedAmount =
-                installmentStages
-                    .reduce(
-                        (
-                            total:
-                                number,
-                            stage:
-                                any
-                        ) =>
-                            total +
-                            Number(
-                                stage
-                                    .paidAmount ??
-                                0
-                            ),
-                        0
-                    );
+                roundMoney(
+                    installmentStages
+                        .reduce(
+                            (
+                                total:
+                                    number,
+                                stage:
+                                    any
+                            ) =>
+                                total +
+                                Number(
+                                    stage
+                                        .paidAmount ??
+                                    0
+                                ),
+                            0
+                        )
+                );
 
             const totalBalanceAmount =
-                Math.max(
-                    totalPlannedAmount -
-                    totalReceivedAmount,
-                    0
+                roundMoney(
+                    Math.max(
+                        totalPlannedAmount -
+                        totalReceivedAmount,
+                        0
+                    )
                 );
 
             // ==================================================
@@ -792,9 +851,11 @@ export const addInstallmentPayment =
                                     .installmentId,
 
                             amount:
-                                Number(
-                                    createdPayment
-                                        .amount
+                                roundMoney(
+                                    Number(
+                                        createdPayment
+                                            .amount
+                                    )
                                 ),
 
                             paymentDate:

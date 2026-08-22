@@ -25,7 +25,7 @@ import {
 
 import BookingDetailsModal from "../../components/dashboard/BookingDetailsModal";
 import ProjectExcelExportModal from "../../components/dashboard/ProjectExcelExportModal";
-
+import InstallmentExcelExportModal from "../../components/dashboard/InstallmentExcelExportModal";
 // ======================================================
 // Helpers
 // ======================================================
@@ -210,6 +210,13 @@ function Reports() {
     const [
         isExcelExportOpen,
         setIsExcelExportOpen,
+    ] =
+        useState(
+            false
+        );
+    const [
+        isInstallmentExportOpen,
+        setIsInstallmentExportOpen,
     ] =
         useState(
             false
@@ -521,26 +528,49 @@ function Reports() {
                         </p>
 
                     </div>
-
                     {isAdmin && (
 
-                        <button
-                            type="button"
-                            onClick={
-                                handleOpenExcelExport
-                            }
-                            className="inline-flex w-fit items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
-                        >
+                        <div className="flex flex-wrap gap-2">
 
-                            <FileSpreadsheet
-                                size={
-                                    18
+                            <button
+                                type="button"
+                                onClick={
+                                    handleOpenExcelExport
                                 }
-                            />
+                                className="inline-flex w-fit items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800"
+                            >
 
-                            Export Project Excel
+                                <FileSpreadsheet
+                                    size={
+                                        18
+                                    }
+                                />
 
-                        </button>
+                                Export Project Excel
+
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setIsInstallmentExportOpen(
+                                        true
+                                    )
+                                }
+                                className="inline-flex w-fit items-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
+                            >
+
+                                <FileSpreadsheet
+                                    size={
+                                        18
+                                    }
+                                />
+
+                                Export Installment Report
+
+                            </button>
+
+                        </div>
 
                     )}
 
@@ -1449,22 +1479,37 @@ function Reports() {
             ================================================== */}
             {isAdmin && (
 
-                <ProjectExcelExportModal
-                    isOpen={
-                        isExcelExportOpen
-                    }
-                    onClose={() =>
-                        setIsExcelExportOpen(
-                            false
-                        )
-                    }
-                    bookings={
-                        bookings
-                    }
-                />
+                <>
+                    <ProjectExcelExportModal
+                        isOpen={
+                            isExcelExportOpen
+                        }
+                        onClose={() =>
+                            setIsExcelExportOpen(
+                                false
+                            )
+                        }
+                        bookings={
+                            bookings
+                        }
+                    />
+
+                    <InstallmentExcelExportModal
+                        isOpen={
+                            isInstallmentExportOpen
+                        }
+                        onClose={() =>
+                            setIsInstallmentExportOpen(
+                                false
+                            )
+                        }
+                        bookings={
+                            bookings
+                        }
+                    />
+                </>
 
             )}
-
             <BookingDetailsModal
                 isOpen={
                     isDetailsOpen

@@ -34,6 +34,8 @@ const formatCurrency = (
         undefined
 ) => {
 
+
+
     const amount =
         Number(
             value ??
@@ -91,6 +93,13 @@ const formatDate = (
         }
     );
 };
+const getInstallmentDisplayName = (
+    sequence: number
+) => {
+    return sequence === 1
+        ? "Booking Amount"
+        : `Installment ${sequence - 1}`;
+};
 
 const getStatusClasses = (
     status:
@@ -98,7 +107,7 @@ const getStatusClasses = (
 ) => {
 
     switch (
-        status
+    status
     ) {
 
         case "PAID":
@@ -183,6 +192,26 @@ function BookingInstallmentSection({
     ] =
         useState(
             ""
+        );
+    const [
+        paymentAmountMode,
+        setPaymentAmountMode,
+    ] =
+        useState<
+            "AUTO" |
+            "MANUAL"
+        >(
+            "AUTO"
+        );
+    const [
+        activePaymentStageId,
+        setActivePaymentStageId,
+    ] =
+        useState<
+            string |
+            null
+        >(
+            null
         );
 
     const [
@@ -285,6 +314,9 @@ function BookingInstallmentSection({
             setSelectedInstallmentId(
                 ""
             );
+            setActivePaymentStageId(
+                null
+            );
 
             setAmount(
                 ""
@@ -301,6 +333,15 @@ function BookingInstallmentSection({
         },
         [
             booking?.id,
+            booking
+                ?.installmentSummary
+                ?.totalReceivedAmount,
+            booking
+                ?.installmentSummary
+                ?.totalPlannedAmount,
+            booking
+                ?.installmentSummary
+                ?.totalBalanceAmount,
         ]
     );
 
@@ -310,22 +351,7 @@ function BookingInstallmentSection({
     // PARTIAL stages remain selectable
     // ==================================================
 
-    const selectableStages =
-        useMemo(
-            () =>
-                installmentStages
-                    .filter(
-                        (
-                            stage
-                        ) =>
-                            stage
-                                .status !==
-                            "PAID"
-                    ),
-            [
-                installmentStages,
-            ]
-        );
+
 
     const selectedStage =
         useMemo(
@@ -551,6 +577,14 @@ function BookingInstallmentSection({
                     ""
                 );
 
+                setActivePaymentStageId(
+                    null
+                );
+
+                setPaymentAmountMode(
+                    "AUTO"
+                );
+
                 setAmount(
                     ""
                 );
@@ -568,13 +602,18 @@ function BookingInstallmentSection({
                 );
 
             } catch (
-                error
+            error
             ) {
 
                 console.error(
                     "Add installment payment error:",
                     error
                 );
+
+                // Refresh latest backend booking data automatically.
+                // This prevents stale installment balances from requiring
+                // a manual browser refresh.
+                await refreshBookings();
 
                 setError(
                     error instanceof
@@ -711,9 +750,11 @@ function BookingInstallmentSection({
 
                                         <p className="font-bold text-gray-800">
                                             {
-                                                installmentSummary
-                                                    .currentInstallment
-                                                    .stageName
+                                                getInstallmentDisplayName(
+                                                    installmentSummary
+                                                        .currentInstallment
+                                                        .sequence
+                                                )
                                             }
                                         </p>
 
@@ -768,326 +809,6 @@ function BookingInstallmentSection({
                     Admin Payment Entry
                 ========================================== */}
 
-                {
-                    isAdmin &&
-                    !readOnly && (
-
-                        <div className="rounded-xl border border-gray-200 bg-white p-4">
-
-                            <div className="mb-4">
-
-                                <h4 className="font-bold text-gray-800">
-                                    Add Payment
-                                </h4>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Select the installment stage and enter the amount received.
-                                </p>
-
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-                                <div className="sm:col-span-2">
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Installment Stage
-                                    </label>
-
-                                    <select
-                                        value={
-                                            selectedInstallmentId
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) => {
-
-                                                setSelectedInstallmentId(
-                                                    event
-                                                        .target
-                                                        .value
-                                                );
-
-                                                setAmount(
-                                                    ""
-                                                );
-
-                                                setError(
-                                                    null
-                                                );
-                                            }
-                                        }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    >
-                                        <option value="">
-                                            Select installment stage
-                                        </option>
-
-                                        {
-                                            selectableStages
-                                                .map(
-                                                    (
-                                                        stage
-                                                    ) => (
-
-                                                        <option
-                                                            key={
-                                                                stage.id
-                                                            }
-                                                            value={
-                                                                stage.id
-                                                            }
-                                                        >
-                                                            {
-                                                                stage.sequence
-                                                            }
-                                                            .{" "}
-                                                            {
-                                                                stage.stageName
-                                                            }
-                                                            {" — Balance "}
-                                                            {
-                                                                formatCurrency(
-                                                                    stage
-                                                                        .balanceAmount
-                                                                )
-                                                            }
-                                                        </option>
-                                                    )
-                                                )
-                                        }
-
-                                    </select>
-
-                                </div>
-
-                                <div>
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Amount Received
-                                    </label>
-
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={
-                                            amount
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) =>
-                                                setAmount(
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                        }
-                                        placeholder="Enter received amount"
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    />
-
-                                    {
-                                        selectedStage && (
-
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                Stage balance:{" "}
-                                                {
-                                                    formatCurrency(
-                                                        selectedStage
-                                                            .balanceAmount
-                                                    )
-                                                }
-                                            </p>
-                                        )
-                                    }
-
-                                </div>
-
-                                <div>
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Payment Date
-                                    </label>
-
-                                    <input
-                                        type="date"
-                                        value={
-                                            paymentDate
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) =>
-                                                setPaymentDate(
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                        }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    />
-
-                                </div>
-
-                                <div>
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Payment Mode
-                                    </label>
-
-                                    <select
-                                        value={
-                                            paymentMode
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) =>
-                                                setPaymentMode(
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                        }
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    >
-                                        <option value="Cash">
-                                            Cash
-                                        </option>
-
-                                        <option value="Cheque">
-                                            Cheque
-                                        </option>
-
-                                        <option value="Bank Transfer">
-                                            Bank Transfer
-                                        </option>
-
-                                        <option value="UPI">
-                                            UPI
-                                        </option>
-
-                                        <option value="Finance">
-                                            Finance
-                                        </option>
-
-                                        <option value="Other">
-                                            Other
-                                        </option>
-
-                                    </select>
-
-                                </div>
-
-                                <div>
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Reference No.
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        value={
-                                            referenceNo
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) =>
-                                                setReferenceNo(
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                        }
-                                        placeholder="Optional"
-                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    />
-
-                                </div>
-
-                                <div className="sm:col-span-2">
-
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                        Remarks
-                                    </label>
-
-                                    <textarea
-                                        rows={
-                                            2
-                                        }
-                                        value={
-                                            remarks
-                                        }
-                                        onChange={
-                                            (
-                                                event
-                                            ) =>
-                                                setRemarks(
-                                                    event
-                                                        .target
-                                                        .value
-                                                )
-                                        }
-                                        placeholder="Optional payment remarks"
-                                        className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500"
-                                    />
-
-                                </div>
-
-                            </div>
-
-                            {
-                                error && (
-
-                                    <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                                        {
-                                            error
-                                        }
-                                    </div>
-                                )
-                            }
-
-                            {
-                                successMessage && (
-
-                                    <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-                                        {
-                                            successMessage
-                                        }
-                                    </div>
-                                )
-                            }
-
-                            <div className="mt-4 flex justify-end">
-
-                                <button
-                                    type="button"
-                                    disabled={
-                                        saving ||
-                                        !selectedInstallmentId ||
-                                        !amount
-                                    }
-                                    onClick={
-                                        handleAddPayment
-                                    }
-                                    className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {
-                                        saving
-                                            ? "Saving..."
-                                            : "Add Payment"
-                                    }
-                                </button>
-
-                            </div>
-
-                        </div>
-                    )
-                }
 
                 {/* ==========================================
                     Employee / Read Only Notice
@@ -1139,7 +860,9 @@ function BookingInstallmentSection({
 
                                                     <p className="font-semibold text-gray-800">
                                                         {
-                                                            stage.stageName
+                                                            getInstallmentDisplayName(
+                                                                stage.sequence
+                                                            )
                                                         }
                                                     </p>
 
@@ -1154,15 +877,88 @@ function BookingInstallmentSection({
 
                                             </div>
 
-                                            <span
-                                                className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
-                                                    stage.status
-                                                )}`}
-                                            >
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                                                        stage.status
+                                                    )}`}
+                                                >
+                                                    {
+                                                        stage.status
+                                                    }
+                                                </span>
+
                                                 {
-                                                    stage.status
+                                                    isAdmin &&
+                                                    !readOnly &&
+                                                    stage.status !== "PAID" && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const isAlreadyOpen =
+                                                                    activePaymentStageId ===
+                                                                    stage.id;
+
+                                                                if (isAlreadyOpen) {
+                                                                    setActivePaymentStageId(
+                                                                        null
+                                                                    );
+
+                                                                    setSelectedInstallmentId(
+                                                                        ""
+                                                                    );
+
+                                                                    setAmount(
+                                                                        ""
+                                                                    );
+
+                                                                    setError(
+                                                                        null
+                                                                    );
+
+                                                                    return;
+                                                                }
+
+                                                                setActivePaymentStageId(
+                                                                    stage.id
+                                                                );
+
+                                                                setSelectedInstallmentId(
+                                                                    stage.id
+                                                                );
+
+                                                                if (
+                                                                    paymentAmountMode ===
+                                                                    "AUTO"
+                                                                ) {
+                                                                    setAmount(
+                                                                        String(
+                                                                            stage.balanceAmount ??
+                                                                            ""
+                                                                        )
+                                                                    );
+                                                                } else {
+                                                                    setAmount(
+                                                                        ""
+                                                                    );
+                                                                }
+
+                                                                setError(
+                                                                    null
+                                                                );
+                                                            }}
+                                                            className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                                                        >
+                                                            {
+                                                                activePaymentStageId ===
+                                                                    stage.id
+                                                                    ? "Close"
+                                                                    : "Add Payment"
+                                                            }
+                                                        </button>
+                                                    )
                                                 }
-                                            </span>
+                                            </div>
 
                                         </div>
 
@@ -1220,6 +1016,291 @@ function BookingInstallmentSection({
                                             </div>
 
                                         </div>
+                                        {
+                                            isAdmin &&
+                                            !readOnly &&
+                                            stage.status !== "PAID" &&
+                                            activePaymentStageId ===
+                                            stage.id && (
+
+                                                <div className="mt-4 rounded-xl border border-green-200 bg-green-50/40 p-4">
+
+                                                    <div className="mb-4 flex items-center justify-between">
+                                                        <div>
+                                                            <h5 className="font-semibold text-gray-800">
+                                                                Add Payment -{" "}
+                                                                {
+                                                                    getInstallmentDisplayName(
+                                                                        stage.sequence
+                                                                    )
+                                                                }
+                                                            </h5>
+
+                                                            <p className="mt-1 text-xs text-gray-500">
+                                                                Enter payment details for this installment.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                                                        <div className="sm:col-span-2">
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Amount Calculation
+                                                            </label>
+
+                                                            <select
+                                                                value={
+                                                                    paymentAmountMode
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) => {
+                                                                        const nextMode =
+                                                                            event.target.value as
+                                                                            | "AUTO"
+                                                                            | "MANUAL";
+
+                                                                        setPaymentAmountMode(
+                                                                            nextMode
+                                                                        );
+
+                                                                        if (
+                                                                            nextMode ===
+                                                                            "AUTO"
+                                                                        ) {
+                                                                            setAmount(
+                                                                                String(
+                                                                                    stage.balanceAmount ??
+                                                                                    ""
+                                                                                )
+                                                                            );
+                                                                        } else {
+                                                                            setAmount(
+                                                                                ""
+                                                                            );
+                                                                        }
+
+                                                                        setError(
+                                                                            null
+                                                                        );
+                                                                    }
+                                                                }
+                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
+                                                            >
+                                                                <option value="AUTO">
+                                                                    Auto Calculation
+                                                                </option>
+
+                                                                <option value="MANUAL">
+                                                                    Manual
+                                                                </option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Amount Received
+                                                            </label>
+
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="0.01"
+                                                                value={
+                                                                    amount
+                                                                }
+                                                                readOnly={
+                                                                    paymentAmountMode ===
+                                                                    "AUTO"
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) => {
+                                                                        setAmount(
+                                                                            event.target.value
+                                                                        );
+
+                                                                        setError(
+                                                                            null
+                                                                        );
+
+                                                                        setSuccessMessage(
+                                                                            null
+                                                                        );
+                                                                    }
+                                                                }
+                                                                placeholder="Enter received amount"
+                                                                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500 ${paymentAmountMode ===
+                                                                    "AUTO"
+                                                                    ? "bg-gray-100 text-gray-700"
+                                                                    : "bg-white"
+                                                                    }`}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Payment Date
+                                                            </label>
+
+                                                            <input
+                                                                type="date"
+                                                                value={
+                                                                    paymentDate
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) =>
+                                                                        setPaymentDate(
+                                                                            event.target.value
+                                                                        )
+                                                                }
+                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Payment Mode
+                                                            </label>
+
+                                                            <select
+                                                                value={
+                                                                    paymentMode
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) =>
+                                                                        setPaymentMode(
+                                                                            event.target.value
+                                                                        )
+                                                                }
+                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
+                                                            >
+                                                                <option value="Cash">
+                                                                    Cash
+                                                                </option>
+
+                                                                <option value="Cheque">
+                                                                    Cheque
+                                                                </option>
+
+                                                                <option value="Bank Transfer">
+                                                                    Bank Transfer
+                                                                </option>
+
+                                                                <option value="UPI">
+                                                                    UPI
+                                                                </option>
+
+                                                                <option value="Finance">
+                                                                    Finance
+                                                                </option>
+
+                                                                <option value="Other">
+                                                                    Other
+                                                                </option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Reference No.
+                                                            </label>
+
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    referenceNo
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) =>
+                                                                        setReferenceNo(
+                                                                            event.target.value
+                                                                        )
+                                                                }
+                                                                placeholder="Optional"
+                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
+                                                            />
+                                                        </div>
+
+                                                        <div className="sm:col-span-2">
+                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                                                Remarks
+                                                            </label>
+
+                                                            <textarea
+                                                                rows={
+                                                                    2
+                                                                }
+                                                                value={
+                                                                    remarks
+                                                                }
+                                                                onChange={
+                                                                    (
+                                                                        event
+                                                                    ) =>
+                                                                        setRemarks(
+                                                                            event.target.value
+                                                                        )
+                                                                }
+                                                                placeholder="Optional payment remarks"
+                                                                className="w-full resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
+                                                            />
+                                                        </div>
+
+                                                    </div>
+
+                                                    {
+                                                        error && (
+                                                            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                                                {
+                                                                    error
+                                                                }
+                                                            </div>
+                                                        )
+                                                    }
+
+                                                    {
+                                                        successMessage && (
+                                                            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                                                                {
+                                                                    successMessage
+                                                                }
+                                                            </div>
+                                                        )
+                                                    }
+
+                                                    <div className="mt-4 flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            disabled={
+                                                                saving ||
+                                                                !amount
+                                                            }
+                                                            onClick={
+                                                                handleAddPayment
+                                                            }
+                                                            className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            {
+                                                                saving
+                                                                    ? "Saving..."
+                                                                    : "Save Payment"
+                                                            }
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+                                            )
+                                        }
 
                                         {/* ==================================
                                             Payment History
@@ -1248,7 +1329,7 @@ function BookingInstallmentSection({
                                                                 .map(
                                                                     (
                                                                         payment:
-                                                                        any
+                                                                            any
                                                                     ) => (
 
                                                                         <div
