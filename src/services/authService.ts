@@ -48,6 +48,11 @@ type VerifyOtpResponse = {
     resetToken: string;
 };
 
+type ChangePasswordResponse = {
+    success: true;
+    message: string;
+};
+
 // ======================================================
 // Login
 // ======================================================
@@ -142,6 +147,31 @@ export async function resetAdminPassword(
             body:
                 JSON.stringify({
                     resetToken,
+                    newPassword,
+                    confirmPassword,
+                }),
+        }
+    );
+}
+
+// ======================================================
+// Change Password
+// ======================================================
+
+export async function changePassword(
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+) {
+    return apiRequest<ChangePasswordResponse>(
+        "/auth/change-password",
+        {
+            method:
+                "POST",
+
+            body:
+                JSON.stringify({
+                    currentPassword,
                     newPassword,
                     confirmPassword,
                 }),

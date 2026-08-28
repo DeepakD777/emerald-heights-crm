@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 enum UserRole {
@@ -62,6 +62,7 @@ enum NocStatus {
   REJECTED
   ISSUED
 }
+
 enum RemainingAmountMode {
   AUTO
   MANUAL
@@ -106,7 +107,7 @@ model Employee {
 }
 
 model Customer {
-  id      String  @id @default(cuid())
+  id      String @id @default(cuid())
   name    String
   email   String?
   phone   String
@@ -115,7 +116,7 @@ model Customer {
   state   String?
   aadhar  String?
   pan     String?
-  notes   String?
+  notes   String? @db.Text
 
   // Client booking form customer details
   dob     DateTime?
@@ -151,7 +152,7 @@ model Property {
   // Property details
   area        Float?
   price       Float?
-  description String?
+  description String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,12 +181,13 @@ model Booking {
 
   // Existing booking amount
   amount Float?
+
   // Remaining payment tracking
   remainingAmount     Float?
   remainingAmountMode RemainingAmountMode @default(AUTO)
 
-// Property purchase funding type
-financeType FinanceType?
+  // Property purchase funding type
+  financeType FinanceType?
 
   // Client booking form financial details
   totalAmount         Float?
@@ -197,19 +199,20 @@ financeType FinanceType?
   finance             String?
   customerNeed        String?
 
-  notes String?
+  notes String? @db.Text
 
   cancelledAt DateTime?
-  archivedAt DateTime?
+  archivedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  customer  Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  property  Property          @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  employee  Employee?         @relation(fields: [employeeId], references: [id], onDelete: SetNull)
-  documents BookingDocument[]
-  nocs      Noc[]
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  property Property  @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  documents           BookingDocument[]
+  nocs                Noc[]
   installmentStages   BookingInstallmentStage[]
   installmentPayments BookingInstallmentPayment[]
 
@@ -219,7 +222,8 @@ financeType FinanceType?
   @@index([status])
   @@map("bookings")
 }
-  model BookingInstallmentStage {
+
+model BookingInstallmentStage {
   id        String @id @default(cuid())
   bookingId String
 
@@ -227,14 +231,14 @@ financeType FinanceType?
   sequence Int
 
   // Snapshot of the installment plan at booking time
-  stageName       String
-  percentage      Float
-  plannedAmount   Float
+  stageName     String
+  percentage    Float
+  plannedAmount Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking  Booking                     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   payments BookingInstallmentPayment[]
 
   @@unique([bookingId, sequence])
@@ -259,13 +263,14 @@ model BookingInstallmentPayment {
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  installment BookingInstallmentStage @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+ installment BookingInstallmentStage @relation(fields: [installmentId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
   @@index([installmentId])
   @@index([paymentDate])
   @@map("booking_installment_payments")
 }
+
 model BookingDocument {
   id        String         @id @default(cuid())
   bookingId String

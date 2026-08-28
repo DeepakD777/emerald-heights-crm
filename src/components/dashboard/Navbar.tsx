@@ -1,511 +1,385 @@
-import {
-    Bell,
-    Menu,
-    Search,
-    AlertTriangle,
-} from "lucide-react";
+import { Bell, Menu, Search, AlertTriangle } from "lucide-react";
 
-import {
-    useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 
-import {
-    useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-import {
-    useBooking,
-} from "../../context/BookingContext";
+import { useBooking } from "../../context/BookingContext";
 
-import {
-    useAuth,
-} from "../../context/AuthContext";
-import {
-    useNotifications,
-} from "../../hooks/useNotifications";
+import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../hooks/useNotifications";
 
-import {
-    buildNocNotificationItems,
-} from "../../utils/nocNotificationAdapter";
+import { buildNocNotificationItems } from "../../utils/nocNotificationAdapter";
 
 // ======================================================
 // Types
 // ======================================================
 
 interface NavbarProps {
-    onMenuClick?: () => void;
+  onMenuClick?: () => void;
 }
 
 interface NotificationItem {
-    id: string;
+  id: string;
 
-    bookingId: string;
+  bookingId: string;
 
-    customerName: string;
+  customerName: string;
 
-    flatNumber: string;
+  flatNumber: string;
 
-    type:
-    | "requisition"
-    | "agreement"
-    | "tripartite"
-    | "noc";
-    title: string;
+  type: "requisition" | "agreement" | "tripartite" | "noc";
+  title: string;
 
-    status: string;
+  status: string;
 }
 
 // ======================================================
 // Navbar
 // ======================================================
 
-function Navbar({
-    onMenuClick,
-}: NavbarProps) {
+function Navbar({ onMenuClick }: NavbarProps) {
+  const navigate = useNavigate();
 
-    const navigate =
-        useNavigate();
+  const { bookings } = useBooking();
+  const { notifications: backendNotifications } = useNotifications();
 
-    const {
-        bookings,
-    } = useBooking();
-    const {
-        notifications:
-        backendNotifications,
-    } = useNotifications();
+  const { user } = useAuth();
 
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-    const {
-        user,
-    } = useAuth();
+  const notificationRef = useRef<HTMLDivElement | null>(null);
 
-    const [
-        isNotificationsOpen,
-        setIsNotificationsOpen,
-    ] = useState(false);
+  useEffect(() => {
+    if (!isNotificationsOpen) {
+      return;
+    }
 
-    // ======================================================
-    // Current Logged-In User
-    // ======================================================
-
-    const displayName =
-        user?.name?.trim() ||
-        "User";
-
-    const displayRole =
-        user?.role?.trim() ||
-        (
-            user?.userType ===
-                "ADMIN"
-                ? "Administrator"
-                : "Employee"
-        );
-
-    const avatarLetter =
-        displayName
-            .charAt(0)
-            .toUpperCase() ||
-        "U";
-
-    // ======================================================
-    // Build Notifications
-    // ======================================================
-
-    const notifications:
-        NotificationItem[] = [];
-
-    bookings.forEach(
-        (booking) => {
-
-            // ==============================================
-            // Requisition Letter
-            // ==============================================
-
-            const requisitionStatus =
-                booking.documents
-                    ?.requisitionLetter
-                    ?.status ??
-                "pending";
-
-            if (
-                requisitionStatus !==
-                "given" &&
-                requisitionStatus !==
-                "completed"
-            ) {
-
-                notifications.push({
-                    id:
-                        `${booking.id}-requisition`,
-
-                    bookingId:
-                        booking.id,
-
-                    customerName:
-                        booking.customerName,
-
-                    flatNumber:
-                        booking.flatNumber,
-
-                    type:
-                        "requisition",
-
-                    title:
-                        "Requisition Letter Pending",
-
-                    status:
-                        requisitionStatus,
-                });
-            }
-
-            // ==============================================
-            // Agreement To Sell
-            // ==============================================
-
-            const agreementStatus =
-                booking.documents
-                    ?.agreementToSell
-                    ?.status ??
-                "pending";
-
-            if (
-                agreementStatus !==
-                "given" &&
-                agreementStatus !==
-                "completed"
-            ) {
-
-                notifications.push({
-                    id:
-                        `${booking.id}-agreement`,
-
-                    bookingId:
-                        booking.id,
-
-                    customerName:
-                        booking.customerName,
-
-                    flatNumber:
-                        booking.flatNumber,
-
-                    type:
-                        "agreement",
-
-                    title:
-                        "Agreement to Sell Pending",
-
-                    status:
-                        agreementStatus,
-                });
-            }
-
-            // ==============================================
-            // Tripartite Agreement
-            // ==============================================
-
-            const tripartite =
-                booking.documents
-                    ?.tripartiteAgreement;
-
-            const tripartiteRequired =
-                tripartite
-                    ?.required ===
-                true;
-
-            const tripartiteStatus =
-                tripartite
-                    ?.document
-                    ?.status ??
-                "pending";
-
-            if (
-                tripartiteRequired &&
-                tripartiteStatus !==
-                "completed"
-            ) {
-
-                notifications.push({
-                    id:
-                        `${booking.id}-tripartite`,
-
-                    bookingId:
-                        booking.id,
-
-                    customerName:
-                        booking.customerName,
-
-                    flatNumber:
-                        booking.flatNumber,
-
-                    type:
-                        "tripartite",
-
-                    title:
-                        "Tripartite Agreement Pending",
-
-                    status:
-                        tripartiteStatus,
-                });
-            }
-        }
-
-    );
-    const nocNotifications =
-        buildNocNotificationItems(
-            backendNotifications,
-            bookings
-        );
-
-    notifications.push(
-        ...nocNotifications
-    );
-
-    // ======================================================
-    // Notification Count
-    // ======================================================
-
-    const notificationCount =
-        notifications.length;
-
-    // ======================================================
-    // View Booking
-    // ======================================================
-
-    const handleViewBooking = (
-        bookingId: string
-    ) => {
-
-        setIsNotificationsOpen(
-            false
-        );
-
-        navigate(
-            `/bookings?bookingId=${bookingId}`
-        );
+    const handleOutsideClick = (event: PointerEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationsOpen(false);
+      }
     };
 
-    // ======================================================
-    // Notification Icon
-    // ======================================================
+    document.addEventListener("pointerdown", handleOutsideClick);
 
-    const getNotificationIcon = (
-        type:
-            NotificationItem["type"]
-    ) => {
-
-        switch (type) {
-
-            case "requisition":
-                return (
-                    <AlertTriangle
-                        size={20}
-                        className="text-orange-600"
-                    />
-                );
-
-            case "agreement":
-                return (
-                    <AlertTriangle
-                        size={20}
-                        className="text-yellow-600"
-                    />
-                );
-
-            case "tripartite":
-                return (
-                    <AlertTriangle
-                        size={20}
-                        className="text-blue-600"
-                    />
-                );
-
-            default:
-                return (
-                    <AlertTriangle
-                        size={20}
-                        className="text-yellow-600"
-                    />
-                );
-        }
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
     };
+  }, [isNotificationsOpen]);
 
-    // ======================================================
-    // Notification Background
-    // ======================================================
+  // ======================================================
+  // Current Logged-In User
+  // ======================================================
 
-    const getNotificationBackground = (
-        type:
-            NotificationItem["type"]
-    ) => {
+  const displayName = user?.name?.trim() || "User";
 
-        switch (type) {
+  const displayRole =
+    user?.role?.trim() ||
+    (user?.userType === "ADMIN" ? "Administrator" : "Employee");
 
-            case "requisition":
-                return (
-                    "bg-orange-100"
-                );
+  const avatarLetter = displayName.charAt(0).toUpperCase() || "U";
 
-            case "agreement":
-                return (
-                    "bg-yellow-100"
-                );
+  // ======================================================
+  // Build Notifications
+  // ======================================================
 
-            case "tripartite":
-                return (
-                    "bg-blue-100"
-                );
+  const notifications: NotificationItem[] = [];
 
-            default:
-                return (
-                    "bg-yellow-100"
-                );
-        }
-    };
+  bookings.forEach((booking) => {
+    // ==============================================
+    // Requisition Letter
+    // ==============================================
 
-    // ======================================================
-    // Component
-    // ======================================================
+    const requisitionStatus =
+      booking.documents?.requisitionLetter?.status ?? "pending";
 
-    return (
+    if (requisitionStatus !== "given" && requisitionStatus !== "completed") {
+      notifications.push({
+        id: `${booking.id}-requisition`,
 
-        <header
-            className="
-                relative
-                z-[100]
-                flex
-                h-20
-                items-center
-                justify-between
-                border-b
-                bg-white
-                px-4
-                sm:px-6
-            "
-        >
+        bookingId: booking.id,
 
-            {/* ==============================================
+        customerName: booking.customerName,
+
+        flatNumber: booking.flatNumber,
+
+        type: "requisition",
+
+        title: "Requisition Letter Pending",
+
+        status: requisitionStatus,
+      });
+    }
+
+    // ==============================================
+    // Agreement To Sell
+    // ==============================================
+
+    const agreementStatus =
+      booking.documents?.agreementToSell?.status ?? "pending";
+
+    if (agreementStatus !== "given" && agreementStatus !== "completed") {
+      notifications.push({
+        id: `${booking.id}-agreement`,
+
+        bookingId: booking.id,
+
+        customerName: booking.customerName,
+
+        flatNumber: booking.flatNumber,
+
+        type: "agreement",
+
+        title: "Agreement to Sell Pending",
+
+        status: agreementStatus,
+      });
+    }
+
+    // ==============================================
+    // Tripartite Agreement
+    // ==============================================
+
+    const tripartite = booking.documents?.tripartiteAgreement;
+
+    const tripartiteRequired = tripartite?.required === true;
+
+    const tripartiteStatus = tripartite?.document?.status ?? "pending";
+
+    if (tripartiteRequired && tripartiteStatus !== "completed") {
+      notifications.push({
+        id: `${booking.id}-tripartite`,
+
+        bookingId: booking.id,
+
+        customerName: booking.customerName,
+
+        flatNumber: booking.flatNumber,
+
+        type: "tripartite",
+
+        title: "Tripartite Agreement Pending",
+
+        status: tripartiteStatus,
+      });
+    }
+  });
+  const nocNotifications = buildNocNotificationItems(
+    backendNotifications,
+    bookings,
+  );
+
+  notifications.push(...nocNotifications);
+
+  // ======================================================
+  // Notification Count
+  // ======================================================
+
+  const notificationCount = notifications.length;
+
+  // ======================================================
+  // View Booking
+  // ======================================================
+
+  const handleViewBooking = (bookingId: string) => {
+    setIsNotificationsOpen(false);
+
+    navigate(`/bookings?bookingId=${bookingId}`);
+  };
+
+  // ======================================================
+  // Notification Icon
+  // ======================================================
+
+  const getNotificationIcon = (type: NotificationItem["type"]) => {
+    switch (type) {
+      case "requisition":
+        return <AlertTriangle size={20} className="text-orange-600" />;
+
+      case "agreement":
+        return <AlertTriangle size={20} className="text-yellow-600" />;
+
+      case "tripartite":
+        return <AlertTriangle size={20} className="text-blue-600" />;
+
+      default:
+        return <AlertTriangle size={20} className="text-yellow-600" />;
+    }
+  };
+
+  // ======================================================
+  // Notification Background
+  // ======================================================
+
+  const getNotificationBackground = (type: NotificationItem["type"]) => {
+    switch (type) {
+      case "requisition":
+        return "bg-orange-100 dark:bg-orange-950/60";
+
+      case "agreement":
+        return "bg-yellow-100 dark:bg-yellow-950/60";
+
+      case "tripartite":
+        return "bg-blue-100 dark:bg-blue-950/60";
+
+      default:
+        return "bg-yellow-100 dark:bg-yellow-950/60";
+    }
+  };
+
+  // ======================================================
+  // Component
+  // ======================================================
+
+  return (
+    <header
+      className="
+    relative
+    z-[100]
+    flex
+    h-16
+    w-full
+    min-w-0
+    items-center
+    justify-between
+    gap-2
+    border-b
+    bg-white
+    dark:border-gray-800
+    dark:bg-gray-900
+    px-3
+    sm:h-20
+    sm:px-4
+    md:px-5
+    lg:px-6
+"
+    >
+      {/* ==============================================
                 LEFT SECTION
             ============================================== */}
 
-            <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        {/* Mobile Menu */}
 
-                {/* Mobile Menu */}
-
-                <button
-                    type="button"
-                    onClick={
-                        onMenuClick
-                    }
-                    className="
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="
                         rounded-lg
                         p-2
                         text-gray-700
                         hover:bg-gray-100
+                        dark:text-gray-200
+                        dark:hover:bg-gray-800
                         lg:hidden
                     "
-                    aria-label="Open menu"
-                >
-                    <Menu
-                        size={22}
-                    />
-                </button>
+          aria-label="Open menu"
+        >
+          <Menu size={22} />
+        </button>
 
-                {/* Brand */}
+        {/* Brand */}
 
-                <div>
+        <div className="min-w-0">
+          <h1
+            className="
+        truncate
+        text-base
+        font-bold
+        text-gray-800
+        dark:text-gray-100
+        sm:text-lg
+        md:text-xl
+        lg:text-2xl
+    "
+          >
+            Emerald Heights
+            <span className="hidden sm:inline"> CRM</span>
+          </h1>
 
-                    <h1
-                        className="
-                            text-lg
-                            font-bold
-                            text-gray-800
-                            sm:text-2xl
-                        "
-                    >
-                        Emerald Heights CRM
-                    </h1>
+          <p
+            className="
+        hidden
+        truncate
+        text-xs
+        text-gray-500
+        dark:text-gray-400
+        md:block
+        lg:text-sm
+    "
+          >
+            Inventory Management System
+          </p>
+        </div>
+      </div>
 
-                    <p
-                        className="
-                            hidden
-                            text-sm
-                            text-gray-500
-                            sm:block
-                        "
-                    >
-                        Inventory Management System
-                    </p>
-
-                </div>
-
-            </div>
-
-            {/* ==============================================
+      {/* ==============================================
                 RIGHT SECTION
             ============================================== */}
 
-            <div
-                className="
-                    flex
-                    items-center
-                    gap-2
-                    sm:gap-5
-                "
-            >
-
-                {/* ==========================================
+      <div
+        className="
+    flex
+    shrink-0
+    items-center
+    gap-1
+    sm:gap-2
+    md:gap-3
+    lg:gap-5
+"
+      >
+        {/* ==========================================
                     SEARCH
                 ========================================== */}
 
-                <div
-                    className="
-                        hidden
-                        items-center
-                        rounded-lg
-                        bg-gray-100
-                        px-3
-                        py-2
-                        md:flex
-                    "
-                >
+        <div
+          className="
+    hidden
+    min-w-0
+    items-center
+    rounded-lg
+    bg-gray-100
+    dark:bg-gray-800
+    px-3
+    py-2
+    md:flex
+    md:w-40
+    lg:w-60
+"
+        >
+          <Search size={18} className="text-gray-500 dark:text-gray-400" />
 
-                    <Search
-                        size={18}
-                        className="text-gray-500"
-                    />
+          <input
+            type="text"
+            placeholder="Search..."
+            className="
+    ml-2
+    min-w-0
+    flex-1
+    bg-transparent
+    text-sm
+    text-gray-900
+    placeholder:text-gray-500
+    outline-none
+    dark:text-gray-100
+    dark:placeholder:text-gray-400
+"
+          />
+        </div>
 
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="
-                            ml-2
-                            w-40
-                            bg-transparent
-                            text-sm
-                            outline-none
-                            lg:w-52
-                        "
-                    />
-
-                </div>
-
-                {/* ==========================================
+        {/* ==========================================
                     NOTIFICATIONS
                 ========================================== */}
 
-                <div className="relative">
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setIsNotificationsOpen(
-                                (
-                                    previous
-                                ) =>
-                                    !previous
-                            )
-                        }
-                        className="
+        <div ref={notificationRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setIsNotificationsOpen((previous) => !previous)}
+            className="
                             relative
                             z-[110]
                             flex
@@ -515,23 +389,16 @@ function Navbar({
                             justify-center
                             rounded-lg
                             hover:bg-gray-100
+                            dark:hover:bg-gray-800
                         "
-                        aria-label="Notifications"
-                        aria-expanded={
-                            isNotificationsOpen
-                        }
-                    >
+            aria-label="Notifications"
+            aria-expanded={isNotificationsOpen}
+          >
+            <Bell size={22} className="text-gray-700 dark:text-gray-200" />
 
-                        <Bell
-                            size={22}
-                            className="text-gray-700"
-                        />
-
-                        {notificationCount >
-                            0 && (
-
-                                <span
-                                    className="
+            {notificationCount > 0 && (
+              <span
+                className="
                                     absolute
                                     -right-1
                                     -top-1
@@ -547,106 +414,93 @@ function Navbar({
                                     font-bold
                                     text-white
                                 "
-                                >
-                                    {
-                                        notificationCount
-                                    }
-                                </span>
-                            )}
+              >
+                {notificationCount}
+              </span>
+            )}
+          </button>
 
-                    </button>
-
-                    {/* ======================================
+          {/* ======================================
                         NOTIFICATION DROPDOWN
                     ====================================== */}
 
-                    {isNotificationsOpen && (
+          {isNotificationsOpen && (
+            <div
+              className="
+    fixed
+    left-2
+    right-2
+    top-[68px]
+    z-[9999]
+    overflow-hidden
+    rounded-xl
+    border
+    border-gray-200
+    bg-white
+    shadow-2xl
+    dark:border-gray-700
+    dark:bg-gray-900
+    sm:absolute
+    sm:left-auto
+    sm:right-0
+    sm:top-12
+    sm:w-[360px]
+"
+            >
+              {/* Header */}
 
-                        <div
-                            className="
-                                fixed
-                                right-4
-                                top-[72px]
-                                z-[9999]
-                                w-[360px]
-                                max-w-[calc(100vw-32px)]
-                                overflow-hidden
-                                rounded-xl
-                                border
-                                border-gray-200
-                                bg-white
-                                shadow-2xl
-                            "
-                        >
-
-                            {/* Header */}
-
-                            <div
-                                className="
+              <div
+                className="
                                     flex
                                     items-center
                                     justify-between
                                     border-b
+                                    border-gray-200
                                     px-4
+                                    dark:border-gray-700
                                     py-3
                                 "
-                            >
-
-                                <div>
-
-                                    <h3
-                                        className="
+              >
+                <div>
+                  <h3
+                    className="
                                             font-semibold
                                             text-gray-800
+                                            dark:text-gray-100
                                         "
-                                    >
-                                        Notifications
-                                    </h3>
+                  >
+                    Notifications
+                  </h3>
 
-                                    <p
-                                        className="
+                  <p
+                    className="
                                             text-xs
                                             text-gray-500
+                                            dark:text-gray-400
                                         "
-                                    >
-                                        {
-                                            notificationCount
-                                        }{" "}
-                                        pending item
-                                        {
-                                            notificationCount !==
-                                                1
-                                                ? "s"
-                                                : ""
-                                        }
-                                    </p>
+                  >
+                    {notificationCount} pending item
+                    {notificationCount !== 1 ? "s" : ""}
+                  </p>
+                </div>
 
-                                </div>
+                <Bell size={18} className="text-gray-500 dark:text-gray-400" />
+              </div>
 
-                                <Bell
-                                    size={18}
-                                    className="text-gray-500"
-                                />
-
-                            </div>
-
-                            {/* ==================================
+              {/* ==================================
                                 NO NOTIFICATIONS
                             ================================== */}
 
-                            {notificationCount ===
-                                0 ? (
-
-                                <div
-                                    className="
+              {notificationCount === 0 ? (
+                <div
+                  className="
                                         px-4
                                         py-8
                                         text-center
                                     "
-                                >
-
-                                    <div
-                                        className="
+                >
+                  <div
+                    className="
                                             mx-auto
                                             mb-3
                                             flex
@@ -656,75 +510,63 @@ function Navbar({
                                             justify-center
                                             rounded-full
                                             bg-green-100
+                                            dark:bg-green-950/60
                                         "
-                                    >
+                  >
+                    <Bell size={22} className="text-green-600" />
+                  </div>
 
-                                        <Bell
-                                            size={22}
-                                            className="text-green-600"
-                                        />
-
-                                    </div>
-
-                                    <p
-                                        className="
+                  <p
+                    className="
                                             font-medium
                                             text-gray-700
+                                            dark:text-gray-200
                                         "
-                                    >
-                                        All caught up
-                                    </p>
+                  >
+                    All caught up
+                  </p>
 
-                                    <p
-                                        className="
+                  <p
+                    className="
                                             mt-1
                                             text-sm
                                             text-gray-500
+                                            dark:text-gray-400
                                         "
-                                    >
-                                        No pending documents.
-                                    </p>
-
-                                </div>
-
-                            ) : (
-
-                                <div
-                                    className="
-                                        max-h-[420px]
-                                        overflow-y-auto
-                                    "
-                                >
-
-                                    {notifications.map(
-                                        (
-                                            notification
-                                        ) => (
-
-                                            <div
-                                                key={
-                                                    notification.id
-                                                }
-                                                className="
+                  >
+                    No pending documents.
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="
+    max-h-[calc(100dvh-180px)]
+    overflow-y-auto
+    sm:max-h-[420px]
+  "
+                >
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className="
                                                     border-b
                                                     border-gray-100
                                                     last:border-b-0
+                                                    dark:border-gray-800
                                                 "
-                                            >
-
-                                                <div
-                                                    className="
+                    >
+                      <div
+                        className="
                                                         flex
                                                         gap-3
                                                         px-4
                                                         py-4
                                                     "
-                                                >
+                      >
+                        {/* Icon */}
 
-                                                    {/* Icon */}
-
-                                                    <div
-                                                        className={`
+                        <div
+                          className={`
                                                             flex
                                                             h-10
                                                             w-10
@@ -734,111 +576,91 @@ function Navbar({
                                                             rounded-full
 
                                                             ${getNotificationBackground(
-                                                            notification.type
-                                                        )
-                                                            }
+                                                              notification.type,
+                                                            )}
                                                         `}
-                                                    >
+                        >
+                          {getNotificationIcon(notification.type)}
+                        </div>
 
-                                                        {
-                                                            getNotificationIcon(
-                                                                notification.type
-                                                            )
-                                                        }
+                        {/* Content */}
 
-                                                    </div>
-
-                                                    {/* Content */}
-
-                                                    <div
-                                                        className="
+                        <div
+                          className="
                                                             min-w-0
                                                             flex-1
                                                         "
-                                                    >
-
-                                                        <p
-                                                            className="
+                        >
+                          <p
+                            className="
                                                                 font-semibold
                                                                 text-gray-800
+                                                                dark:text-gray-100
                                                             "
-                                                        >
-                                                            {
-                                                                notification.title
-                                                            }
-                                                        </p>
+                          >
+                            {notification.title}
+                          </p>
 
-                                                        <p
-                                                            className="
+                          <p
+                            className="
                                                                 mt-1
                                                                 text-sm
                                                                 text-gray-600
+                                                                dark:text-gray-300
                                                             "
-                                                        >
-                                                            Customer:{" "}
-
-                                                            <span
-                                                                className="
+                          >
+                            Customer:{" "}
+                            <span
+                              className="
                                                                     font-medium
                                                                 "
-                                                            >
-                                                                {
-                                                                    notification.customerName
-                                                                }
-                                                            </span>
+                            >
+                              {notification.customerName}
+                            </span>
+                          </p>
 
-                                                        </p>
-
-                                                        <p
-                                                            className="
+                          <p
+                            className="
                                                                 text-sm
                                                                 text-gray-600
+                                                                dark:text-gray-300
                                                             "
-                                                        >
-                                                            Flat:{" "}
-
-                                                            <span
-                                                                className="
+                          >
+                            Flat:{" "}
+                            <span
+                              className="
                                                                     font-medium
                                                                 "
-                                                            >
-                                                                {
-                                                                    notification.flatNumber
-                                                                }
-                                                            </span>
+                            >
+                              {notification.flatNumber}
+                            </span>
+                          </p>
 
-                                                        </p>
-
-                                                        <p
-                                                            className="
+                          <p
+                            className="
                                                                 mt-1
                                                                 text-xs
                                                                 text-gray-500
+                                                                dark:text-gray-400
                                                             "
-                                                        >
-                                                            Status:{" "}
-
-                                                            <span
-                                                                className="
+                          >
+                            Status:{" "}
+                            <span
+                              className="
                                                                     font-semibold
                                                                     capitalize
                                                                 "
-                                                            >
-                                                                {
-                                                                    notification.status
-                                                                }
-                                                            </span>
+                            >
+                              {notification.status}
+                            </span>
+                          </p>
 
-                                                        </p>
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleViewBooking(
-                                                                    notification.bookingId
-                                                                )
-                                                            }
-                                                            className="
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleViewBooking(notification.bookingId)
+                            }
+                            className="
                                                                 mt-3
                                                                 rounded-lg
                                                                 bg-green-600
@@ -849,40 +671,32 @@ function Navbar({
                                                                 text-white
                                                                 hover:bg-green-700
                                                             "
-                                                        >
-                                                            View Booking
-                                                        </button>
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-                                        )
-                                    )}
-
-                                </div>
-                            )}
-
+                          >
+                            View Booking
+                          </button>
                         </div>
-                    )}
-
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              )}
+            </div>
+          )}
+        </div>
 
-                {/* ==========================================
+        {/* ==========================================
                     CURRENT USER
                 ========================================== */}
 
-                <div
-                    className="
+        <div
+          className="
                         flex
                         items-center
                         gap-3
                     "
-                >
-
-                    <div
-                        className="
+        >
+          <div
+            className="
                             flex
                             h-10
                             w-10
@@ -893,38 +707,35 @@ function Navbar({
                             font-bold
                             text-white
                         "
-                    >
-                        {avatarLetter}
-                    </div>
+          >
+            {avatarLetter}
+          </div>
 
-                    <div className="hidden sm:block">
-
-                        <h3
-                            className="
+          <div className="hidden sm:block">
+            <h3
+              className="
                                 font-semibold
                                 text-gray-800
+                                dark:text-gray-100
                             "
-                        >
-                            {displayName}
-                        </h3>
+            >
+              {displayName}
+            </h3>
 
-                        <p
-                            className="
+            <p
+              className="
                                 text-xs
                                 text-gray-500
+                                dark:text-gray-400
                             "
-                        >
-                            {displayRole}
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </header>
-    );
+            >
+              {displayRole}
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 export default Navbar;

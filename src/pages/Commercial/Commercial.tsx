@@ -1,148 +1,76 @@
-import {
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-    RotateCcw,
-    Search,
-} from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 
 import ShopModal from "../../components/dashboard/ShopModal";
 import BookingModal from "../../components/dashboard/BookingModal";
 
-import {
-    getProperties,
-    updateProperty,
-} from "../../services/propertyService";
+import { getProperties, updateProperty } from "../../services/propertyService";
 
-import type {
-    Property,
-    PropertyStatus,
-} from "../../services/propertyService";
+import type { Property, PropertyStatus } from "../../services/propertyService";
 
-import {
-    createBooking,
-} from "../../services/bookingService";
+import { createBooking } from "../../services/bookingService";
 
-import {
-    useAutoRefresh,
-} from "../../hooks/useAutoRefresh";
+import { useAutoRefresh } from "../../hooks/useAutoRefresh";
 
 // ======================================================
 // Types
 // ======================================================
 
-type CommercialSection =
-    | "Commercial"
-    | "Commercial 1";
+type CommercialSection = "Commercial" | "Commercial 1";
 
-type Floor =
-    | "Ground Floor"
-    | "1st Floor"
-    | "2nd Floor"
-    | "3rd Floor";
+type Floor = "Ground Floor" | "1st Floor" | "2nd Floor" | "3rd Floor";
 
-type FloorFilter =
-    | "all"
-    | Floor;
+type FloorFilter = "all" | Floor;
 
-type Status =
-    | "all"
-    | "available"
-    | "hold"
-    | "booked"
-    | "sold"
-    | "finedine";
+type Status = "all" | "available" | "hold" | "booked" | "sold" | "finedine";
 
 // ======================================================
 // Constants
 // ======================================================
 
-const FLOORS: Floor[] = [
-    "Ground Floor",
-    "1st Floor",
-    "2nd Floor",
-    "3rd Floor",
-];
+const FLOORS: Floor[] = ["Ground Floor", "1st Floor", "2nd Floor", "3rd Floor"];
 
 // ======================================================
 // Helpers
 // ======================================================
 
-const getFrontendStatus = (
-    property: Property
-) => {
-    if (
-        property.isFineDine
-    ) {
+const getFrontendStatus = (property: Property) => {
+    if (property.isFineDine) {
         return "finedine";
     }
 
-    return String(
-        property.status
-    ).toLowerCase();
+    return String(property.status).toLowerCase();
 };
 
-const naturalSort = (
-    a: Property,
-    b: Property
-) => {
-    return String(
-        a.unitNumber ?? ""
-    ).localeCompare(
-        String(
-            b.unitNumber ?? ""
-        ),
+const naturalSort = (a: Property, b: Property) => {
+    return String(a.unitNumber ?? "").localeCompare(
+        String(b.unitNumber ?? ""),
         undefined,
         {
             numeric: true,
             sensitivity: "base",
-        }
+        },
     );
 };
 
-function chunkArray<T>(
-    items: T[],
-    size: number
-): T[][] {
+function chunkArray<T>(items: T[], size: number): T[][] {
     const rows: T[][] = [];
 
-    for (
-        let index = 0;
-        index < items.length;
-        index += size
-    ) {
-        rows.push(
-            items.slice(
-                index,
-                index + size
-            )
-        );
+    for (let index = 0; index < items.length; index += size) {
+        rows.push(items.slice(index, index + size));
     }
 
     return rows;
 }
 
-const getShopColor = (
-    status: string,
-    section: CommercialSection
-) => {
-
+const getShopColor = (status: string, section: CommercialSection) => {
     // ==================================================
     // COMMERCIAL 1 - Separate Teal Based Palette
     // ==================================================
 
-    if (
-        section ===
-        "Commercial 1"
-    ) {
-
-        if (
-            status ===
-            "finedine"
-        ) {
+    if (section === "Commercial 1") {
+        if (status === "finedine") {
             return `
                 bg-indigo-50
                 border-indigo-500
@@ -152,10 +80,7 @@ const getShopColor = (
             `;
         }
 
-        if (
-            status ===
-            "booked"
-        ) {
+        if (status === "booked") {
             return `
                 bg-rose-50
                 border-rose-500
@@ -165,10 +90,7 @@ const getShopColor = (
             `;
         }
 
-        if (
-            status ===
-            "hold"
-        ) {
+        if (status === "hold") {
             return `
                 bg-orange-50
                 border-orange-500
@@ -178,10 +100,7 @@ const getShopColor = (
             `;
         }
 
-        if (
-            status ===
-            "sold"
-        ) {
+        if (status === "sold") {
             return `
                 bg-slate-100
                 border-slate-500
@@ -204,10 +123,7 @@ const getShopColor = (
     // COMMERCIAL - Existing Palette
     // ==================================================
 
-    if (
-        status ===
-        "finedine"
-    ) {
+    if (status === "finedine") {
         return `
             bg-purple-50
             border-purple-500
@@ -217,10 +133,7 @@ const getShopColor = (
         `;
     }
 
-    if (
-        status ===
-        "booked"
-    ) {
+    if (status === "booked") {
         return `
             bg-red-50
             border-red-400
@@ -230,10 +143,7 @@ const getShopColor = (
         `;
     }
 
-    if (
-        status ===
-        "hold"
-    ) {
+    if (status === "hold") {
         return `
             bg-yellow-50
             border-yellow-400
@@ -243,10 +153,7 @@ const getShopColor = (
         `;
     }
 
-    if (
-        status ===
-        "sold"
-    ) {
+    if (status === "sold") {
         return `
             bg-gray-100
             border-gray-500
@@ -263,34 +170,20 @@ const getShopColor = (
         hover:border-green-500
     `;
 };
-const getStatusText = (
-    status: string
-) => {
-    if (
-        status ===
-        "finedine"
-    ) {
+const getStatusText = (status: string) => {
+    if (status === "finedine") {
         return "FINE DINE";
     }
 
-    if (
-        status ===
-        "booked"
-    ) {
+    if (status === "booked") {
         return "BOOKED";
     }
 
-    if (
-        status ===
-        "hold"
-    ) {
+    if (status === "hold") {
         return "HOLD";
     }
 
-    if (
-        status ===
-        "sold"
-    ) {
+    if (status === "sold") {
         return "SOLD";
     }
 
@@ -302,84 +195,46 @@ const getStatusText = (
 // ======================================================
 
 function Commercial() {
-
     // ==================================================
     // Backend Shops
     // ==================================================
 
-    const [
-        properties,
-        setProperties,
-    ] = useState<Property[]>([]);
+    const [properties, setProperties] = useState<Property[]>([]);
 
-    const [
-        loading,
-        setLoading,
-    ] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const [
-        error,
-        setError,
-    ] = useState("");
+    const [error, setError] = useState("");
 
     // ==================================================
     // Navigation
     // ==================================================
 
-    const [
-        selectedSection,
-        setSelectedSection,
-    ] = useState<CommercialSection>(
-        "Commercial"
-    );
+    const [selectedSection, setSelectedSection] =
+        useState<CommercialSection>("Commercial");
 
-    const [
-        selectedFloor,
-        setSelectedFloor,
-    ] = useState<FloorFilter>(
-        "all"
-    );
+    const [selectedFloor, setSelectedFloor] = useState<FloorFilter>("all");
 
     // ==================================================
     // Filters
     // ==================================================
 
-    const [
-        selectedStatus,
-        setSelectedStatus,
-    ] = useState<Status>(
-        "all"
-    );
+    const [selectedStatus, setSelectedStatus] = useState<Status>("all");
 
-    const [
-        search,
-        setSearch,
-    ] = useState("");
+    const [search, setSearch] = useState("");
 
     // ==================================================
     // Selected Shop
     // ==================================================
 
-    const [
-        selectedShop,
-        setSelectedShop,
-    ] = useState<any>(
-        null
-    );
+    const [selectedShop, setSelectedShop] = useState<any>(null);
 
     // ==================================================
     // Modal States
     // ==================================================
 
-    const [
-        isShopModalOpen,
-        setIsShopModalOpen,
-    ] = useState(false);
+    const [isShopModalOpen, setIsShopModalOpen] = useState(false);
 
-    const [
-        isBookingModalOpen,
-        setIsBookingModalOpen,
-    ] = useState(false);
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
     // ==================================================
     // Backend Mapping
@@ -388,334 +243,182 @@ function Commercial() {
     // UI Commercial 1 -> Phase 2
     // ==================================================
 
-    const backendPhase =
-        selectedSection ===
-            "Commercial"
-            ? "Phase 1"
-            : "Phase 2";
+    const backendPhase = selectedSection === "Commercial" ? "Phase 1" : "Phase 2";
 
     // ==================================================
     // Load
     // ==================================================
 
-    const loadProperties =
-        async (
-            showLoading = false
-        ) => {
-            try {
-
-                if (
-                    showLoading
-                ) {
-                    setLoading(
-                        true
-                    );
-                }
-
-                setError("");
-
-                const response =
-                    await getProperties({
-                        type:
-                            "COMMERCIAL",
-                    });
-
-                setProperties(
-                    response.data
-                );
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load commercial inventory";
-
-                setError(
-                    message
-                );
-
-            } finally {
-
-                if (
-                    showLoading
-                ) {
-                    setLoading(
-                        false
-                    );
-                }
+    const loadProperties = async (showLoading = false) => {
+        try {
+            if (showLoading) {
+                setLoading(true);
             }
-        };
+
+            setError("");
+
+            const response = await getProperties({
+                type: "COMMERCIAL",
+            });
+
+            setProperties(response.data);
+        } catch (err) {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Failed to load commercial inventory";
+
+            setError(message);
+        } finally {
+            if (showLoading) {
+                setLoading(false);
+            }
+        }
+    };
 
     useEffect(() => {
-        void loadProperties(
-            true
-        );
+        void loadProperties(true);
     }, []);
 
-    useAutoRefresh(
-        loadProperties,
-        5000
-    );
+    useAutoRefresh(loadProperties, 5000);
 
     // ==================================================
     // Current Section Shops
     // ==================================================
 
-    const sectionShops =
-        useMemo(() => {
-
-            return properties
-                .filter(
-                    (property) =>
-                        property.type ===
-                        "COMMERCIAL" &&
-                        property.phase ===
-                        backendPhase
-                )
-                .sort(
-                    naturalSort
-                );
-
-        }, [
-            properties,
-            backendPhase,
-        ]);
+    const sectionShops = useMemo(() => {
+        return properties
+            .filter(
+                (property) =>
+                    property.type === "COMMERCIAL" && property.phase === backendPhase,
+            )
+            .sort(naturalSort);
+    }, [properties, backendPhase]);
 
     // ==================================================
     // Section Totals
     // ==================================================
 
-    const commercialTotal =
-        properties.filter(
-            (property) =>
-                property.type ===
-                "COMMERCIAL" &&
-                property.phase ===
-                "Phase 1"
-        ).length;
+    const commercialTotal = properties.filter(
+        (property) =>
+            property.type === "COMMERCIAL" && property.phase === "Phase 1",
+    ).length;
 
-    const commercial1Total =
-        properties.filter(
-            (property) =>
-                property.type ===
-                "COMMERCIAL" &&
-                property.phase ===
-                "Phase 2"
-        ).length;
+    const commercial1Total = properties.filter(
+        (property) =>
+            property.type === "COMMERCIAL" && property.phase === "Phase 2",
+    ).length;
 
     // ==================================================
     // Section Status Counts
     // ==================================================
 
-    const sectionTotal =
-        sectionShops.length;
+    const sectionTotal = sectionShops.length;
 
-    const sectionAvailable =
-        sectionShops.filter(
-            (property) =>
-                getFrontendStatus(
-                    property
-                ) ===
-                "available"
-        ).length;
+    const sectionAvailable = sectionShops.filter(
+        (property) => getFrontendStatus(property) === "available",
+    ).length;
 
-    const sectionBooked =
-        sectionShops.filter(
-            (property) =>
-                getFrontendStatus(
-                    property
-                ) ===
-                "booked"
-        ).length;
+    const sectionBooked = sectionShops.filter(
+        (property) => getFrontendStatus(property) === "booked",
+    ).length;
 
-    const sectionHold =
-        sectionShops.filter(
-            (property) =>
-                getFrontendStatus(
-                    property
-                ) ===
-                "hold"
-        ).length;
+    const sectionHold = sectionShops.filter(
+        (property) => getFrontendStatus(property) === "hold",
+    ).length;
 
-    const sectionSold =
-        sectionShops.filter(
-            (property) =>
-                getFrontendStatus(
-                    property
-                ) ===
-                "sold"
-        ).length;
+    const sectionSold = sectionShops.filter(
+        (property) => getFrontendStatus(property) === "sold",
+    ).length;
 
-    const sectionFineDine =
-        sectionShops.filter(
-            (property) =>
-                getFrontendStatus(
-                    property
-                ) ===
-                "finedine"
-        ).length;
+    const sectionFineDine = sectionShops.filter(
+        (property) => getFrontendStatus(property) === "finedine",
+    ).length;
 
     // ==================================================
     // Floor Total
     // ==================================================
 
-    const getFloorTotal = (
-        floor: Floor
-    ) => {
-        return sectionShops.filter(
-            (property) =>
-                property.floor ===
-                floor
-        ).length;
+    const getFloorTotal = (floor: Floor) => {
+        return sectionShops.filter((property) => property.floor === floor).length;
     };
 
     // ==================================================
     // Filtered Shops
     // ==================================================
 
-    const filteredShops =
-        useMemo(() => {
+    const filteredShops = useMemo(() => {
+        const searchText = search.trim().toLowerCase();
 
-            const searchText =
-                search
-                    .trim()
-                    .toLowerCase();
+        return sectionShops.filter((property) => {
+            if (selectedFloor !== "all" && property.floor !== selectedFloor) {
+                return false;
+            }
 
-            return sectionShops.filter(
-                (property) => {
+            const frontendStatus = getFrontendStatus(property);
 
-                    if (
-                        selectedFloor !==
-                        "all" &&
-                        property.floor !==
-                        selectedFloor
-                    ) {
-                        return false;
-                    }
+            if (selectedStatus !== "all" && frontendStatus !== selectedStatus) {
+                return false;
+            }
 
-                    const frontendStatus =
-                        getFrontendStatus(
-                            property
-                        );
+            if (
+                searchText &&
+                !String(property.unitNumber ?? "")
+                    .toLowerCase()
+                    .includes(searchText)
+            ) {
+                return false;
+            }
 
-                    if (
-                        selectedStatus !==
-                        "all" &&
-                        frontendStatus !==
-                        selectedStatus
-                    ) {
-                        return false;
-                    }
-
-                    if (
-                        searchText &&
-                        !String(
-                            property.unitNumber ??
-                            ""
-                        )
-                            .toLowerCase()
-                            .includes(
-                                searchText
-                            )
-                    ) {
-                        return false;
-                    }
-
-                    return true;
-                }
-            );
-
-        }, [
-            sectionShops,
-            selectedFloor,
-            selectedStatus,
-            search,
-        ]);
+            return true;
+        });
+    }, [sectionShops, selectedFloor, selectedStatus, search]);
 
     // ==================================================
     // Zig-Zag
     // ==================================================
 
-    const zigZagRows =
-        useMemo(() => {
-
-            return chunkArray(
-                filteredShops,
-                4
-            );
-
-        }, [
-            filteredShops,
-        ]);
+    const zigZagRows = useMemo(() => {
+        return chunkArray(filteredShops, 4);
+    }, [filteredShops]);
 
     // ==================================================
     // Property -> Modal Shape
     // ==================================================
 
-    const mapPropertyToShop = (
-        property: Property
-    ) => {
+    const mapPropertyToShop = (property: Property) => {
         return {
-            id:
-                property.id,
+            id: property.id,
 
-            propertyId:
-                property.id,
+            propertyId: property.id,
 
-            propertyCode:
-                property.propertyCode,
+            propertyCode: property.propertyCode,
 
-            number:
-                property.unitNumber ??
-                "",
+            number: property.unitNumber ?? "",
 
-            unitNumber:
-                property.unitNumber ??
-                "",
+            unitNumber: property.unitNumber ?? "",
 
-            phase:
-                property.phase ===
-                    "Phase 1"
-                    ? 1
-                    : 2,
+            phase: property.phase === "Phase 1" ? 1 : 2,
 
-            phaseName:
-                property.phase,
+            phaseName: property.phase,
 
-            sectionName:
-                property.phase ===
-                    "Phase 1"
-                    ? "Commercial"
-                    : "Commercial 1",
+            sectionName: property.phase === "Phase 1" ? "Commercial" : "Commercial 1",
 
-            floor:
-                property.floor,
+            floor: property.floor,
 
-            series:
-                property.series,
+            series: property.series,
 
-            tower:
-                property.tower,
+            tower: property.tower,
 
-            area:
-                property.area
-                    ? `${property.area} sqft`
-                    : "Area not set",
+            area: property.area ? `${property.area} sqft` : "Area not set",
 
-            price:
-                property.price,
+            price: property.price,
 
-            status:
-                getFrontendStatus(
-                    property
-                ),
+            status: getFrontendStatus(property),
 
-            isFineDine:
-                property.isFineDine,
+            isFineDine: property.isFineDine,
 
-            type:
-                "Commercial",
+            type: "Commercial",
         };
     };
 
@@ -723,208 +426,121 @@ function Commercial() {
     // Open Shop
     // ==================================================
 
-    const handleShopClick = (
-        property: Property
-    ) => {
-        setSelectedShop(
-            mapPropertyToShop(
-                property
-            )
-        );
+    const handleShopClick = (property: Property) => {
+        setSelectedShop(mapPropertyToShop(property));
 
-        setIsShopModalOpen(
-            true
-        );
+        setIsShopModalOpen(true);
     };
 
     // ==================================================
     // Status Change
     // ==================================================
 
-    const handleStatusChange =
-        async (
-            shopId:
-                string | number,
-            newStatus: string
-        ) => {
-            try {
+    const handleStatusChange = async (
+        shopId: string | number,
+        newStatus: string,
+    ) => {
+        try {
+            const id = String(shopId);
 
-                const id =
-                    String(
-                        shopId
-                    );
+            const normalized = String(newStatus).toLowerCase();
 
-                const normalized =
-                    String(
-                        newStatus
-                    ).toLowerCase();
+            if (normalized === "finedine") {
+                await updateProperty(id, {
+                    isFineDine: true,
+                });
+            } else {
+                const status = normalized.toUpperCase() as PropertyStatus;
 
-                if (
-                    normalized ===
-                    "finedine"
-                ) {
-                    await updateProperty(
-                        id,
-                        {
-                            isFineDine:
-                                true,
-                        }
-                    );
-
-                } else {
-
-                    const status =
-                        normalized
-                            .toUpperCase() as
-                        PropertyStatus;
-
-                    await updateProperty(
-                        id,
-                        {
-                            status,
-                            isFineDine:
-                                false,
-                        }
-                    );
-                }
-
-                await loadProperties();
-
-                setIsShopModalOpen(
-                    false
-                );
-
-                setSelectedShop(
-                    null
-                );
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to update shop";
-
-                alert(
-                    message
-                );
+                await updateProperty(id, {
+                    status,
+                    isFineDine: false,
+                });
             }
-        };
+
+            await loadProperties();
+
+            setIsShopModalOpen(false);
+
+            setSelectedShop(null);
+        } catch (err) {
+            const message =
+                err instanceof Error ? err.message : "Failed to update shop";
+
+            alert(message);
+        }
+    };
 
     // ==================================================
     // Book Shop
     // ==================================================
 
-    const handleBookShop = (
-        shop: any
-    ) => {
+    const handleBookShop = (shop: any) => {
         if (
             !shop ||
-            shop.status ===
-            "booked" ||
-            shop.status ===
-            "sold" ||
-            shop.status ===
-            "hold"
+            shop.status === "booked" ||
+            shop.status === "sold" ||
+            shop.status === "hold"
         ) {
             return;
         }
 
-        if (
-            shop.isFineDine
-        ) {
-            alert(
-                "This shop is reserved for Fine Dine and cannot be booked."
-            );
+        if (shop.isFineDine) {
+            alert("This shop is reserved for Fine Dine and cannot be booked.");
 
             return;
         }
 
-        setSelectedShop(
-            shop
-        );
+        setSelectedShop(shop);
 
-        setIsShopModalOpen(
-            false
-        );
+        setIsShopModalOpen(false);
 
-        setIsBookingModalOpen(
-            true
-        );
+        setIsBookingModalOpen(true);
     };
 
     // ==================================================
     // Confirm Booking
     // ==================================================
 
-    const handleConfirmBooking =
-        async (
-            bookingData: any
-        ) => {
+    const handleConfirmBooking = async (bookingData: any) => {
+        if (!selectedShop) {
+            return;
+        }
 
-            if (
-                !selectedShop
-            ) {
-                return;
-            }
+        try {
+            await createBooking({
+                // BookingModal ki saari filled fields
+                ...bookingData,
 
-            try {
+                // Correct selected commercial property
+                propertyId: selectedShop.propertyId ?? selectedShop.id,
 
-                await createBooking({
+                // Assigned Sales Member
+                employeeId: bookingData.employeeId ?? undefined,
 
-                    // BookingModal ki saari filled fields
-                    ...bookingData,
+                // New booking default status
+                status: bookingData.status ?? "CONFIRMED",
+            });
 
-                    // Correct selected commercial property
-                    propertyId:
-                        selectedShop.propertyId ??
-                        selectedShop.id,
+            await loadProperties();
 
-                    // Assigned Sales Member
-                    employeeId:
-                        bookingData.employeeId ??
-                        undefined,
+            setIsBookingModalOpen(false);
 
-                    // New booking default status
-                    status:
-                        bookingData.status ??
-                        "CONFIRMED",
-                });
+            setSelectedShop(null);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Booking failed";
 
-                await loadProperties();
-
-                setIsBookingModalOpen(
-                    false
-                );
-
-                setSelectedShop(
-                    null
-                );
-
-            } catch (err) {
-
-                const message =
-                    err instanceof Error
-                        ? err.message
-                        : "Booking failed";
-
-                alert(
-                    message
-                );
-            }
-        };
+            alert(message);
+        }
+    };
     // ==================================================
     // Reset
     // ==================================================
 
     const resetFilters = () => {
-        setSelectedFloor(
-            "all"
-        );
+        setSelectedFloor("all");
 
-        setSelectedStatus(
-            "all"
-        );
+        setSelectedStatus("all");
 
         setSearch("");
     };
@@ -933,13 +549,8 @@ function Commercial() {
     // Change Section
     // ==================================================
 
-    const handleSectionChange = (
-        section:
-            CommercialSection
-    ) => {
-        setSelectedSection(
-            section
-        );
+    const handleSectionChange = (section: CommercialSection) => {
+        setSelectedSection(section);
 
         resetFilters();
     };
@@ -949,8 +560,7 @@ function Commercial() {
     // ==================================================
 
     const currentHeading =
-        selectedFloor ===
-            "all"
+        selectedFloor === "all"
             ? selectedSection
             : `${selectedSection} - ${selectedFloor}`;
 
@@ -958,16 +568,10 @@ function Commercial() {
     // Loading
     // ==================================================
 
-    if (
-        loading
-    ) {
+    if (loading) {
         return (
             <div className="rounded-2xl bg-white p-8 shadow">
-
-                <p className="text-gray-600">
-                    Loading commercial inventory...
-                </p>
-
+                <p className="text-gray-600">Loading commercial inventory...</p>
             </div>
         );
     }
@@ -976,28 +580,20 @@ function Commercial() {
     // Error
     // ==================================================
 
-    if (
-        error
-    ) {
+    if (error) {
         return (
             <div className="rounded-2xl bg-white p-8 shadow">
-
-                <p className="font-medium text-red-600">
-                    {error}
-                </p>
+                <p className="font-medium text-red-600">{error}</p>
 
                 <button
                     type="button"
                     onClick={() => {
-                        void loadProperties(
-                            true
-                        );
+                        void loadProperties(true);
                     }}
                     className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-white"
                 >
                     Retry
                 </button>
-
             </div>
         );
     }
@@ -1007,30 +603,26 @@ function Commercial() {
     // ==================================================
 
     return (
-        <div className="space-y-6">
-
+        <div className="min-w-0 space-y-4 sm:space-y-5 lg:space-y-6">
             {/* ==========================================
                 Header
             ========================================== */}
 
             <div>
-
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
                     Commercial
                 </h1>
 
-                <p className="mt-1 text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 sm:text-base">
                     Commercial Shop Inventory
                 </p>
-
             </div>
 
             {/* ==========================================
                 Commercial Section
             ========================================== */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
-
+            <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
                 <h2 className="text-lg font-bold text-gray-800">
                     Select Commercial Section
                 </h2>
@@ -1039,25 +631,23 @@ function Commercial() {
                     Select Commercial or Commercial 1
                 </p>
 
-                <div className="flex flex-wrap gap-3">
-
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
                     <button
                         type="button"
-                        onClick={() =>
-                            handleSectionChange(
-                                "Commercial"
-                            )
-                        }
+                        onClick={() => handleSectionChange("Commercial")}
                         className={`
+                            w-full
+sm:w-auto
                             rounded-xl
                             border
-                            px-6
-                            py-3
+                            px-3
+py-2.5
+sm:px-6
+sm:py-3
                             font-semibold
                             transition-all
 
-                            ${selectedSection ===
-                                "Commercial"
+                            ${selectedSection === "Commercial"
                                 ? `
                                         border-green-600
                                         bg-green-600
@@ -1075,30 +665,27 @@ function Commercial() {
                         `}
                     >
                         Commercial
-
                         <span className="ml-2 text-xs opacity-80">
                             {commercialTotal} Shops
                         </span>
-
                     </button>
 
                     <button
                         type="button"
-                        onClick={() =>
-                            handleSectionChange(
-                                "Commercial 1"
-                            )
-                        }
+                        onClick={() => handleSectionChange("Commercial 1")}
                         className={`
+                            w-full
+sm:w-auto
                             rounded-xl
                             border
-                            px-6
-                            py-3
+                           px-3
+py-2.5
+sm:px-6
+sm:py-3
                             font-semibold
                             transition-all
 
-                          ${selectedSection ===
-                                "Commercial 1"
+                          ${selectedSection === "Commercial 1"
                                 ? `
             border-teal-600
             bg-teal-600
@@ -1116,126 +703,90 @@ function Commercial() {
                         `}
                     >
                         Commercial 1
-
                         <span className="ml-2 text-xs opacity-80">
                             {commercial1Total} Shops
                         </span>
-
                     </button>
-
                 </div>
-
             </div>
 
             {/* ==========================================
                 Summary
             ========================================== */}
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-6">
+                <div className="rounded-2xl bg-white p-4 shadow sm:p-5">
+                    <p className="text-sm text-gray-500">Total Shops</p>
 
-                <div className="rounded-2xl bg-white p-5 shadow">
-
-                    <p className="text-sm text-gray-500">
-                        Total Shops
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-gray-800">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-gray-800">
                         {sectionTotal}
                     </p>
-
                 </div>
 
-                <div className="rounded-2xl bg-green-50 p-5">
+                <div className="rounded-2xl bg-green-50 p-4 sm:p-5">
+                    <p className="text-sm text-green-700">Available</p>
 
-                    <p className="text-sm text-green-700">
-                        Available
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-green-700">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-green-700">
                         {sectionAvailable}
                     </p>
-
                 </div>
 
-                <div className="rounded-2xl bg-red-50 p-5">
+                <div className="rounded-2xl bg-red-50 p-4 sm:p-5">
+                    <p className="text-sm text-red-700">Booked</p>
 
-                    <p className="text-sm text-red-700">
-                        Booked
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-red-700">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-red-700">
                         {sectionBooked}
                     </p>
-
                 </div>
 
-                <div className="rounded-2xl bg-yellow-50 p-5">
+                <div className="rounded-2xl bg-yellow-50 p-4 sm:p-5">
+                    <p className="text-sm text-yellow-700">Hold</p>
 
-                    <p className="text-sm text-yellow-700">
-                        Hold
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-yellow-700">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-yellow-700">
                         {sectionHold}
                     </p>
-
                 </div>
 
-                <div className="rounded-2xl bg-gray-100 p-5">
+                <div className="rounded-2xl bg-gray-100 p-4 sm:p-5">
+                    <p className="text-sm text-gray-600">Sold</p>
 
-                    <p className="text-sm text-gray-600">
-                        Sold
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-gray-700">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-gray-700">
                         {sectionSold}
                     </p>
-
                 </div>
 
-                <div className="rounded-2xl bg-purple-50 p-5">
+                <div className="rounded-2xl bg-purple-50 p-4 sm:p-5">
+                    <p className="text-sm text-purple-700">Fine Dine</p>
 
-                    <p className="text-sm text-purple-700">
-                        Fine Dine
-                    </p>
-
-                    <p className="mt-1 text-3xl font-bold text-purple-700">
+                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-purple-700">
                         {sectionFineDine}
                     </p>
-
                 </div>
-
             </div>
 
             {/* ==========================================
                 Floor Selector
             ========================================== */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+            <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
+                <p className="mb-3 text-sm font-medium text-gray-600">Select Floor</p>
 
-                <p className="mb-3 text-sm font-medium text-gray-600">
-                    Select Floor
-                </p>
-
-                <div className="flex flex-wrap gap-3">
-
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
                     <button
                         type="button"
-                        onClick={() =>
-                            setSelectedFloor(
-                                "all"
-                            )
-                        }
+                        onClick={() => setSelectedFloor("all")}
                         className={`
+                            w-full
+sm:w-auto
                             rounded-lg
                             border
-                            px-5
-                            py-2.5
+                         px-3
+py-2.5
+sm:px-5
                             font-medium
                             transition-all
 
-                            ${selectedFloor ===
-                                "all"
+                            ${selectedFloor === "all"
                                 ? `
                                         border-blue-600
                                         bg-blue-600
@@ -1253,170 +804,106 @@ function Commercial() {
                         All Floors
                     </button>
 
-                    {FLOORS.map(
-                        (floor) => (
+                    {FLOORS.map((floor) => (
+                        <button
+                            key={floor}
+                            type="button"
+                            onClick={() => setSelectedFloor(floor)}
+                            className={`
+                                    w-full
+    sm:w-auto
+    rounded-lg
+    border
+    px-3
+    py-2.5
+    sm:px-5
+    font-medium
+    transition-all
 
-                            <button
-                                key={
-                                    floor
-                                }
-                                type="button"
-                                onClick={() =>
-                                    setSelectedFloor(
-                                        floor
-                                    )
-                                }
-                                className={`
-                                    rounded-lg
-                                    border
-                                    px-5
-                                    py-2.5
-                                    font-medium
-                                    transition-all
-
-                                    ${selectedFloor ===
-                                        floor
-                                        ? `
+                                    ${selectedFloor === floor
+                                    ? `
                                                 border-blue-600
                                                 bg-blue-600
                                                 text-white
                                               `
-                                        : `
+                                    : `
                                                 border-gray-300
                                                 bg-white
                                                 text-gray-700
                                                 hover:bg-gray-100
                                               `
-                                    }
+                                }
                                 `}
-                            >
+                        >
+                            {floor}
 
-                                {floor}
-
-                                <span className="ml-2 text-xs opacity-80">
-                                    {getFloorTotal(
-                                        floor
-                                    )}
-                                </span>
-
-                            </button>
-
-                        )
-                    )}
-
+                            <span className="ml-2 text-xs opacity-80">
+                                {getFloorTotal(floor)}
+                            </span>
+                        </button>
+                    ))}
                 </div>
-
             </div>
 
             {/* ==========================================
                 Search / Status
             ========================================== */}
 
-            <div className="rounded-2xl bg-white p-5 shadow">
-
-                <div className="flex flex-col gap-4 md:flex-row md:items-end">
-
-                    <div className="flex-1">
-
+            <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5">
+                <div className="flex min-w-0 flex-col gap-3 sm:gap-4 md:flex-row md:items-end">
+                    <div className="min-w-0 flex-1">
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Search Shop
                         </label>
 
                         <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
-
-                            <Search
-                                size={18}
-                                className="text-gray-400"
-                            />
+                            <Search size={18} className="text-gray-400" />
 
                             <input
                                 type="text"
-                                value={
-                                    search
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    setSearch(
-                                        event.target.value
-                                    )
-                                }
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
                                 placeholder="Search shop number..."
-                                className="ml-2 w-full outline-none"
+                                className="ml-2 min-w-0 flex-1 bg-transparent text-sm outline-none"
                             />
-
                         </div>
-
                     </div>
 
                     <div className="w-full md:w-52">
-
                         <label className="mb-1 block text-sm font-medium text-gray-600">
                             Status
                         </label>
 
                         <select
-                            value={
-                                selectedStatus
-                            }
-                            onChange={(
-                                event
-                            ) =>
-                                setSelectedStatus(
-                                    event.target
-                                        .value as
-                                    Status
-                                )
+                            value={selectedStatus}
+                            onChange={(event) =>
+                                setSelectedStatus(event.target.value as Status)
                             }
                             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
                         >
+                            <option value="all">All Status</option>
 
-                            <option value="all">
-                                All Status
-                            </option>
+                            <option value="available">Available</option>
 
-                            <option value="available">
-                                Available
-                            </option>
+                            <option value="hold">Hold</option>
 
-                            <option value="hold">
-                                Hold
-                            </option>
+                            <option value="booked">Booked</option>
 
-                            <option value="booked">
-                                Booked
-                            </option>
+                            <option value="sold">Sold</option>
 
-                            <option value="sold">
-                                Sold
-                            </option>
-
-                            <option value="finedine">
-                                Fine Dine
-                            </option>
-
+                            <option value="finedine">Fine Dine</option>
                         </select>
-
                     </div>
 
                     <button
                         type="button"
-                        onClick={
-                            resetFilters
-                        }
-                        className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 font-medium text-gray-600 transition hover:bg-gray-100"
+                        onClick={resetFilters}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 md:w-auto"
                     >
-
-                        <RotateCcw
-                            size={16}
-                        />
-
+                        <RotateCcw size={16} />
                         Reset
-
                     </button>
-
                 </div>
-
             </div>
 
             {/* ==========================================
@@ -1425,13 +912,15 @@ function Commercial() {
 
             <div
                 className={`
-        rounded-2xl
-        border
-        p-6
-        shadow
+      min-w-0
+rounded-2xl
+border
+p-4
+shadow
+sm:p-5
+lg:p-6
 
-        ${selectedSection ===
-                        "Commercial 1"
+        ${selectedSection === "Commercial 1"
                         ? `
                     border-teal-200
                     bg-teal-50/40
@@ -1443,58 +932,57 @@ function Commercial() {
                     }
     `}
             >
-
-                <div className="mb-6 text-center">
-
-                    <h2 className="text-xl font-bold text-gray-800">
+                <div className="mb-4 text-center sm:mb-5 lg:mb-6">
+                    <h2 className="text-lg font-bold text-gray-800 sm:text-xl">
                         {currentHeading}
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                         {filteredShops.length} Shops
                     </p>
-
                 </div>
 
-                {filteredShops.length ===
-                    0 ? (
-
-                    <div className="rounded-xl border border-dashed p-12 text-center">
-
+                {filteredShops.length === 0 ? (
+                    <div className="rounded-xl border border-dashed p-6 text-center sm:p-8 lg:p-12">
                         <p className="text-lg font-semibold text-gray-700">
                             No Shops Found
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                             Try changing your filters.
                         </p>
 
                         <button
                             type="button"
-                            onClick={
-                                resetFilters
-                            }
+                            onClick={resetFilters}
                             className="mt-4 rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white"
                         >
                             Reset Filters
                         </button>
-
                     </div>
-
                 ) : (
-
                     <div
                         className="
-                            max-h-[650px]
-                            overflow-auto
-                            rounded-2xl
-                            border
-                            bg-gray-50
-                            px-6
-                            py-8
-                        "
-                    >
+    max-h-[520px]
+    min-w-0
+    overflow-auto
+    overscroll-contain
+    rounded-xl
+    border
+    bg-gray-50
+    px-3
+    py-4
 
+    sm:max-h-[580px]
+    sm:rounded-2xl
+    sm:px-5
+    sm:py-6
+
+    lg:max-h-[650px]
+    lg:px-6
+    lg:py-8
+"
+                    >
                         <div
                             className="
         mx-auto
@@ -1502,48 +990,22 @@ function Commercial() {
         min-w-[760px]
     "
                         >
-
-                            {zigZagRows.map(
-                                (
-                                    row,
-                                    rowIndex
-                                ) => (
-
-                                    <div
-                                        key={
-                                            rowIndex
-                                        }
-                                    >
-
-                                        {/* ==========================================
+                            {zigZagRows.map((row, rowIndex) => (
+                                <div key={rowIndex}>
+                                    {/* ==========================================
                     STRAIGHT SHOP ROW
                 ========================================== */}
 
-                                        <div className="grid grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-4 gap-4">
+                                        {row.map((property) => {
+                                            const status = getFrontendStatus(property);
 
-                                            {row.map(
-                                                (
-                                                    property
-                                                ) => {
-
-                                                    const status =
-                                                        getFrontendStatus(
-                                                            property
-                                                        );
-
-                                                    return (
-
-                                                        <button
-                                                            key={
-                                                                property.id
-                                                            }
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleShopClick(
-                                                                    property
-                                                                )
-                                                            }
-                                                            className={`
+                                            return (
+                                                <button
+                                                    key={property.id}
+                                                    type="button"
+                                                    onClick={() => handleShopClick(property)}
+                                                    className={`
                                         flex
                                         h-[110px]
                                         w-full
@@ -1568,99 +1030,87 @@ function Commercial() {
                                         focus:ring-2
                                         focus:ring-green-400
                                         focus:ring-offset-2
-${getShopColor(
-                                                                status,
-                                                                selectedSection
-                                                            )}
+${getShopColor(status, selectedSection)}
                                     `}
-                                                        >
+                                                >
+                                                    <span className="text-base font-bold">
+                                                        {property.unitNumber}
+                                                    </span>
 
-                                                            <span className="text-base font-bold">
-                                                                {
-                                                                    property.unitNumber
-                                                                }
-                                                            </span>
+                                                    <span className="mt-2 text-xs">
+                                                        {property.area
+                                                            ? `${property.area} sqft`
+                                                            : "Area not set"}
+                                                    </span>
 
-                                                            <span className="mt-2 text-xs">
-                                                                {
-                                                                    property.area
-                                                                        ? `${property.area} sqft`
-                                                                        : "Area not set"
-                                                                }
-                                                            </span>
+                                                    <span className="mt-2 text-xs font-bold uppercase">
+                                                        {getStatusText(status)}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
 
-                                                            <span className="mt-2 text-xs font-bold uppercase">
-                                                                {
-                                                                    getStatusText(
-                                                                        status
-                                                                    )
-                                                                }
-                                                            </span>
-
-                                                        </button>
-
-                                                    );
-                                                }
-                                            )}
-
-                                        </div>
-
-                                        {/* ==========================================
+                                    {/* ==========================================
                     SIMPLE DIVIDER LINE
                 ========================================== */}
 
-                                        {
-                                            rowIndex <
-                                            zigZagRows.length -
-                                            1 && (
-
-                                                <div className="my-5 h-px w-full bg-gray-300" />
-
-                                            )
-                                        }
-
-                                    </div>
-
-                                )
-                            )}
-
+                                    {rowIndex < zigZagRows.length - 1 && (
+                                        <div className="my-5 h-px w-full bg-gray-300" />
+                                    )}
+                                </div>
+                            ))}
                         </div>
-
                     </div>
-
                 )}
 
                 {/* Legend */}
 
-                <div className="mt-6 flex flex-wrap justify-center gap-6 border-t pt-5 text-sm">
-
+                <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t pt-4 text-xs sm:mt-6 sm:gap-6 sm:pt-5 sm:text-sm">
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded bg-green-500" />
+                        <div
+                            className={`h-4 w-4 rounded ${selectedSection === "Commercial 1" ? "bg-teal-500" : "bg-green-500"
+                                }`}
+                        />
                         Available
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded bg-yellow-400" />
+                        <div
+  className={`h-4 w-4 rounded ${
+    selectedSection === "Commercial 1" ? "bg-orange-500" : "bg-yellow-400"
+  }`}
+/>
                         Hold
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded bg-red-500" />
+                       <div
+  className={`h-4 w-4 rounded ${
+    selectedSection === "Commercial 1" ? "bg-rose-500" : "bg-red-500"
+  }`}
+/>
                         Booked
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded bg-gray-500" />
+                     <div
+  className={`h-4 w-4 rounded ${
+    selectedSection === "Commercial 1" ? "bg-slate-500" : "bg-gray-500"
+  }`}
+/>
                         Sold
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 rounded bg-purple-500" />
+                        <div
+  className={`h-4 w-4 rounded ${
+    selectedSection === "Commercial 1" ? "bg-indigo-500" : "bg-purple-500"
+  }`}
+/>
                         Fine Dine
                     </div>
-
                 </div>
-
             </div>
 
             {/* ==========================================
@@ -1668,28 +1118,15 @@ ${getShopColor(
             ========================================== */}
 
             <ShopModal
-                isOpen={
-                    isShopModalOpen
-                }
+                isOpen={isShopModalOpen}
                 onClose={() => {
+                    setIsShopModalOpen(false);
 
-                    setIsShopModalOpen(
-                        false
-                    );
-
-                    setSelectedShop(
-                        null
-                    );
+                    setSelectedShop(null);
                 }}
-                shop={
-                    selectedShop
-                }
-                onBook={
-                    handleBookShop
-                }
-                onStatusChange={
-                    handleStatusChange
-                }
+                shop={selectedShop}
+                onBook={handleBookShop}
+                onStatusChange={handleStatusChange}
             />
 
             {/* ==========================================
@@ -1697,43 +1134,28 @@ ${getShopColor(
             ========================================== */}
 
             <BookingModal
-                isOpen={
-                    isBookingModalOpen
-                }
+                isOpen={isBookingModalOpen}
                 onClose={() => {
+                    setIsBookingModalOpen(false);
 
-                    setIsBookingModalOpen(
-                        false
-                    );
-
-                    setSelectedShop(
-                        null
-                    );
+                    setSelectedShop(null);
                 }}
-                onConfirm={
-                    handleConfirmBooking
-                }
+                onConfirm={handleConfirmBooking}
                 flat={
                     selectedShop
                         ? {
-                            number:
-                                selectedShop.number,
+                            number: selectedShop.number,
 
-                            tower:
-                                selectedShop.tower ??
-                                selectedSection,
+                            tower: selectedShop.tower ?? selectedSection,
 
-                            floor:
-                                selectedShop.floor,
+                            floor: selectedShop.floor,
 
-                            status:
-                                selectedShop.status,
+                            status: selectedShop.status,
                         }
                         : null
                 }
                 mode="create"
             />
-
         </div>
     );
 }

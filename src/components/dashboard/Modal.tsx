@@ -39,7 +39,7 @@ function Modal({
         </div>
 
         {/* Body */}
-       <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-6">
+        <div className="max-h-[calc(90vh-80px)] overflow-y-auto [scrollbar-gutter:stable] [overflow-anchor:none] p-6">
 
           {children}
 

@@ -8,6 +8,7 @@ import {
     requestAdminPasswordOtp,
     verifyAdminPasswordOtp,
     resetAdminPassword,
+    changePassword,
 } from "../controllers/auth.controller";
 
 import {
@@ -49,6 +50,12 @@ router.get(
     "/me",
     authenticate,
     getCurrentUser
+);
+
+router.post(
+    "/change-password",
+    authenticate,
+    changePassword
 );
 
 export default router;

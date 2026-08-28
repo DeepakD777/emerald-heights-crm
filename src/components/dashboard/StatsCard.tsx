@@ -39,19 +39,32 @@ function StatsCard({
   return (
 
     // पूरा Card
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition">
+    <div
+      className="
+    rounded-xl
+    border
+    border-gray-200
+    bg-white
+    p-4
+    shadow-sm
+    transition
+    hover:shadow-lg
+    sm:p-5
+    lg:p-6
+  "
+    >
 
       {/* ऊपर वाला Section */}
-      <div className="flex justify-between items-center">
+      <div className="flex min-w-0 items-center justify-between gap-3">
 
         {/* Title */}
         <div>
 
-          <p className="text-gray-500 text-sm">
+          <p className="text-xs text-gray-500 sm:text-sm">
             {title}
           </p>
 
-          <h2 className="text-3xl font-bold mt-2 text-gray-800">
+          <h2 className="mt-1 text-2xl font-bold text-gray-800 sm:mt-2 sm:text-3xl">
             {value}
           </h2>
 
@@ -59,7 +72,7 @@ function StatsCard({
 
         {/* Icon */}
         <div
-          className={`h-14 w-14 rounded-xl flex items-center justify-center text-white ${color}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white sm:h-12 sm:w-12 lg:h-14 lg:w-14 ${color}`}
         >
           {icon}
         </div>
@@ -67,7 +80,7 @@ function StatsCard({
       </div>
 
       {/* नीचे Description */}
-      <p className="text-sm text-gray-500 mt-5">
+      <p className="mt-3 text-xs text-gray-500 sm:mt-4 sm:text-sm lg:mt-5">
         {subtitle}
       </p>
 

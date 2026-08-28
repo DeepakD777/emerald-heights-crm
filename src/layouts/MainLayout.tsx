@@ -5,30 +5,61 @@ import Sidebar from "./Sidebar";
 import Navbar from "../components/dashboard/Navbar";
 
 function MainLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [
+        sidebarOpen,
+        setSidebarOpen,
+    ] = useState(false);
 
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+    return (
+        <div
+            className="
+                flex
+                min-h-dvh
+                w-full
+                overflow-x-hidden
+                bg-gray-50
+                transition-colors
+                dark:bg-gray-950
+            "
+        >
+            <Sidebar
+                isOpen={sidebarOpen}
+                onClose={() =>
+                    setSidebarOpen(false)
+                }
+            />
 
-      {/* Main Area */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Navbar */}
-        <Navbar
-          onMenuClick={() => setSidebarOpen(true)}
-        />
+            <div
+                className="
+                    flex
+                    min-w-0
+                    flex-1
+                    flex-col
+                    overflow-x-hidden
+                "
+            >
+                <Navbar
+                    onMenuClick={() =>
+                        setSidebarOpen(true)
+                    }
+                />
 
-        {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6">
-          <Outlet />
-        </main>
-      </div>
-    </div>
-  );
+                <main
+                    className="
+                        min-w-0
+                        flex-1
+                        overflow-x-hidden
+                        p-3
+                        sm:p-4
+                        md:p-5
+                        lg:p-6
+                    "
+                >
+                    <Outlet />
+                </main>
+            </div>
+        </div>
+    );
 }
 
 export default MainLayout;

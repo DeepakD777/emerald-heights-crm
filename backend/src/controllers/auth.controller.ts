@@ -1365,6 +1365,336 @@ export const resetAdminPassword =
     };
 
 // ======================================================
+// CHANGE PASSWORD
+// ======================================================
+
+export const changePassword =
+    async (
+        req: AuthRequest,
+        res: Response
+    ) => {
+
+        try {
+
+            if (
+                !req.user
+            ) {
+
+                return res
+                    .status(401)
+                    .json({
+                        success:
+                            false,
+
+                        message:
+                            "Authentication required",
+                    });
+            }
+
+            const {
+                currentPassword,
+                newPassword,
+                confirmPassword,
+            } = req.body;
+
+            if (
+                !currentPassword ||
+                !newPassword ||
+                !confirmPassword
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success:
+                            false,
+
+                        message:
+                            "Current password, new password and confirm password are required",
+                    });
+            }
+
+            const normalizedCurrentPassword =
+                String(
+                    currentPassword
+                );
+
+            const normalizedNewPassword =
+                String(
+                    newPassword
+                );
+
+            const normalizedConfirmPassword =
+                String(
+                    confirmPassword
+                );
+
+            if (
+                normalizedNewPassword !==
+                normalizedConfirmPassword
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success:
+                            false,
+
+                        message:
+                            "New passwords do not match",
+                    });
+            }
+
+            if (
+                normalizedNewPassword.length <
+                8
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success:
+                            false,
+
+                        message:
+                            "Password must be at least 8 characters long",
+                    });
+            }
+
+            if (
+                normalizedCurrentPassword ===
+                normalizedNewPassword
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        success:
+                            false,
+
+                        message:
+                            "New password must be different from current password",
+                    });
+            }
+
+            // ==================================================
+            // ADMIN
+            // ==================================================
+
+            if (
+                req.user.userType ===
+                "ADMIN"
+            ) {
+
+                const admin =
+                    await prisma.admin
+                        .findUnique({
+                            where: {
+                                id:
+                                    req.user.id,
+                            },
+
+                            select: {
+                                id:
+                                    true,
+
+                                isActive:
+                                    true,
+
+                                passwordHash:
+                                    true,
+                            },
+                        });
+
+                if (
+                    !admin ||
+                    !admin.isActive
+                ) {
+
+                    return res
+                        .status(401)
+                        .json({
+                            success:
+                                false,
+
+                            message:
+                                "Admin account is inactive or unavailable",
+                        });
+                }
+
+                const currentPasswordValid =
+                    await bcrypt.compare(
+                        normalizedCurrentPassword,
+                        admin.passwordHash
+                    );
+
+                if (
+                    !currentPasswordValid
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+                            success:
+                                false,
+
+                            message:
+                                "Current password is incorrect",
+                        });
+                }
+
+                const passwordHash =
+                    await bcrypt.hash(
+                        normalizedNewPassword,
+                        12
+                    );
+
+                await prisma.admin
+                    .update({
+                        where: {
+                            id:
+                                admin.id,
+                        },
+
+                        data: {
+                            passwordHash,
+                        },
+                    });
+
+                return res.json({
+                    success:
+                        true,
+
+                    message:
+                        "Password changed successfully",
+                });
+            }
+
+            // ==================================================
+            // EMPLOYEE
+            // ==================================================
+
+            if (
+                req.user.userType ===
+                "EMPLOYEE"
+            ) {
+
+                const employee =
+                    await prisma.employee
+                        .findUnique({
+                            where: {
+                                id:
+                                    req.user.id,
+                            },
+
+                            select: {
+                                id:
+                                    true,
+
+                                status:
+                                    true,
+
+                                passwordHash:
+                                    true,
+                            },
+                        });
+
+                if (
+                    !employee ||
+                    employee.status !==
+                        "ACTIVE"
+                ) {
+
+                    return res
+                        .status(401)
+                        .json({
+                            success:
+                                false,
+
+                            message:
+                                "Employee account is inactive or unavailable",
+                        });
+                }
+
+                const currentPasswordValid =
+                    await bcrypt.compare(
+                        normalizedCurrentPassword,
+                        employee.passwordHash
+                    );
+
+                if (
+                    !currentPasswordValid
+                ) {
+
+                    return res
+                        .status(400)
+                        .json({
+                            success:
+                                false,
+
+                            message:
+                                "Current password is incorrect",
+                        });
+                }
+
+                const passwordHash =
+                    await bcrypt.hash(
+                        normalizedNewPassword,
+                        12
+                    );
+
+                await prisma.employee
+                    .update({
+                        where: {
+                            id:
+                                employee.id,
+                        },
+
+                        data: {
+                            passwordHash,
+                        },
+                    });
+
+                return res.json({
+                    success:
+                        true,
+
+                    message:
+                        "Password changed successfully",
+                });
+            }
+
+            return res
+                .status(403)
+                .json({
+                    success:
+                        false,
+
+                    message:
+                        "Unsupported account type",
+                });
+
+        } catch (error) {
+
+            console.error(
+                "Change password error:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    success:
+                        false,
+
+                    message:
+                        "Failed to change password",
+                });
+        }
+    };
+
+
+// ======================================================
 // CURRENT USER
 // ======================================================
 

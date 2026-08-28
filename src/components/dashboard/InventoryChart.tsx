@@ -55,19 +55,19 @@ function InventoryChart({
     ];
 
     return (
-        <div className="rounded-2xl bg-white p-6 shadow">
+       <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
 
-            <div className="mb-6">
-                <h2 className="text-xl font-bold text-gray-800">
+           <div className="mb-4 sm:mb-5 lg:mb-6">
+                <h2 className="text-lg font-bold text-gray-800 sm:text-xl">
                     Inventory Overview
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                     Live property inventory status
                 </p>
             </div>
 
-            <div className="h-80">
+           <div className="h-64 min-w-0 sm:h-72 lg:h-80">
 
                 <ResponsiveContainer
                     width="100%"

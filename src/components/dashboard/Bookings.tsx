@@ -1,26 +1,12 @@
-import {
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-    Building2,
-    Home,
-} from "lucide-react";
+import { Building2, Home } from "lucide-react";
 
-import {
-    useSearchParams,
-} from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
-import {
-    useBooking,
-} from "../../context/BookingContext";
+import { useBooking } from "../../context/BookingContext";
 
-
-import {
-    useAuth,
-} from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 import BookingDetailsModal from "./BookingDetailsModal";
 import BookingModal from "./BookingModal";
@@ -29,18 +15,16 @@ import BookingModal from "./BookingModal";
 // Types
 // ======================================================
 
-type BookingSection =
-    | "RESIDENTIAL"
-    | "COMMERCIAL";
+type BookingSection = "RESIDENTIAL" | "COMMERCIAL";
 
 // ======================================================
 // Document Status Badge
 // ======================================================
 
 function DocumentStatusBadge({
-    status,
+  status,
 }: {
-    status:
+  status:
     | "pending"
     | "generated"
     | "uploaded"
@@ -48,216 +32,124 @@ function DocumentStatusBadge({
     | "completed"
     | "not-required";
 }) {
-
-    if (
-        status ===
-        "given"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                Given
-            </span>
-        );
-    }
-
-    if (
-        status ===
-        "completed"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                Completed
-            </span>
-        );
-    }
-
-    if (
-        status ===
-        "not-required"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
-                Not Required
-            </span>
-        );
-    }
-
-    if (
-        status ===
-        "generated"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                Generated
-            </span>
-        );
-    }
-
-    if (
-        status ===
-        "uploaded"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-                Uploaded
-            </span>
-        );
-    }
-
+  if (status === "given") {
     return (
-        <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-            Pending
-        </span>
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+        Given
+      </span>
     );
+  }
+
+  if (status === "completed") {
+    return (
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+        Completed
+      </span>
+    );
+  }
+
+  if (status === "not-required") {
+    return (
+      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+        Not Required
+      </span>
+    );
+  }
+
+  if (status === "generated") {
+    return (
+      <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+        Generated
+      </span>
+    );
+  }
+
+  if (status === "uploaded") {
+    return (
+      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+        Uploaded
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+      Pending
+    </span>
+  );
 }
 
 // ======================================================
 // Amount Mode Badge
 // ======================================================
 
-function RemainingModeBadge({
-    mode,
-}: {
-    mode?:
-    | "AUTO"
-    | "MANUAL";
-}) {
-
-    if (
-        mode ===
-        "MANUAL"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
-                Manual
-            </span>
-        );
-    }
-
+function RemainingModeBadge({ mode }: { mode?: "AUTO" | "MANUAL" }) {
+  if (mode === "MANUAL") {
     return (
-        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
-            Auto
-        </span>
+      <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
+        Manual
+      </span>
     );
+  }
+
+  return (
+    <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+      Auto
+    </span>
+  );
 }
 
 // ======================================================
 // Finance Type Badge
 // ======================================================
 
-function FinanceTypeBadge({
-    type,
-}: {
-    type?:
-    | "FINANCE"
-    | "CASH"
-    | null;
-}) {
-
-    if (
-        type ===
-        "FINANCE"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-                Finance
-            </span>
-        );
-    }
-
-    if (
-        type ===
-        "CASH"
-    ) {
-
-        return (
-            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                Cash
-            </span>
-        );
-    }
-
+function FinanceTypeBadge({ type }: { type?: "FINANCE" | "CASH" | null }) {
+  if (type === "FINANCE") {
     return (
-        <span className="text-sm text-gray-400">
-            -
-        </span>
+      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+        Finance
+      </span>
     );
+  }
+
+  if (type === "CASH") {
+    return (
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+        Cash
+      </span>
+    );
+  }
+
+  return <span className="text-sm text-gray-400">-</span>;
 }
 
 // ======================================================
 // Amount Formatter
 // ======================================================
 
-const formatAmount = (
-    value:
-        | string
-        | number
-        | null
-        | undefined
-) => {
+const formatAmount = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return "₹0";
+  }
 
-    if (
-        value ===
-        null ||
-        value ===
-        undefined ||
-        String(
-            value
-        ).trim() ===
-        ""
-    ) {
+  const parsed = Number(value);
 
-        return "₹0";
-    }
+  if (Number.isNaN(parsed)) {
+    return `₹${value}`;
+  }
 
-    const parsed =
-        Number(
-            value
-        );
-
-    if (
-        Number.isNaN(
-            parsed
-        )
-    ) {
-
-        return `₹${value}`;
-    }
-
-    return `₹${parsed.toLocaleString(
-        "en-IN"
-    )}`;
+  return `₹${parsed.toLocaleString("en-IN")}`;
 };
-const getInstallmentDisplayName = (
-    sequence:
-        number |
-        null |
-        undefined
-) => {
-    if (
-        sequence ===
-        1
-    ) {
-        return "Booking Amount";
-    }
+const getInstallmentDisplayName = (sequence: number | null | undefined) => {
+  if (sequence === 1) {
+    return "Booking Amount";
+  }
 
-    if (
-        typeof sequence ===
-        "number" &&
-        sequence >
-        1
-    ) {
-        return `Installment ${sequence - 1}`;
-    }
+  if (typeof sequence === "number" && sequence > 1) {
+    return `Installment ${sequence - 1}`;
+  }
 
-    return "-";
+  return "-";
 };
 
 // ======================================================
@@ -265,1216 +157,883 @@ const getInstallmentDisplayName = (
 // ======================================================
 
 function Bookings() {
+  const { bookings, updateBooking, deleteBooking, loading, error } =
+    useBooking();
 
-    const {
-        bookings,
-        updateBooking,
-        deleteBooking,
-        loading,
-        error,
-    } = useBooking();
+  const { isAdmin } = useAuth();
 
-    const {
-        isAdmin,
-    } = useAuth();
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
-    const [
-        selectedBooking,
-        setSelectedBooking,
-    ] = useState<any>(
-        null
-    );
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-    const [
-        isBookingModalOpen,
-        setIsBookingModalOpen,
-    ] = useState(
-        false
-    );
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-    const [
-        isDetailsOpen,
-        setIsDetailsOpen,
-    ] = useState(
-        false
-    );
+  const [search, setSearch] = useState("");
 
-    const [
-        search,
-        setSearch,
-    ] = useState(
-        ""
-    );
+  const [activeSection, setActiveSection] =
+    useState<BookingSection>("RESIDENTIAL");
 
-    const [
-        activeSection,
-        setActiveSection,
-    ] =
-        useState<BookingSection>(
-            "RESIDENTIAL"
-        );
+  const [searchParams, setSearchParams] = useSearchParams();
 
-    const [
-        searchParams,
-        setSearchParams,
-    ] = useSearchParams();
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+  const floatingScrollRef = useRef<HTMLDivElement | null>(null);
 
-    // ==================================================
-    // Clear Booking Query Parameter
-    // ==================================================
+  const [floatingScrollbar, setFloatingScrollbar] = useState({
+    visible: false,
+    left: 0,
+    width: 0,
+    contentWidth: 0,
+  });
 
-    const clearBookingQueryParam =
-        () => {
+  // ==================================================
+  // Clear Booking Query Parameter
+  // ==================================================
 
-            if (
-                !searchParams.has(
-                    "bookingId"
-                )
-            ) {
-
-                return;
-            }
-
-            const nextParams =
-                new URLSearchParams(
-                    searchParams
-                );
-
-            nextParams.delete(
-                "bookingId"
-            );
-
-            setSearchParams(
-                nextParams,
-                {
-                    replace:
-                        true,
-                }
-            );
-        };
-
-    // ==================================================
-    // Open Booking From URL
-    // ==================================================
-
-    useEffect(() => {
-
-        const bookingId =
-            searchParams.get(
-                "bookingId"
-            );
-
-        if (
-            !bookingId
-        ) {
-
-            return;
-        }
-
-        const booking =
-            bookings.find(
-                (
-                    item
-                ) =>
-                    item.id ===
-                    bookingId
-            );
-
-        if (
-            !booking
-        ) {
-
-            return;
-        }
-
-        if (
-            booking.propertyType ===
-            "COMMERCIAL"
-        ) {
-
-            setActiveSection(
-                "COMMERCIAL"
-            );
-
-        } else if (
-            booking.propertyType ===
-            "RESIDENTIAL"
-        ) {
-
-            setActiveSection(
-                "RESIDENTIAL"
-            );
-        }
-
-        setSelectedBooking(
-            booking
-        );
-
-        setIsDetailsOpen(
-            true
-        );
-
-    }, [
-        searchParams,
-        bookings,
-    ]);
-
-    // ==================================================
-    // Keep Selected Booking Synced
-    // ==================================================
-
-    useEffect(() => {
-
-        if (
-            !selectedBooking?.id
-        ) {
-
-            return;
-        }
-
-        const latestBooking =
-            bookings.find(
-                (
-                    item
-                ) =>
-                    item.id ===
-                    selectedBooking.id
-            );
-
-        if (
-            latestBooking
-        ) {
-
-            setSelectedBooking(
-                latestBooking
-            );
-        }
-
-    }, [
-        bookings,
-        selectedBooking?.id,
-    ]);
-
-    // ==================================================
-    // Counts
-    // ==================================================
-
-    const residentialCount =
-        useMemo(
-            () =>
-                bookings.filter(
-                    (
-                        booking
-                    ) =>
-                        !booking.archivedAt &&
-                        booking.propertyType ===
-                        "RESIDENTIAL"
-                ).length,
-            [
-                bookings,
-            ]
-        );
-
-    const commercialCount =
-        useMemo(
-            () =>
-                bookings.filter(
-                    (
-                        booking
-                    ) =>
-                        !booking.archivedAt &&
-                        booking.propertyType ===
-                        "COMMERCIAL"
-                ).length,
-            [
-                bookings,
-            ]
-        );
-
-    // ==================================================
-    // Filter By Section + Search
-    // ==================================================
-
-    const filteredBookings =
-        useMemo(
-            () => {
-
-                const searchText =
-                    search
-                        .trim()
-                        .toLowerCase();
-
-                return bookings.filter(
-                    (
-                        booking
-                    ) => {
-                        if (
-                            booking.archivedAt
-                        ) {
-
-                            return false;
-                        }
-
-                        if (
-                            booking.propertyType !==
-                            activeSection
-                        ) {
-
-                            return false;
-                        }
-
-                        if (
-                            !searchText
-                        ) {
-
-                            return true;
-                        }
-
-                        return (
-                            String(
-                                booking.flatNumber ??
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    searchText
-                                ) ||
-
-                            String(
-                                booking.customerName ??
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    searchText
-                                ) ||
-
-                            String(
-                                booking.mobile ??
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    searchText
-                                ) ||
-
-                            String(
-                                booking.bookingCode ??
-                                ""
-                            )
-                                .toLowerCase()
-                                .includes(
-                                    searchText
-                                )
-                        );
-                    }
-                );
-            },
-            [
-                bookings,
-                activeSection,
-                search,
-            ]
-        );
-
-    // ==================================================
-    // Change Section
-    // ==================================================
-
-    const handleSectionChange = (
-        section:
-            BookingSection
-    ) => {
-
-        setActiveSection(
-            section
-        );
-
-        setSearch(
-            ""
-        );
-    };
-
-    // ==================================================
-    // Update Booking
-    // ==================================================
-
-    const handleUpdateBooking =
-        async (
-            updatedBooking:
-                any
-        ) => {
-
-            if (
-                !isAdmin
-            ) {
-
-                alert(
-                    "View only access — booking changes can only be made by an administrator."
-                );
-
-                return;
-            }
-
-            try {
-
-                await updateBooking(
-                    updatedBooking
-                );
-
-                setSelectedBooking(
-                    updatedBooking
-                );
-
-                setIsBookingModalOpen(
-                    false
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Booking update failed:",
-                    error
-                );
-
-                alert(
-                    error instanceof
-                        Error
-                        ? error.message
-                        : "Failed to update booking"
-                );
-            }
-        };
-
-    // ==================================================
-    // Delete Booking
-    // ==================================================
-
-    const handleDeleteBooking =
-        async (
-            id:
-                string
-        ) => {
-
-            if (
-                !isAdmin
-            ) {
-
-                alert(
-                    "View only access — bookings can only be deleted by an administrator."
-                );
-
-                return;
-            }
-
-            const confirmDelete =
-                window.confirm(
-                    "Are you sure you want to delete this booking?"
-                );
-
-            if (
-                !confirmDelete
-            ) {
-
-                return;
-            }
-
-            try {
-
-                await deleteBooking(
-                    id
-                );
-
-                if (
-                    selectedBooking?.id ===
-                    id
-                ) {
-
-                    setSelectedBooking(
-                        null
-                    );
-
-                    setIsDetailsOpen(
-                        false
-                    );
-
-                    setIsBookingModalOpen(
-                        false
-                    );
-
-                    clearBookingQueryParam();
-                }
-
-            } catch (error) {
-
-                console.error(
-                    "Booking delete failed:",
-                    error
-                );
-
-                alert(
-                    error instanceof
-                        Error
-                        ? error.message
-                        : "Failed to delete booking"
-                );
-            }
-        };
-
-    // ==================================================
-    // Open View Modal
-    // ==================================================
-
-    const handleOpenDetails = (
-        booking:
-            any
-    ) => {
-
-        setIsBookingModalOpen(
-            false
-        );
-
-        setSelectedBooking(
-            booking
-        );
-
-        setIsDetailsOpen(
-            true
-        );
-    };
-
-    // ==================================================
-    // Close View Modal
-    // ==================================================
-
-    const handleCloseDetails =
-        () => {
-
-            setIsDetailsOpen(
-                false
-            );
-
-            clearBookingQueryParam();
-        };
-
-    // ==================================================
-    // Open Edit Modal
-    // ==================================================
-
-    const handleOpenEdit = (
-        booking:
-            any
-    ) => {
-
-        if (
-            !isAdmin
-        ) {
-
-            return;
-        }
-
-        clearBookingQueryParam();
-
-        setIsDetailsOpen(
-            false
-        );
-
-        setSelectedBooking(
-            booking
-        );
-
-        setIsBookingModalOpen(
-            true
-        );
-    };
-
-    // ==================================================
-    // Close Edit Modal
-    // ==================================================
-
-    const handleCloseEdit =
-        () => {
-
-            setIsBookingModalOpen(
-                false
-            );
-        };
-
-    // ==================================================
-    // Loading
-    // ==================================================
-
-    if (
-        loading
-    ) {
-
-        return (
-            <div className="rounded-2xl bg-white p-10 shadow">
-
-                <div className="text-center text-gray-500">
-                    Loading bookings...
-                </div>
-
-            </div>
-        );
+  const clearBookingQueryParam = () => {
+    if (!searchParams.has("bookingId")) {
+      return;
     }
 
-    // ==================================================
-    // Dynamic Labels
-    // ==================================================
+    const nextParams = new URLSearchParams(searchParams);
 
-    const unitLabel =
-        activeSection ===
-            "RESIDENTIAL"
-            ? "Flat"
-            : "Shop";
+    nextParams.delete("bookingId");
 
-    const emptyLabel =
-        activeSection ===
-            "RESIDENTIAL"
-            ? "No Residential Bookings Found"
-            : "No Commercial Bookings Found";
+    setSearchParams(nextParams, {
+      replace: true,
+    });
+  };
 
-    // ==================================================
-    // Return
-    // ==================================================
+  // ==================================================
+  // Open Booking From URL
+  // ==================================================
 
+  useEffect(() => {
+    const bookingId = searchParams.get("bookingId");
+
+    if (!bookingId) {
+      return;
+    }
+
+    const booking = bookings.find((item) => item.id === bookingId);
+
+    if (!booking) {
+      return;
+    }
+
+    if (booking.propertyType === "COMMERCIAL") {
+      setActiveSection("COMMERCIAL");
+    } else if (booking.propertyType === "RESIDENTIAL") {
+      setActiveSection("RESIDENTIAL");
+    }
+
+    setSelectedBooking(booking);
+
+    setIsDetailsOpen(true);
+  }, [searchParams, bookings]);
+
+  // ==================================================
+  // Keep Selected Booking Synced
+  // ==================================================
+
+  useEffect(() => {
+    if (!selectedBooking?.id) {
+      return;
+    }
+
+    const latestBooking = bookings.find(
+      (item) => item.id === selectedBooking.id,
+    );
+
+    if (latestBooking) {
+      setSelectedBooking(latestBooking);
+    }
+  }, [bookings, selectedBooking?.id]);
+
+  // ==================================================
+  // Counts
+  // ==================================================
+
+  const residentialCount = useMemo(
+    () =>
+      bookings.filter(
+        (booking) =>
+          !booking.archivedAt && booking.propertyType === "RESIDENTIAL",
+      ).length,
+    [bookings],
+  );
+
+  const commercialCount = useMemo(
+    () =>
+      bookings.filter(
+        (booking) =>
+          !booking.archivedAt && booking.propertyType === "COMMERCIAL",
+      ).length,
+    [bookings],
+  );
+
+  // ==================================================
+  // Filter By Section + Search
+  // ==================================================
+
+  const filteredBookings = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
+    return bookings.filter((booking) => {
+      if (booking.archivedAt) {
+        return false;
+      }
+
+      if (booking.propertyType !== activeSection) {
+        return false;
+      }
+
+      if (!searchText) {
+        return true;
+      }
+
+      return (
+        String(booking.flatNumber ?? "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(booking.customerName ?? "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(booking.mobile ?? "")
+          .toLowerCase()
+          .includes(searchText) ||
+        String(booking.bookingCode ?? "")
+          .toLowerCase()
+          .includes(searchText)
+      );
+    });
+  }, [bookings, activeSection, search]);
+
+  // ==================================================
+  // Floating Horizontal Table Scrollbar
+  // ==================================================
+
+  useEffect(() => {
+    const tableScroll = tableScrollRef.current;
+    const floatingScroll = floatingScrollRef.current;
+
+    if (!tableScroll || !floatingScroll) {
+      return;
+    }
+
+    let syncing = false;
+
+    const syncFloatingFromTable = () => {
+      if (syncing) {
+        return;
+      }
+
+      syncing = true;
+      floatingScroll.scrollLeft = tableScroll.scrollLeft;
+
+      requestAnimationFrame(() => {
+        syncing = false;
+      });
+    };
+
+    const syncTableFromFloating = () => {
+      if (syncing) {
+        return;
+      }
+
+      syncing = true;
+      tableScroll.scrollLeft = floatingScroll.scrollLeft;
+
+      requestAnimationFrame(() => {
+        syncing = false;
+      });
+    };
+
+    const updateFloatingScrollbar = () => {
+      const rect = tableScroll.getBoundingClientRect();
+
+      const hasHorizontalOverflow =
+        tableScroll.scrollWidth > tableScroll.clientWidth + 1;
+
+      const isTableVisible =
+        rect.top < window.innerHeight - 16 && rect.bottom > 16;
+
+      const left = Math.max(rect.left, 0);
+      const width = Math.max(
+        0,
+        Math.min(rect.width, window.innerWidth - left),
+      );
+
+      setFloatingScrollbar((current) => {
+        const next = {
+          visible: hasHorizontalOverflow && isTableVisible,
+          left,
+          width,
+          contentWidth: tableScroll.scrollWidth,
+        };
+
+        if (
+          current.visible === next.visible &&
+          current.left === next.left &&
+          current.width === next.width &&
+          current.contentWidth === next.contentWidth
+        ) {
+          return current;
+        }
+
+        return next;
+      });
+    };
+
+    tableScroll.addEventListener("scroll", syncFloatingFromTable, {
+      passive: true,
+    });
+
+    floatingScroll.addEventListener("scroll", syncTableFromFloating, {
+      passive: true,
+    });
+
+    window.addEventListener("scroll", updateFloatingScrollbar, {
+      passive: true,
+    });
+
+    window.addEventListener("resize", updateFloatingScrollbar);
+
+    const resizeObserver = new ResizeObserver(updateFloatingScrollbar);
+
+    resizeObserver.observe(tableScroll);
+
+    const tableElement = tableScroll.firstElementChild;
+
+    if (tableElement instanceof HTMLElement) {
+      resizeObserver.observe(tableElement);
+    }
+
+    requestAnimationFrame(() => {
+      updateFloatingScrollbar();
+      syncFloatingFromTable();
+    });
+
+    return () => {
+      tableScroll.removeEventListener("scroll", syncFloatingFromTable);
+      floatingScroll.removeEventListener("scroll", syncTableFromFloating);
+      window.removeEventListener("scroll", updateFloatingScrollbar);
+      window.removeEventListener("resize", updateFloatingScrollbar);
+      resizeObserver.disconnect();
+    };
+  }, [activeSection, filteredBookings.length, isAdmin]);
+
+  // ==================================================
+  // Change Section
+  // ==================================================
+
+  const handleSectionChange = (section: BookingSection) => {
+    setActiveSection(section);
+
+    setSearch("");
+  };
+
+  // ==================================================
+  // Update Booking
+  // ==================================================
+
+  const handleUpdateBooking = async (updatedBooking: any) => {
+    if (!isAdmin) {
+      alert(
+        "View only access — booking changes can only be made by an administrator.",
+      );
+
+      return;
+    }
+
+    try {
+      await updateBooking(updatedBooking);
+
+      setSelectedBooking(updatedBooking);
+
+      setIsBookingModalOpen(false);
+    } catch (error) {
+      console.error("Booking update failed:", error);
+
+      alert(
+        error instanceof Error ? error.message : "Failed to update booking",
+      );
+    }
+  };
+
+  // ==================================================
+  // Delete Booking
+  // ==================================================
+
+  const handleDeleteBooking = async (id: string) => {
+    if (!isAdmin) {
+      alert(
+        "View only access — bookings can only be deleted by an administrator.",
+      );
+
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this booking?",
+    );
+
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      await deleteBooking(id);
+
+      if (selectedBooking?.id === id) {
+        setSelectedBooking(null);
+
+        setIsDetailsOpen(false);
+
+        setIsBookingModalOpen(false);
+
+        clearBookingQueryParam();
+      }
+    } catch (error) {
+      console.error("Booking delete failed:", error);
+
+      alert(
+        error instanceof Error ? error.message : "Failed to delete booking",
+      );
+    }
+  };
+
+  // ==================================================
+  // Open View Modal
+  // ==================================================
+
+  const handleOpenDetails = (booking: any) => {
+    setIsBookingModalOpen(false);
+
+    setSelectedBooking(booking);
+
+    setIsDetailsOpen(true);
+  };
+
+  // ==================================================
+  // Close View Modal
+  // ==================================================
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
+
+    clearBookingQueryParam();
+  };
+
+  // ==================================================
+  // Open Edit Modal
+  // ==================================================
+
+  const handleOpenEdit = (booking: any) => {
+    if (!isAdmin) {
+      return;
+    }
+
+    clearBookingQueryParam();
+
+    setIsDetailsOpen(false);
+
+    setSelectedBooking(booking);
+
+    setIsBookingModalOpen(true);
+  };
+
+  // ==================================================
+  // Close Edit Modal
+  // ==================================================
+
+  const handleCloseEdit = () => {
+    setIsBookingModalOpen(false);
+  };
+
+  // ==================================================
+  // Loading
+  // ==================================================
+
+  if (loading) {
     return (
-        <>
+      <div className="rounded-2xl bg-white p-6 shadow sm:p-8 lg:p-10">
+        <div className="text-center text-gray-500">Loading bookings...</div>
+      </div>
+    );
+  }
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+  // ==================================================
+  // Dynamic Labels
+  // ==================================================
 
-                {/* ======================================
+  const unitLabel = activeSection === "RESIDENTIAL" ? "Flat" : "Shop";
+
+  const emptyLabel =
+    activeSection === "RESIDENTIAL"
+      ? "No Residential Bookings Found"
+      : "No Commercial Bookings Found";
+
+  // ==================================================
+  // Return
+  // ==================================================
+
+  return (
+    <>
+      <div
+        className="
+          min-w-0
+          rounded-2xl
+          bg-white
+          p-4
+          shadow
+          sm:p-5
+          lg:p-6
+        "
+      >
+        {/* ======================================
                     Header
                 ====================================== */}
 
-                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-4 flex min-w-0 flex-col gap-3 sm:mb-5 sm:gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+              Bookings
+            </h1>
 
-                    <div>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage residential and commercial booking records.
+            </p>
 
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Bookings
-                        </h1>
+            {!isAdmin && (
+              <p className="mt-1 text-sm font-medium text-amber-600">
+                View only access
+              </p>
+            )}
+          </div>
 
-                        <p className="mt-1 text-sm text-gray-500">
-                            Manage residential and commercial booking records.
-                        </p>
+          <input
+            type="text"
+            placeholder={`Search ${unitLabel}, customer, mobile or booking code...`}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="
+    w-full
+    min-w-0
+    rounded-xl
+    border
+    border-gray-300
+    px-3
+    py-2.5
+    text-sm
+    outline-none
+    transition
+    focus:border-green-600
+    focus:ring-2
+    focus:ring-green-100
+    sm:px-4
+    lg:w-[380px]
+"
+          />
+        </div>
 
-                        {!isAdmin && (
-
-                            <p className="mt-1 text-sm font-medium text-amber-600">
-                                View only access
-                            </p>
-
-                        )}
-
-                    </div>
-
-                    <input
-                        type="text"
-                        placeholder={`Search ${unitLabel}, customer, mobile or booking code...`}
-                        value={
-                            search
-                        }
-                        onChange={(
-                            event
-                        ) =>
-                            setSearch(
-                                event.target.value
-                            )
-                        }
-                        className="
-                            w-full
-                            rounded-xl
-                            border
-                            border-gray-300
-                            px-4
-                            py-2.5
-                            outline-none
-                            transition
-                            focus:border-green-600
-                            focus:ring-2
-                            focus:ring-green-100
-                            lg:w-[380px]
-                        "
-                    />
-
-                </div>
-
-                {/* ======================================
+        {/* ======================================
                     Residential / Commercial Tabs
                 ====================================== */}
 
-                <div
-                    className="
-                        mb-6
-                        grid
-                        grid-cols-2
-                        gap-2
-                        rounded-2xl
-                        bg-gray-100
-                        p-1.5
-                        sm:inline-grid
-                        sm:min-w-[460px]
-                    "
-                >
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            handleSectionChange(
-                                "RESIDENTIAL"
-                            )
-                        }
-                        className={`
+        <div
+          className="
+    mb-4
+    grid
+    min-w-0
+    grid-cols-2
+    gap-1.5
+    rounded-2xl
+    bg-gray-100
+    p-1.5
+    sm:mb-6
+    sm:inline-grid
+    sm:min-w-[460px]
+    sm:gap-2
+"
+        >
+          <button
+            type="button"
+            onClick={() => handleSectionChange("RESIDENTIAL")}
+            className={`
                             flex
                             items-center
                             justify-center
-                            gap-2
-                            rounded-xl
-                            px-4
-                            py-3
-                            text-sm
+                         gap-1.5
+rounded-xl
+px-2
+py-2.5
+text-xs
+sm:gap-2
+sm:px-4
+sm:py-3
+sm:text-sm
                             font-semibold
                             transition
-                            ${activeSection ===
-                                "RESIDENTIAL"
+                            ${
+                              activeSection === "RESIDENTIAL"
                                 ? "bg-white text-green-700 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"
                             }
                         `}
-                    >
-
-                        <Home
-                            size={18}
-                        />
-
-                        Residential
-
-                        <span
-                            className={`
+          >
+            <Home size={18} />
+            Residential
+            <span
+              className={`
                                 rounded-full
                                 px-2
                                 py-0.5
                                 text-xs
-                                ${activeSection ===
-                                    "RESIDENTIAL"
+                                ${
+                                  activeSection === "RESIDENTIAL"
                                     ? "bg-green-100 text-green-700"
                                     : "bg-gray-200 text-gray-600"
                                 }
                             `}
-                        >
-                            {
-                                residentialCount
-                            }
-                        </span>
+            >
+              {residentialCount}
+            </span>
+          </button>
 
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            handleSectionChange(
-                                "COMMERCIAL"
-                            )
-                        }
-                        className={`
+          <button
+            type="button"
+            onClick={() => handleSectionChange("COMMERCIAL")}
+            className={`
                             flex
                             items-center
                             justify-center
-                            gap-2
-                            rounded-xl
-                            px-4
-                            py-3
-                            text-sm
+                         gap-1.5
+rounded-xl
+px-2
+py-2.5
+text-xs
+sm:gap-2
+sm:px-4
+sm:py-3
+sm:text-sm
                             font-semibold
                             transition
-                            ${activeSection ===
-                                "COMMERCIAL"
+                            ${
+                              activeSection === "COMMERCIAL"
                                 ? "bg-white text-green-700 shadow-sm"
                                 : "text-gray-500 hover:text-gray-800"
                             }
                         `}
-                    >
-
-                        <Building2
-                            size={18}
-                        />
-
-                        Commercial
-
-                        <span
-                            className={`
+          >
+            <Building2 size={18} />
+            Commercial
+            <span
+              className={`
                                 rounded-full
                                 px-2
                                 py-0.5
                                 text-xs
-                                ${activeSection ===
-                                    "COMMERCIAL"
+                                ${
+                                  activeSection === "COMMERCIAL"
                                     ? "bg-green-100 text-green-700"
                                     : "bg-gray-200 text-gray-600"
                                 }
                             `}
-                        >
-                            {
-                                commercialCount
-                            }
-                        </span>
+            >
+              {commercialCount}
+            </span>
+          </button>
+        </div>
 
-                    </button>
-
-                </div>
-
-                {/* ======================================
+        {/* ======================================
                     API Error
                 ====================================== */}
 
-                {error && (
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-                    <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                        {error}
-                    </div>
-
-                )}
-
-                {/* ======================================
+        {/* ======================================
                     Table
                 ====================================== */}
 
-                <div className="overflow-x-auto">
+        <div
+          ref={tableScrollRef}
+          className="
+            w-full
+            min-w-0
+            overflow-x-auto
+            overscroll-x-contain
+            [scrollbar-width:none]
+            [-ms-overflow-style:none]
+            [&::-webkit-scrollbar]:hidden
+          "
+        >
+          <table className="w-full min-w-[1700px] border-collapse text-sm">
+            <thead className="[&_th]:whitespace-nowrap">
+              <tr className="bg-gray-100">
+                <th className="border p-3 text-left">{unitLabel}</th>
+                <th className="border p-3 text-left">Floor</th>
 
-                    <table className="w-full min-w-[1700px] border-collapse">
+                <th className="border p-3 text-left">Customer</th>
 
-                        <thead>
+                <th className="border p-3 text-left">Mobile</th>
 
-                            <tr className="bg-gray-100">
+                <th className="border p-3 text-left">Booking Amount</th>
 
-                                <th className="border p-3 text-left">
-                                    {
-                                        unitLabel
-                                    }
-                                </th>
-                                <th className="border p-3 text-left">
-                                    Floor
-                                </th>
+                <th className="border p-3 text-left">Remaining Amount</th>
+                <th className="border p-3 text-left">Current Installment</th>
 
-                                <th className="border p-3 text-left">
-                                    Customer
-                                </th>
+                <th className="border p-3 text-left">Calculation</th>
 
-                                <th className="border p-3 text-left">
-                                    Mobile
-                                </th>
+                <th className="border p-3 text-left">Finance Type</th>
 
-                                <th className="border p-3 text-left">
-                                    Booking Amount
-                                </th>
+                <th className="border p-3 text-left">Booking Date</th>
 
-                                <th className="border p-3 text-left">
-                                    Remaining Amount
-                                </th>
-                                <th className="border p-3 text-left">
-                                    Current Installment
-                                </th>
+                <th className="border p-3 text-left">Agreement to Sell</th>
 
-                                <th className="border p-3 text-left">
-                                    Calculation
-                                </th>
+                <th className="border p-3 text-left">Tripartite Agreement</th>
 
-                                <th className="border p-3 text-left">
-                                    Finance Type
-                                </th>
+                <th className="border p-3 text-center">Actions</th>
+              </tr>
+            </thead>
 
-                                <th className="border p-3 text-left">
-                                    Booking Date
-                                </th>
+            <tbody>
+              {filteredBookings.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={13}
+                    className="p-6 text-center text-sm text-gray-500 sm:p-8 lg:p-10"
+                  >
+                    {emptyLabel}
+                  </td>
+                </tr>
+              ) : (
+                filteredBookings.map((booking) => {
+                  const agreementStatus =
+                    booking.documents?.agreementToSell?.status || "pending";
 
-                                <th className="border p-3 text-left">
-                                    Agreement to Sell
-                                </th>
+                  const tripartite = booking.documents?.tripartiteAgreement;
 
-                                <th className="border p-3 text-left">
-                                    Tripartite Agreement
-                                </th>
+                  const tripartiteStatus = tripartite?.required
+                    ? tripartite.document?.status === "completed"
+                      ? "completed"
+                      : "pending"
+                    : "not-required";
+                  const currentInstallment =
+                    booking.installmentSummary?.currentInstallment ?? null;
 
-                                <th className="border p-3 text-center">
-                                    Actions
-                                </th>
+                  return (
+                    <tr key={booking.id} className="hover:bg-gray-50">
+                      <td className="border p-3 font-semibold text-gray-800">
+                        {booking.flatNumber || "-"}
+                      </td>
+                      <td className="border p-3">
+                        {booking.floor === 0
+                          ? "Ground Floor"
+                          : `Floor ${booking.floor ?? "-"}`}
+                      </td>
 
-                            </tr>
+                      <td className="border p-3">
+                        <div className="font-medium">
+                          {booking.customerName || "-"}
+                        </div>
 
-                        </thead>
+                        <div className="mt-1 text-xs text-gray-500">
+                          {booking.floor === 0
+                            ? "Ground Floor"
+                            : `Floor: ${booking.floor ?? "-"}`}
+                        </div>
+                      </td>
 
-                        <tbody>
+                      <td className="border p-3">{booking.mobile || "-"}</td>
 
-                            {filteredBookings.length ===
-                                0 ? (
+                      <td className="border p-3 font-semibold">
+                        {formatAmount(booking.bookingAmount)}
+                      </td>
 
-                                <tr>
+                      <td className="border p-3 font-semibold">
+                        {booking.remainingAmount
+                          ? formatAmount(booking.remainingAmount)
+                          : "-"}
+                      </td>
+                      <td className="border p-3">
+                        {currentInstallment ? (
+                          <div className="min-w-[180px]">
+                            <div className="font-semibold text-gray-800">
+                              {getInstallmentDisplayName(
+                                currentInstallment.sequence,
+                              )}
+                            </div>
 
-                                    <td
-                                        colSpan={
-                                            13
-                                        }
-                                        className="p-10 text-center text-gray-500"
-                                    >
-                                        {
-                                            emptyLabel
-                                        }
-                                    </td>
-
-                                </tr>
-
-                            ) : (
-
-                                filteredBookings.map(
-                                    (
-                                        booking
-                                    ) => {
-
-                                        const agreementStatus =
-                                            booking.documents
-                                                ?.agreementToSell
-                                                ?.status ||
-                                            "pending";
-
-                                        const tripartite =
-                                            booking.documents
-                                                ?.tripartiteAgreement;
-
-                                        const tripartiteStatus =
-                                            tripartite?.required
-                                                ? (
-                                                    tripartite
-                                                        .document
-                                                        ?.status ===
-                                                        "completed"
-                                                        ? "completed"
-                                                        : "pending"
-                                                )
-                                                : "not-required";
-                                        const currentInstallment =
-                                            booking
-                                                .installmentSummary
-                                                ?.currentInstallment ??
-                                            null;
-
-                                        return (
-
-                                            <tr
-                                                key={
-                                                    booking.id
-                                                }
-                                                className="hover:bg-gray-50"
-                                            >
-
-                                                <td className="border p-3 font-semibold text-gray-800">
-                                                    {
-                                                        booking.flatNumber ||
-                                                        "-"
-                                                    }
-                                                </td>
-                                                <td className="border p-3">
-                                                    {
-                                                        booking.floor === 0
-                                                            ? "Ground Floor"
-                                                            : `Floor ${booking.floor ?? "-"}`
-                                                    }
-                                                </td>
-
-                                                <td className="border p-3">
-                                                    <div className="font-medium">
-                                                        {
-                                                            booking.customerName ||
-                                                            "-"
-                                                        }
-                                                    </div>
-
-                                                    <div className="mt-1 text-xs text-gray-500">
-                                                        {
-                                                            booking.floor === 0
-                                                                ? "Ground Floor"
-                                                                : `Floor: ${booking.floor ?? "-"}`
-                                                        }
-                                                    </div>
-                                                </td>
-
-                                                <td className="border p-3">
-                                                    {
-                                                        booking.mobile ||
-                                                        "-"
-                                                    }
-                                                </td>
-
-                                                <td className="border p-3 font-semibold">
-                                                    {
-                                                        formatAmount(
-                                                            booking.bookingAmount
-                                                        )
-                                                    }
-                                                </td>
-
-                                                <td className="border p-3 font-semibold">
-                                                    {
-                                                        booking.remainingAmount
-                                                            ? formatAmount(
-                                                                booking.remainingAmount
-                                                            )
-                                                            : "-"
-                                                    }
-                                                </td>
-                                                <td className="border p-3">
-
-                                                    {
-                                                        currentInstallment
-                                                            ? (
-
-                                                                <div className="min-w-[180px]">
-
-                                                                    <div className="font-semibold text-gray-800">
-                                                                        {
-                                                                            getInstallmentDisplayName(
-                                                                                currentInstallment
-                                                                                    .sequence
-                                                                            )
-                                                                        }
-                                                                    </div>
-
-                                                                    <div className="mt-1 flex flex-wrap items-center gap-2">
-
-                                                                        <span
-                                                                            className={`
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                              <span
+                                className={`
                                 inline-flex
                                 rounded-full
                                 px-2.5
                                 py-1
                                 text-xs
                                 font-semibold
-                                ${currentInstallment
-                                                                                    .status ===
-                                                                                    "PAID"
-                                                                                    ? "bg-green-100 text-green-700"
-                                                                                    : currentInstallment
-                                                                                        .status ===
-                                                                                        "PARTIAL"
-                                                                                        ? "bg-amber-100 text-amber-700"
-                                                                                        : "bg-gray-100 text-gray-600"
-                                                                                }
+                                ${
+                                  currentInstallment.status === "PAID"
+                                    ? "bg-green-100 text-green-700"
+                                    : currentInstallment.status === "PARTIAL"
+                                      ? "bg-amber-100 text-amber-700"
+                                      : "bg-gray-100 text-gray-600"
+                                }
                             `}
-                                                                        >
-                                                                            {
-                                                                                currentInstallment
-                                                                                    .status
-                                                                            }
-                                                                        </span>
+                              >
+                                {currentInstallment.status}
+                              </span>
 
-                                                                        <span className="text-xs text-gray-500">
-                                                                            {
-                                                                                formatAmount(
-                                                                                    currentInstallment
-                                                                                        .paidAmount
-                                                                                )
-                                                                            }
-                                                                            {" / "}
-                                                                            {
-                                                                                formatAmount(
-                                                                                    currentInstallment
-                                                                                        .plannedAmount
-                                                                                )
-                                                                            }
-                                                                        </span>
+                              <span className="text-xs text-gray-500">
+                                {formatAmount(currentInstallment.paidAmount)}
+                                {" / "}
+                                {formatAmount(currentInstallment.plannedAmount)}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">
+                            No Payment
+                          </span>
+                        )}
+                      </td>
 
-                                                                    </div>
+                      <td className="border p-3">
+                        <RemainingModeBadge
+                          mode={booking.remainingAmountMode}
+                        />
+                      </td>
 
-                                                                </div>
-                                                            )
-                                                            : (
+                      <td className="border p-3">
+                        <FinanceTypeBadge type={booking.financeType} />
+                      </td>
 
-                                                                <span className="text-sm text-gray-400">
-                                                                    No Payment
-                                                                </span>
-                                                            )
-                                                    }
+                      <td className="border p-3">
+                        {booking.bookingDate || "-"}
+                      </td>
 
-                                                </td>
+                      <td className="border p-3">
+                        <DocumentStatusBadge status={agreementStatus as any} />
+                      </td>
 
-                                                <td className="border p-3">
+                      <td className="border p-3">
+                        <DocumentStatusBadge status={tripartiteStatus as any} />
+                      </td>
 
-                                                    <RemainingModeBadge
-                                                        mode={
-                                                            booking.remainingAmountMode
-                                                        }
-                                                    />
+                      <td className="border p-3">
+                        <div className="flex min-w-max justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDetails(booking)}
+                            className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
+                          >
+                            View
+                          </button>
 
-                                                </td>
+                          {isAdmin && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEdit(booking)}
+                                className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
+                              >
+                                Edit
+                              </button>
 
-                                                <td className="border p-3">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteBooking(booking.id)}
+                                className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                                                    <FinanceTypeBadge
-                                                        type={
-                                                            booking.financeType
-                                                        }
-                                                    />
+        <div
+          ref={floatingScrollRef}
+          aria-hidden="true"
+          className="
+            fixed
+            bottom-2
+            z-[80]
+            h-4
+            overflow-x-auto
+            overflow-y-hidden
+            border
+            border-gray-200
+            bg-white
+            shadow-md
+          "
+          style={{
+            left: `${floatingScrollbar.left}px`,
+            width: `${floatingScrollbar.width}px`,
+            visibility: floatingScrollbar.visible ? "visible" : "hidden",
+            pointerEvents: floatingScrollbar.visible ? "auto" : "none",
+          }}
+        >
+          <div
+            style={{
+              width: `${floatingScrollbar.contentWidth}px`,
+              height: "1px",
+            }}
+          />
+        </div>
+      </div>
 
-                                                </td>
-
-                                                <td className="border p-3">
-                                                    {
-                                                        booking.bookingDate ||
-                                                        "-"
-                                                    }
-                                                </td>
-
-                                                <td className="border p-3">
-
-                                                    <DocumentStatusBadge
-                                                        status={
-                                                            agreementStatus as any
-                                                        }
-                                                    />
-
-                                                </td>
-
-                                                <td className="border p-3">
-
-                                                    <DocumentStatusBadge
-                                                        status={
-                                                            tripartiteStatus as any
-                                                        }
-                                                    />
-
-                                                </td>
-
-                                                <td className="border p-3">
-
-                                                    <div className="flex justify-center gap-2">
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                handleOpenDetails(
-                                                                    booking
-                                                                )
-                                                            }
-                                                            className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
-                                                        >
-                                                            View
-                                                        </button>
-
-                                                        {isAdmin && (
-                                                            <>
-
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleOpenEdit(
-                                                                            booking
-                                                                        )
-                                                                    }
-                                                                    className="rounded bg-green-500 px-3 py-1 text-sm text-white hover:bg-green-600"
-                                                                >
-                                                                    Edit
-                                                                </button>
-
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleDeleteBooking(
-                                                                            booking.id
-                                                                        )
-                                                                    }
-                                                                    className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
-                                                                >
-                                                                    Delete
-                                                                </button>
-
-                                                            </>
-                                                        )}
-
-                                                    </div>
-
-                                                </td>
-
-                                            </tr>
-                                        );
-                                    }
-                                )
-                            )}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-            {/* ==========================================
+      {/* ==========================================
                 Booking Details
             ========================================== */}
 
-            <BookingDetailsModal
-                isOpen={
-                    isDetailsOpen
-                }
-                onClose={
-                    handleCloseDetails
-                }
-                booking={
-                    selectedBooking
-                }
-                onUpdate={
-                    handleUpdateBooking
-                }
-            />
+      <BookingDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={handleCloseDetails}
+        booking={selectedBooking}
+        onUpdate={handleUpdateBooking}
+      />
 
-            {/* ==========================================
+      {/* ==========================================
                 Booking Edit
             ========================================== */}
 
-            {isAdmin && (
+      {isAdmin && (
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={handleCloseEdit}
+          onConfirm={handleUpdateBooking}
+          flat={
+            selectedBooking
+              ? {
+                  number: selectedBooking.flatNumber,
 
-                <BookingModal
-                    isOpen={
-                        isBookingModalOpen
-                    }
-                    onClose={
-                        handleCloseEdit
-                    }
-                    onConfirm={
-                        handleUpdateBooking
-                    }
-                    flat={
-                        selectedBooking
-                            ? {
-                                number:
-                                    selectedBooking
-                                        .flatNumber,
+                  tower: selectedBooking.tower,
 
-                                tower:
-                                    selectedBooking
-                                        .tower,
+                  floor: selectedBooking.floor,
 
-                                floor:
-                                    selectedBooking
-                                        .floor,
-
-                                status:
-                                    selectedBooking
-                                        .status,
-                            }
-                            : null
-                    }
-                    booking={
-                        selectedBooking
-                    }
-                    mode="edit"
-                />
-
-            )}
-
-        </>
-    );
+                  status: selectedBooking.status,
+                }
+              : null
+          }
+          booking={selectedBooking}
+          mode="edit"
+        />
+      )}
+    </>
+  );
 }
 
 export default Bookings;

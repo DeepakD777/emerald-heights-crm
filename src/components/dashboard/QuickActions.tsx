@@ -1,677 +1,767 @@
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 
 import {
-  PlusCircle,
-  Building2,
-  UserPlus,
-  BarChart3,
-  Home,
-  Store,
-  BookOpen,
-  X,
+    PlusCircle,
+    Building2,
+    UserPlus,
+    BarChart3,
+    Home,
+    Store,
+    BookOpen,
+    X,
 } from "lucide-react";
 
-import {
-  useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-import {
-  useAuth,
-} from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 // ======================================================
 // Quick Actions
 // ======================================================
 
 function QuickActions() {
+    const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
+    const { isAdmin } = useAuth();
 
-  const {
-    isAdmin,
-  } = useAuth();
+    const [
+        isBookingTypeOpen,
+        setIsBookingTypeOpen,
+    ] = useState(false);
 
-  const [
-    isBookingTypeOpen,
-    setIsBookingTypeOpen,
-  ] = useState(false);
+    // ====================================================
+    // New Booking
+    // ====================================================
 
-  // ====================================================
-  // New Booking
-  // ====================================================
+    const handleNewBooking = () => {
+        if (!isAdmin) {
+            return;
+        }
 
-  const handleNewBooking =
-    () => {
-
-      if (!isAdmin) {
-        return;
-      }
-
-      setIsBookingTypeOpen(
-        true
-      );
+        setIsBookingTypeOpen(true);
     };
 
-  // ====================================================
-  // Residential Booking
-  // ====================================================
+    // ====================================================
+    // Residential Booking
+    // ====================================================
 
-  const handleResidentialBooking =
-    () => {
+    const handleResidentialBooking = () => {
+        setIsBookingTypeOpen(false);
 
-      setIsBookingTypeOpen(
-        false
-      );
-
-      navigate(
-        "/residential"
-      );
+        navigate("/residential");
     };
 
-  // ====================================================
-  // Commercial Booking
-  // ====================================================
+    // ====================================================
+    // Commercial Booking
+    // ====================================================
 
-  const handleCommercialBooking =
-    () => {
+    const handleCommercialBooking = () => {
+        setIsBookingTypeOpen(false);
 
-      setIsBookingTypeOpen(
-        false
-      );
-
-      navigate(
-        "/commercial"
-      );
+        navigate("/commercial");
     };
 
-  // ====================================================
-  // UI
-  // ====================================================
+    // ====================================================
+    // UI
+    // ====================================================
 
-  return (
-    <>
-
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-
-        {/* ==================================================
-            Heading
-        ================================================== */}
-
-        <div className="mb-6 flex items-center justify-between">
-
-          <div>
-
-            <h2 className="text-2xl font-bold text-gray-800">
-              Quick Actions
-            </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              {
-                isAdmin
-                  ? "Manage bookings, inventory, sales team and reports"
-                  : "Quick access to CRM information"
-              }
-            </p>
-
-          </div>
-
-          {!isAdmin && (
-
-            <span
-              className="
-                rounded-full
-                border
-                border-gray-200
-                bg-gray-50
-                px-3
-                py-1
-                text-xs
-                font-semibold
-                text-gray-600
-              "
+    return (
+        <>
+            <div
+                className="
+                    min-w-0
+                    rounded-2xl
+                    border
+                    border-gray-200
+                    bg-white
+                    p-4
+                    shadow-sm
+                    sm:p-5
+                    lg:p-6
+                "
             >
-              View Only
-            </span>
-
-          )}
-
-        </div>
-
-        {/* ==================================================
-            ADMIN QUICK ACTIONS
-        ================================================== */}
-
-        {isAdmin ? (
-
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-
-            {/* ==============================================
-                New Booking
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={
-                handleNewBooking
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-green-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-green-100
-                hover:shadow-md
-              "
-            >
-
-              <PlusCircle
-                className="text-green-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                New Booking
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                Add Property
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/properties?mode=create"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-orange-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-orange-100
-                hover:shadow-md
-              "
-            >
-
-              <Building2
-                className="text-orange-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Add Property
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                Add Sales Member
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/sales-team?mode=create"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-blue-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-blue-100
-                hover:shadow-md
-              "
-            >
-
-              <UserPlus
-                className="text-blue-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Add Sales Member
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                View Reports
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/reports"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-purple-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-purple-100
-                hover:shadow-md
-              "
-            >
-
-              <BarChart3
-                className="text-purple-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                View Reports
-              </span>
-
-            </button>
-
-          </div>
-
-        ) : (
-
-          /* ==================================================
-              EMPLOYEE VIEW-ONLY QUICK ACTIONS
-          ================================================== */
-
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-
-            {/* ==============================================
-                Residential
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/residential"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-green-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-green-100
-                hover:shadow-md
-              "
-            >
-
-              <Home
-                className="text-green-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Residential
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                Commercial
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/commercial"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-orange-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-orange-100
-                hover:shadow-md
-              "
-            >
-
-              <Store
-                className="text-orange-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Commercial
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                Bookings
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/bookings"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-blue-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-blue-100
-                hover:shadow-md
-              "
-            >
-
-              <BookOpen
-                className="text-blue-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Bookings
-              </span>
-
-            </button>
-
-            {/* ==============================================
-                Reports
-            ============================================== */}
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/reports"
-                )
-              }
-              className="
-                flex
-                min-h-28
-                flex-col
-                items-center
-                justify-center
-                gap-3
-                rounded-xl
-                bg-purple-50
-                p-5
-                text-center
-                transition
-                hover:-translate-y-1
-                hover:bg-purple-100
-                hover:shadow-md
-              "
-            >
-
-              <BarChart3
-                className="text-purple-600"
-                size={36}
-              />
-
-              <span className="font-semibold text-gray-800">
-                Reports
-              </span>
-
-            </button>
-
-          </div>
-
-        )}
-
-      </div>
-
-      {/* ====================================================
-          NEW BOOKING TYPE MODAL
-          Admin Only
-      ==================================================== */}
-
-      {isAdmin &&
-        isBookingTypeOpen && (
-
-        <div
-          className="
-            fixed
-            inset-0
-            z-[100]
-            flex
-            items-center
-            justify-center
-            bg-black/50
-            p-4
-          "
-          onMouseDown={(
-            event
-          ) => {
-
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-
-              setIsBookingTypeOpen(
-                false
-              );
-            }
-          }}
-        >
-
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
-
-            {/* ==============================================
-                Modal Header
-            ============================================== */}
-
-            <div className="flex items-center justify-between border-b px-5 py-4 sm:px-6">
-
-              <div>
-
-                <h2 className="text-xl font-bold text-gray-800">
-                  New Booking
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Select property type to continue
-                </p>
-
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setIsBookingTypeOpen(
-                    false
-                  )
-                }
-                className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-                aria-label="Close"
-              >
-
-                <X
-                  size={20}
-                />
-
-              </button>
-
+                {/* ==================================================
+                    Heading
+                ================================================== */}
+
+                <div
+                    className="
+                        mb-4
+                        flex
+                        min-w-0
+                        items-start
+                        justify-between
+                        gap-3
+                        sm:mb-5
+                        lg:mb-6
+                    "
+                >
+                    <div className="min-w-0">
+                        <h2
+                            className="
+                                text-lg
+                                font-bold
+                                text-gray-800
+                                sm:text-xl
+                                lg:text-2xl
+                            "
+                        >
+                            Quick Actions
+                        </h2>
+
+                        <p
+                            className="
+                                mt-1
+                                text-xs
+                                text-gray-500
+                                sm:text-sm
+                            "
+                        >
+                            {isAdmin
+                                ? "Manage bookings, inventory, sales team and reports"
+                                : "Quick access to CRM information"}
+                        </p>
+                    </div>
+
+                    {!isAdmin && (
+                        <span
+                            className="
+                                shrink-0
+                                rounded-full
+                                border
+                                border-gray-200
+                                bg-gray-50
+                                px-2.5
+                                py-1
+                                text-[11px]
+                                font-semibold
+                                text-gray-600
+                                sm:px-3
+                                sm:text-xs
+                            "
+                        >
+                            View Only
+                        </span>
+                    )}
+                </div>
+
+                {/* ==================================================
+                    ADMIN QUICK ACTIONS
+                ================================================== */}
+
+                {isAdmin ? (
+                    <div
+                        className="
+                            grid
+                            min-w-0
+                            grid-cols-2
+                            gap-3
+                            sm:gap-4
+                            md:grid-cols-4
+                        "
+                    >
+                        {/* New Booking */}
+
+                        <button
+                            type="button"
+                            onClick={handleNewBooking}
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-green-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-green-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <PlusCircle
+                                className="text-green-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                New Booking
+                            </span>
+                        </button>
+
+                        {/* Add Property */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate(
+                                    "/properties?mode=create"
+                                )
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-orange-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-orange-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <Building2
+                                className="text-orange-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Add Property
+                            </span>
+                        </button>
+
+                        {/* Add Sales Member */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate(
+                                    "/sales-team?mode=create"
+                                )
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-blue-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-blue-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <UserPlus
+                                className="text-blue-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Add Sales Member
+                            </span>
+                        </button>
+
+                        {/* View Reports */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/reports")
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-purple-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-purple-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <BarChart3
+                                className="text-purple-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                View Reports
+                            </span>
+                        </button>
+                    </div>
+                ) : (
+                    /* ==================================================
+                        EMPLOYEE VIEW-ONLY QUICK ACTIONS
+                    ================================================== */
+
+                    <div
+                        className="
+                            grid
+                            min-w-0
+                            grid-cols-2
+                            gap-3
+                            sm:gap-4
+                            md:grid-cols-4
+                        "
+                    >
+                        {/* Residential */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/residential")
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-green-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-green-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <Home
+                                className="text-green-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Residential
+                            </span>
+                        </button>
+
+                        {/* Commercial */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/commercial")
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-orange-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-orange-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <Store
+                                className="text-orange-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Commercial
+                            </span>
+                        </button>
+
+                        {/* Bookings */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/bookings")
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-blue-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-blue-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <BookOpen
+                                className="text-blue-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Bookings
+                            </span>
+                        </button>
+
+                        {/* Reports */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate("/reports")
+                            }
+                            className="
+                                flex
+                                min-h-24
+                                flex-col
+                                items-center
+                                justify-center
+                                gap-2
+                                rounded-xl
+                                bg-purple-50
+                                p-3
+                                text-center
+                                transition
+                                hover:-translate-y-1
+                                hover:bg-purple-100
+                                hover:shadow-md
+                                sm:min-h-28
+                                sm:gap-3
+                                sm:p-5
+                            "
+                        >
+                            <BarChart3
+                                className="text-purple-600"
+                                size={36}
+                            />
+
+                            <span
+                                className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    sm:text-base
+                                "
+                            >
+                                Reports
+                            </span>
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {/* ==============================================
-                Property Type Selection
-            ============================================== */}
+            {/* ====================================================
+                NEW BOOKING TYPE MODAL
+                Admin Only
+            ==================================================== */}
 
-            <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
+            {isAdmin &&
+                isBookingTypeOpen && (
+                    <div
+                        className="
+                            fixed
+                            inset-0
+                            z-[100]
+                            flex
+                            items-center
+                            justify-center
+                            bg-black/50
+                            p-3
+                            sm:p-4
+                        "
+                        onMouseDown={(event) => {
+                            if (
+                                event.target ===
+                                event.currentTarget
+                            ) {
+                                setIsBookingTypeOpen(
+                                    false
+                                );
+                            }
+                        }}
+                    >
+                        <div
+                            className="
+                                max-h-[calc(100dvh-24px)]
+                                w-full
+                                max-w-lg
+                                overflow-y-auto
+                                rounded-2xl
+                                bg-white
+                                shadow-2xl
+                            "
+                        >
+                            {/* Modal Header */}
 
-              {/* Residential */}
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    justify-between
+                                    gap-3
+                                    border-b
+                                    px-4
+                                    py-4
+                                    sm:px-6
+                                "
+                            >
+                                <div className="min-w-0">
+                                    <h2
+                                        className="
+                                            text-lg
+                                            font-bold
+                                            text-gray-800
+                                            sm:text-xl
+                                        "
+                                    >
+                                        New Booking
+                                    </h2>
 
-              <button
-                type="button"
-                onClick={
-                  handleResidentialBooking
-                }
-                className="
-                  flex
-                  min-h-40
-                  flex-col
-                  items-center
-                  justify-center
-                  gap-4
-                  rounded-2xl
-                  border
-                  border-green-200
-                  bg-green-50
-                  p-6
-                  text-center
-                  transition
-                  hover:-translate-y-1
-                  hover:border-green-300
-                  hover:bg-green-100
-                  hover:shadow-md
-                "
-              >
+                                    <p
+                                        className="
+                                            mt-1
+                                            text-xs
+                                            text-gray-500
+                                            sm:text-sm
+                                        "
+                                    >
+                                        Select property type
+                                        to continue
+                                    </p>
+                                </div>
 
-                <div className="rounded-2xl bg-white p-4 text-green-600 shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setIsBookingTypeOpen(
+                                            false
+                                        )
+                                    }
+                                    className="
+                                        shrink-0
+                                        rounded-lg
+                                        p-2
+                                        text-gray-500
+                                        transition
+                                        hover:bg-gray-100
+                                        hover:text-gray-800
+                                    "
+                                    aria-label="Close"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
 
-                  <Home
-                    size={34}
-                  />
+                            {/* Property Type Selection */}
 
-                </div>
+                            <div
+                                className="
+                                    grid
+                                    grid-cols-1
+                                    gap-3
+                                    p-4
+                                    sm:grid-cols-2
+                                    sm:gap-4
+                                    sm:p-6
+                                "
+                            >
+                                {/* Residential */}
 
-                <div>
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleResidentialBooking
+                                    }
+                                    className="
+                                        flex
+                                        min-h-32
+                                        flex-col
+                                        items-center
+                                        justify-center
+                                        gap-3
+                                        rounded-2xl
+                                        border
+                                        border-green-200
+                                        bg-green-50
+                                        p-4
+                                        text-center
+                                        transition
+                                        hover:-translate-y-1
+                                        hover:border-green-300
+                                        hover:bg-green-100
+                                        hover:shadow-md
+                                        sm:min-h-40
+                                        sm:gap-4
+                                        sm:p-6
+                                    "
+                                >
+                                    <div
+                                        className="
+                                            rounded-2xl
+                                            bg-white
+                                            p-3
+                                            text-green-600
+                                            shadow-sm
+                                            sm:p-4
+                                        "
+                                    >
+                                        <Home size={34} />
+                                    </div>
 
-                  <p className="font-bold text-gray-800">
-                    Residential
-                  </p>
+                                    <div>
+                                        <p className="font-bold text-gray-800">
+                                            Residential
+                                        </p>
 
-                  <p className="mt-1 text-xs text-gray-500">
-                    Select an available residential unit
-                  </p>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Select an available
+                                            residential unit
+                                        </p>
+                                    </div>
+                                </button>
 
-                </div>
+                                {/* Commercial */}
 
-              </button>
+                                <button
+                                    type="button"
+                                    onClick={
+                                        handleCommercialBooking
+                                    }
+                                    className="
+                                        flex
+                                        min-h-32
+                                        flex-col
+                                        items-center
+                                        justify-center
+                                        gap-3
+                                        rounded-2xl
+                                        border
+                                        border-orange-200
+                                        bg-orange-50
+                                        p-4
+                                        text-center
+                                        transition
+                                        hover:-translate-y-1
+                                        hover:border-orange-300
+                                        hover:bg-orange-100
+                                        hover:shadow-md
+                                        sm:min-h-40
+                                        sm:gap-4
+                                        sm:p-6
+                                    "
+                                >
+                                    <div
+                                        className="
+                                            rounded-2xl
+                                            bg-white
+                                            p-3
+                                            text-orange-600
+                                            shadow-sm
+                                            sm:p-4
+                                        "
+                                    >
+                                        <Store size={34} />
+                                    </div>
 
-              {/* Commercial */}
+                                    <div>
+                                        <p className="font-bold text-gray-800">
+                                            Commercial
+                                        </p>
 
-              <button
-                type="button"
-                onClick={
-                  handleCommercialBooking
-                }
-                className="
-                  flex
-                  min-h-40
-                  flex-col
-                  items-center
-                  justify-center
-                  gap-4
-                  rounded-2xl
-                  border
-                  border-orange-200
-                  bg-orange-50
-                  p-6
-                  text-center
-                  transition
-                  hover:-translate-y-1
-                  hover:border-orange-300
-                  hover:bg-orange-100
-                  hover:shadow-md
-                "
-              >
-
-                <div className="rounded-2xl bg-white p-4 text-orange-600 shadow-sm">
-
-                  <Store
-                    size={34}
-                  />
-
-                </div>
-
-                <div>
-
-                  <p className="font-bold text-gray-800">
-                    Commercial
-                  </p>
-
-                  <p className="mt-1 text-xs text-gray-500">
-                    Select an available commercial unit
-                  </p>
-
-                </div>
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-    </>
-  );
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            Select an available
+                                            commercial unit
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+        </>
+    );
 }
 
 export default QuickActions;
