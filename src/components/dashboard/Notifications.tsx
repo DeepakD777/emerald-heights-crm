@@ -45,6 +45,7 @@ function Notifications() {
                 className="
                     rounded-2xl
                     bg-white
+                    dark:bg-gray-900
                     p-6
                     shadow-sm
                 "
@@ -65,6 +66,7 @@ function Notifications() {
                                 text-3xl
                                 font-bold
                                 text-gray-800
+                                dark:text-gray-100
                             "
                         >
                             Notifications
@@ -74,6 +76,7 @@ function Notifications() {
                             className="
                                 mt-1
                                 text-gray-500
+                                dark:text-gray-400
                             "
                         >
                             Important pending actions and document alerts
@@ -90,12 +93,13 @@ function Notifications() {
                             justify-center
                             rounded-full
                             bg-green-100
+                            dark:bg-green-950/60
                         "
                     >
 
                         <Bell
                             size={24}
-                            className="text-green-700"
+                            className="text-green-700 dark:text-green-300"
                         />
 
                     </div>
@@ -112,6 +116,7 @@ function Notifications() {
                 className="
                     rounded-2xl
                     bg-white
+                    dark:bg-gray-900
                     p-6
                     shadow-sm
                 "
@@ -133,6 +138,7 @@ function Notifications() {
                                 text-xl
                                 font-bold
                                 text-gray-800
+                                dark:text-gray-100
                             "
                         >
                             Pending Agreement to Sell
@@ -143,6 +149,7 @@ function Notifications() {
                                 mt-1
                                 text-sm
                                 text-gray-500
+                                dark:text-gray-400
                             "
                         >
                             Agreements that have not yet been marked as given to the customer.
@@ -154,11 +161,13 @@ function Notifications() {
                         className="
                             rounded-full
                             bg-red-100
+                            dark:bg-red-950/60
                             px-3
                             py-1
                             text-sm
                             font-semibold
                             text-red-700
+                            dark:text-red-300
                         "
                     >
                         {pendingAgreementBookings.length} Pending
@@ -178,6 +187,8 @@ function Notifications() {
                             border
                             border-green-200
                             bg-green-50
+                            dark:border-green-900
+                            dark:bg-green-950/40
                             px-6
                             py-10
                             text-center
@@ -195,12 +206,13 @@ function Notifications() {
                                 justify-center
                                 rounded-full
                                 bg-green-100
+                                dark:bg-green-950/60
                             "
                         >
 
                             <Bell
                                 size={24}
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                             />
 
                         </div>
@@ -209,6 +221,7 @@ function Notifications() {
                             className="
                                 font-semibold
                                 text-green-800
+                                dark:text-green-300
                             "
                         >
                             All caught up
@@ -219,6 +232,7 @@ function Notifications() {
                                 mt-1
                                 text-sm
                                 text-green-700
+                                dark:text-green-400
                             "
                         >
                             There are no pending Agreement to Sell documents.
@@ -238,6 +252,7 @@ function Notifications() {
                             rounded-xl
                             border
                             border-gray-200
+                            dark:border-gray-700
                         "
                     >
 
@@ -249,12 +264,16 @@ function Notifications() {
                                 grid-cols-6
                                 gap-4
                                 border-b
+                                border-gray-200
                                 bg-gray-50
+                                dark:border-gray-700
+                                dark:bg-gray-950/70
                                 px-5
                                 py-3
                                 text-sm
                                 font-semibold
                                 text-gray-600
+                                dark:text-gray-300
                                 md:grid
                             "
                         >
@@ -305,8 +324,11 @@ function Notifications() {
                                             grid-cols-1
                                             gap-4
                                             border-b
+                                            border-gray-200
+                                            dark:border-gray-800
                                             p-5
                                             last:border-b-0
+                                            dark:hover:bg-gray-800/40
                                             md:grid-cols-6
                                             md:items-center
                                         "
@@ -320,6 +342,7 @@ function Notifications() {
                                                 className="
                                                     text-xs
                                                     text-gray-500
+                                                    dark:text-gray-400
                                                     md:hidden
                                                 "
                                             >
@@ -330,6 +353,7 @@ function Notifications() {
                                                 className="
                                                     font-semibold
                                                     text-gray-800
+                                                    dark:text-gray-100
                                                 "
                                             >
                                                 {booking.customerName}
@@ -345,6 +369,7 @@ function Notifications() {
                                                 className="
                                                     text-xs
                                                     text-gray-500
+                                                    dark:text-gray-400
                                                     md:hidden
                                                 "
                                             >
@@ -356,11 +381,13 @@ function Notifications() {
                                                     inline-block
                                                     rounded-md
                                                     bg-green-100
+                                                    dark:bg-green-950/60
                                                     px-2
                                                     py-1
                                                     text-sm
                                                     font-medium
                                                     text-green-700
+                                                    dark:text-green-300
                                                 "
                                             >
                                                 {booking.flatNumber}
@@ -376,6 +403,7 @@ function Notifications() {
                                                 className="
                                                     text-xs
                                                     text-gray-500
+                                                    dark:text-gray-400
                                                     md:hidden
                                                 "
                                             >
@@ -386,6 +414,7 @@ function Notifications() {
                                                 className="
                                                     text-sm
                                                     text-gray-700
+                                                    dark:text-gray-300
                                                 "
                                             >
                                                 {booking.mobile || "-"}
@@ -401,6 +430,7 @@ function Notifications() {
                                                 className="
                                                     text-xs
                                                     text-gray-500
+                                                    dark:text-gray-400
                                                     md:hidden
                                                 "
                                             >
@@ -411,6 +441,7 @@ function Notifications() {
                                                 className="
                                                     font-semibold
                                                     text-green-700
+                                                    dark:text-green-300
                                                 "
                                             >
                                                 ₹{" "}
@@ -427,6 +458,7 @@ function Notifications() {
                                                 className="
                                                     text-xs
                                                     text-gray-500
+                                                    dark:text-gray-400
                                                     md:hidden
                                                 "
                                             >
@@ -440,12 +472,14 @@ function Notifications() {
                                                     gap-1
                                                     rounded-full
                                                     bg-yellow-100
+                                                    dark:bg-yellow-950/60
                                                     px-3
                                                     py-1
                                                     text-xs
                                                     font-semibold
                                                     capitalize
                                                     text-yellow-700
+                                                    dark:text-yellow-300
                                                 "
                                             >
 

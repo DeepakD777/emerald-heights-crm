@@ -77,6 +77,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
                 text-indigo-700
                 hover:bg-indigo-100
                 hover:border-indigo-600
+                dark:bg-indigo-950/60
+                dark:border-indigo-700
+                dark:text-indigo-300
+                dark:hover:bg-indigo-900/70
+                dark:hover:border-indigo-600
             `;
         }
 
@@ -87,6 +92,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
                 text-rose-700
                 hover:bg-rose-100
                 hover:border-rose-600
+                dark:bg-rose-950/60
+                dark:border-rose-700
+                dark:text-rose-300
+                dark:hover:bg-rose-900/70
+                dark:hover:border-rose-600
             `;
         }
 
@@ -97,6 +107,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
                 text-orange-700
                 hover:bg-orange-100
                 hover:border-orange-600
+                dark:bg-orange-950/60
+                dark:border-orange-700
+                dark:text-orange-300
+                dark:hover:bg-orange-900/70
+                dark:hover:border-orange-600
             `;
         }
 
@@ -107,6 +122,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
                 text-slate-700
                 hover:bg-slate-200
                 hover:border-slate-600
+                dark:bg-slate-800
+                dark:border-slate-600
+                dark:text-slate-200
+                dark:hover:bg-slate-700
+                dark:hover:border-slate-500
             `;
         }
 
@@ -116,6 +136,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
             text-teal-700
             hover:bg-teal-100
             hover:border-teal-600
+            dark:bg-teal-950/60
+            dark:border-teal-700
+            dark:text-teal-300
+            dark:hover:bg-teal-900/70
+            dark:hover:border-teal-600
         `;
     }
 
@@ -130,6 +155,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
             text-purple-700
             hover:bg-purple-100
             hover:border-purple-600
+            dark:bg-purple-950/60
+            dark:border-purple-700
+            dark:text-purple-300
+            dark:hover:bg-purple-900/70
+            dark:hover:border-purple-600
         `;
     }
 
@@ -140,6 +170,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
             text-red-700
             hover:bg-red-100
             hover:border-red-500
+            dark:bg-red-950/60
+            dark:border-red-700
+            dark:text-red-300
+            dark:hover:bg-red-900/70
+            dark:hover:border-red-600
         `;
     }
 
@@ -150,6 +185,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
             text-yellow-700
             hover:bg-yellow-100
             hover:border-yellow-500
+            dark:bg-yellow-950/60
+            dark:border-yellow-700
+            dark:text-yellow-300
+            dark:hover:bg-yellow-900/70
+            dark:hover:border-yellow-600
         `;
     }
 
@@ -159,6 +199,10 @@ const getShopColor = (status: string, section: CommercialSection) => {
             border-gray-500
             text-gray-700
             hover:bg-gray-200
+            dark:bg-gray-800
+            dark:border-gray-600
+            dark:text-gray-200
+            dark:hover:bg-gray-700
         `;
     }
 
@@ -168,6 +212,11 @@ const getShopColor = (status: string, section: CommercialSection) => {
         text-green-700
         hover:bg-green-100
         hover:border-green-500
+        dark:bg-green-950/60
+        dark:border-green-700
+        dark:text-green-300
+        dark:hover:bg-green-900/70
+        dark:hover:border-green-600
     `;
 };
 const getStatusText = (status: string) => {
@@ -660,6 +709,7 @@ sm:py-3
                                         text-gray-700
                                         hover:border-green-500
                                         hover:bg-green-50
+                                        dark:hover:bg-green-950/60
                                       `
                             }
                         `}
@@ -698,6 +748,7 @@ sm:py-3
             text-gray-700
             hover:border-teal-500
             hover:bg-teal-50
+            dark:hover:bg-teal-950/60
       `
                             }
                         `}
@@ -723,26 +774,26 @@ sm:py-3
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-green-50 p-4 sm:p-5">
-                    <p className="text-sm text-green-700">Available</p>
+                <div className="rounded-2xl bg-green-50 p-4 dark:bg-green-950/60 sm:p-5">
+                    <p className="text-sm text-green-700 dark:text-green-300">Available</p>
 
-                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-green-700">
+                    <p className="mt-1 text-2xl font-bold text-green-700 dark:text-green-300 sm:text-3xl">
                         {sectionAvailable}
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-red-50 p-4 sm:p-5">
-                    <p className="text-sm text-red-700">Booked</p>
+                <div className="rounded-2xl bg-red-50 p-4 dark:bg-red-950/60 sm:p-5">
+                    <p className="text-sm text-red-700 dark:text-red-300">Booked</p>
 
-                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-red-700">
+                    <p className="mt-1 text-2xl font-bold text-red-700 dark:text-red-300 sm:text-3xl">
                         {sectionBooked}
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-yellow-50 p-4 sm:p-5">
-                    <p className="text-sm text-yellow-700">Hold</p>
+                <div className="rounded-2xl bg-yellow-50 p-4 dark:bg-yellow-950/60 sm:p-5">
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">Hold</p>
 
-                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-yellow-700">
+                    <p className="mt-1 text-2xl font-bold text-yellow-700 dark:text-yellow-300 sm:text-3xl">
                         {sectionHold}
                     </p>
                 </div>
@@ -755,10 +806,10 @@ sm:py-3
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-purple-50 p-4 sm:p-5">
-                    <p className="text-sm text-purple-700">Fine Dine</p>
+                <div className="rounded-2xl bg-purple-50 p-4 dark:bg-purple-950/60 sm:p-5">
+                    <p className="text-sm text-purple-700 dark:text-purple-300">Fine Dine</p>
 
-                    <p className="mt-1 text-2xl sm:text-3xl font-bold text-purple-700">
+                    <p className="mt-1 text-2xl font-bold text-purple-700 dark:text-purple-300 sm:text-3xl">
                         {sectionFineDine}
                     </p>
                 </div>
@@ -856,7 +907,7 @@ sm:px-5
                             Search Shop
                         </label>
 
-                        <div className="flex items-center rounded-lg border border-gray-300 px-3 py-2.5 focus-within:border-green-500">
+                        <div className="flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2.5 focus-within:border-green-500 dark:border-gray-700 dark:bg-gray-950">
                             <Search size={18} className="text-gray-400" />
 
                             <input
@@ -864,7 +915,7 @@ sm:px-5
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
                                 placeholder="Search shop number..."
-                                className="ml-2 min-w-0 flex-1 bg-transparent text-sm outline-none"
+                                className="ml-2 min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-100"
                             />
                         </div>
                     </div>
@@ -879,7 +930,7 @@ sm:px-5
                             onChange={(event) =>
                                 setSelectedStatus(event.target.value as Status)
                             }
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
                         >
                             <option value="all">All Status</option>
 
@@ -898,7 +949,7 @@ sm:px-5
                     <button
                         type="button"
                         onClick={resetFilters}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 md:w-auto"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-800 md:w-auto"
                     >
                         <RotateCcw size={16} />
                         Reset
@@ -924,6 +975,8 @@ lg:p-6
                         ? `
                     border-teal-200
                     bg-teal-50/40
+                    dark:border-teal-900
+                    dark:bg-teal-950/20
                   `
                         : `
                     border-transparent
@@ -1030,6 +1083,7 @@ lg:p-6
                                         focus:ring-2
                                         focus:ring-green-400
                                         focus:ring-offset-2
+                                        dark:focus:ring-offset-gray-950
 ${getShopColor(status, selectedSection)}
                                     `}
                                                 >
@@ -1066,7 +1120,7 @@ ${getShopColor(status, selectedSection)}
 
                 {/* Legend */}
 
-                <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t pt-4 text-xs sm:mt-6 sm:gap-6 sm:pt-5 sm:text-sm">
+                <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-gray-200 pt-4 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300 sm:mt-6 sm:gap-6 sm:pt-5 sm:text-sm">
                     <div className="flex items-center gap-2">
                         <div
                             className={`h-4 w-4 rounded ${selectedSection === "Commercial 1" ? "bg-teal-500" : "bg-green-500"

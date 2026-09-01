@@ -46,7 +46,7 @@ function DocumentStatusBadge({
 }) {
   if (status === "given") {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
         Given
       </span>
     );
@@ -54,7 +54,7 @@ function DocumentStatusBadge({
 
   if (status === "completed") {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
         Completed
       </span>
     );
@@ -62,7 +62,7 @@ function DocumentStatusBadge({
 
   if (status === "not-required") {
     return (
-      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
         Not Required
       </span>
     );
@@ -70,7 +70,7 @@ function DocumentStatusBadge({
 
   if (status === "generated") {
     return (
-      <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+      <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
         Generated
       </span>
     );
@@ -78,14 +78,14 @@ function DocumentStatusBadge({
 
   if (status === "uploaded") {
     return (
-      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
         Uploaded
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+    <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300">
       Pending
     </span>
   );
@@ -342,14 +342,14 @@ function Customers() {
                 Header
             ================================================== */}
 
-      <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
+      <div className="min-w-0 rounded-2xl bg-white p-4 shadow dark:bg-gray-900 sm:p-5 lg:p-6">
         <div className="flex min-w-0 flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800 sm:text-2xl lg:text-3xl">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 sm:text-2xl lg:text-3xl">
               Customers
             </h1>
 
-            <p className="mt-1 text-sm text-gray-500 sm:text-base">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 sm:text-base">
               Manage customers linked with bookings
             </p>
           </div>
@@ -361,7 +361,7 @@ function Customers() {
             placeholder="Search Customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-green-500 sm:px-4 md:w-72"
+            className="w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 sm:px-4 md:w-72"
           />
         </div>
       </div>
@@ -373,30 +373,30 @@ function Customers() {
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
         {/* Total Customers */}
 
-        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow">
-          <p className="text-sm text-gray-500">Total Customers</p>
+        <div className="rounded-2xl bg-white p-4 shadow dark:bg-gray-900 sm:p-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Customers</p>
 
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-gray-800">
+          <p className="mt-2 text-2xl font-bold text-gray-800 dark:text-gray-100 sm:text-3xl">
             {customers.length}
           </p>
         </div>
 
         {/* Total Bookings */}
 
-        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow">
-          <p className="text-sm text-gray-500">Total Bookings</p>
+        <div className="rounded-2xl bg-white p-4 shadow dark:bg-gray-900 sm:p-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
 
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-green-600">
+          <p className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400 sm:text-3xl">
             {bookings.length}
           </p>
         </div>
 
         {/* Total Amount */}
 
-        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow">
-          <p className="text-sm text-gray-500">Total Booking Amount</p>
+        <div className="rounded-2xl bg-white p-4 shadow dark:bg-gray-900 sm:p-5">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Booking Amount</p>
 
-          <p className="mt-2 text-2xl sm:text-3xl font-bold text-blue-600">
+          <p className="mt-2 text-2xl font-bold text-blue-600 dark:text-blue-400 sm:text-3xl">
             ₹{" "}
             {formatAmount(
               bookings.reduce(
@@ -413,48 +413,48 @@ function Customers() {
                 Customer Table
             ================================================== */}
 
-      <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
+      <div className="min-w-0 rounded-2xl bg-white p-4 shadow dark:bg-gray-900 sm:p-5 lg:p-6">
         <div className="mb-4 flex items-center justify-between sm:mb-5">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 sm:text-xl">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 sm:text-xl">
               Customer List
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {filteredCustomers.length} customers
             </p>
           </div>
         </div>
 
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-          <table className="w-full min-w-[1250px] border-collapse text-sm">
+          <table className="w-full min-w-[1250px] border-collapse text-sm text-gray-700 dark:text-gray-200">
             <thead className="[&_th]:whitespace-nowrap">
-              <tr className="bg-gray-100">
-                <th className="border p-3 text-left">Customer</th>
+              <tr className="bg-gray-100 dark:bg-gray-800">
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Customer</th>
 
-                <th className="border p-3 text-left">Mobile</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Mobile</th>
 
-                <th className="border p-3 text-left">Email</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Email</th>
 
-                <th className="border p-3 text-left">Properties</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Properties</th>
 
-                <th className="border p-3 text-left">Bookings</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Bookings</th>
 
-                <th className="border p-3 text-left">Total Amount</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Total Amount</th>
 
-                <th className="border p-3 text-left">Last Booking</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Last Booking</th>
 
                 {/* ==================================================
                                     NEW - Agreement To Sell
                                 ================================================== */}
 
-                <th className="border p-3 text-left">Agreement to Sell</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Agreement to Sell</th>
 
                 {/* ==================================================
                                     NEW - Tripartite Agreement
                                 ================================================== */}
 
-                <th className="border p-3 text-left">Tripartite Agreement</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Tripartite Agreement</th>
               </tr>
             </thead>
 
@@ -463,7 +463,7 @@ function Customers() {
                 <tr>
                   <td
                     colSpan={9}
-                    className="p-6 text-center text-sm text-gray-500 sm:p-8 lg:p-10"
+                    className="p-6 text-center text-sm text-gray-500 dark:text-gray-400 sm:p-8 lg:p-10"
                   >
                     No Customers Found
                   </td>
@@ -473,32 +473,32 @@ function Customers() {
                   <tr
                     key={`${customer.customerName}-${customer.mobile}-${customer.email}`}
                     onClick={() => handleCustomerClick(customer)}
-                    className="cursor-pointer hover:bg-green-50"
+                    className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-950/30"
                   >
                     {/* Customer */}
 
-                    <td className="border p-3 font-semibold text-gray-800">
+                    <td className="border border-gray-200 p-3 font-semibold text-gray-800 dark:border-gray-700 dark:text-gray-100">
                       {customer.customerName}
                     </td>
 
                     {/* Mobile */}
 
-                    <td className="whitespace-nowrap border p-3">
+                    <td className="whitespace-nowrap border border-gray-200 p-3 dark:border-gray-700">
                       {customer.mobile || "-"}
                     </td>
 
                     {/* Email */}
 
-                    <td className="border p-3">{customer.email || "-"}</td>
+                    <td className="border border-gray-200 p-3 dark:border-gray-700">{customer.email || "-"}</td>
 
                     {/* Properties */}
 
-                    <td className="border p-3">
+                    <td className="border border-gray-200 p-3 dark:border-gray-700">
                       <div className="flex flex-wrap gap-2">
                         {customer.properties.map((property) => (
                           <span
                             key={property}
-                            className="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700"
+                            className="rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-950/60 dark:text-green-300"
                           >
                             {property}
                           </span>
@@ -508,21 +508,21 @@ function Customers() {
 
                     {/* Booking Count */}
 
-                    <td className="border p-3">
-                      <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+                    <td className="border border-gray-200 p-3 dark:border-gray-700">
+                      <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                         {customer.bookingCount}
                       </span>
                     </td>
 
                     {/* Amount */}
 
-                    <td className="whitespace-nowrap border p-3 font-semibold">
+                    <td className="whitespace-nowrap border border-gray-200 p-3 font-semibold text-gray-800 dark:border-gray-700 dark:text-gray-100">
                       ₹ {formatAmount(customer.totalAmount)}
                     </td>
 
                     {/* Booking Date */}
 
-                    <td className="whitespace-nowrap border p-3">
+                    <td className="whitespace-nowrap border border-gray-200 p-3 dark:border-gray-700">
                       {customer.latestBookingDate || "-"}
                     </td>
 
@@ -530,7 +530,7 @@ function Customers() {
                                                 Agreement To Sell
                                             ================================================== */}
 
-                    <td className="border p-3">
+                    <td className="border border-gray-200 p-3 dark:border-gray-700">
                       <DocumentStatusBadge
                         status={customer.agreementToSellStatus}
                       />
@@ -540,7 +540,7 @@ function Customers() {
                                                 Tripartite Agreement
                                             ================================================== */}
 
-                    <td className="border p-3">
+                    <td className="border border-gray-200 p-3 dark:border-gray-700">
                       <DocumentStatusBadge
                         status={customer.tripartiteAgreementStatus}
                       />

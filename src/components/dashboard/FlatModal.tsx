@@ -145,24 +145,32 @@ function FlatModal({
                 return `
                     bg-red-100
                     text-red-700
+                    dark:bg-red-950/60
+                    dark:text-red-300
                 `;
 
             case "hold":
                 return `
                     bg-yellow-100
                     text-yellow-700
+                    dark:bg-yellow-950/60
+                    dark:text-yellow-300
                 `;
 
             case "sold":
                 return `
                     bg-gray-200
                     text-gray-700
+                    dark:bg-gray-700
+                    dark:text-gray-200
                 `;
 
             default:
                 return `
                     bg-green-100
                     text-green-700
+                    dark:bg-green-950/60
+                    dark:text-green-300
                 `;
         }
     };
@@ -229,19 +237,19 @@ function FlatModal({
                 title={`🏠 Flat ${flat.number}`}
             >
 
-                <div className="space-y-6">
+                <div className="space-y-6 text-gray-900 dark:text-gray-100">
 
                     {/* Header */}
 
-                    <div className="flex items-center justify-between border-b pb-3">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
 
                         <div>
 
-                            <h3 className="text-lg font-semibold">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 Flat Information
                             </h3>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Residential Property
                             </p>
 
@@ -250,7 +258,7 @@ function FlatModal({
                         {isAdmin &&
                             isEditing && (
 
-                                <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+                                <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                                     Editing
                                 </span>
 
@@ -264,82 +272,82 @@ function FlatModal({
 
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Flat Number
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.number}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Block
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.block || "-"}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Tower / Project
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.tower || "-"}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Floor
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 Floor {flat.floor}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Facing
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.facing || "-"}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Kitchen
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.kitchen || "-"}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Area
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.area || "Area not set"}
                             </p>
                         </div>
 
-                        <div className="rounded-lg bg-gray-50 p-4">
-                            <p className="text-sm text-gray-500">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Type
                             </p>
 
-                            <p className="mt-1 text-lg font-semibold">
+                            <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 {flat.type}
                             </p>
                         </div>
@@ -350,7 +358,7 @@ function FlatModal({
 
                     <div>
 
-                        <p className="mb-2 text-sm text-gray-500">
+                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                             Status
                         </p>
 
@@ -390,10 +398,16 @@ function FlatModal({
                                     w-full
                                     rounded-lg
                                     border
+                                    border-gray-300
+                                    bg-white
                                     px-3
                                     py-2
+                                    text-gray-900
                                     outline-none
                                     focus:border-blue-500
+                                    dark:border-gray-700
+                                    dark:bg-gray-950
+                                    dark:text-gray-100
                                 "
                             >
 
@@ -421,7 +435,7 @@ function FlatModal({
 
                     {/* Actions */}
 
-                    <div className="border-t pt-4">
+                    <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
 
                         {isAdmin ? (
 
@@ -479,7 +493,7 @@ function FlatModal({
                                         {currentStatus ===
                                             "booked" && (
 
-                                                <span className="rounded-lg bg-red-100 px-5 py-2 font-medium text-red-700">
+                                                <span className="rounded-lg bg-red-100 px-5 py-2 font-medium text-red-700 dark:bg-red-950/60 dark:text-red-300">
                                                     Already Booked
                                                 </span>
 
@@ -488,7 +502,7 @@ function FlatModal({
                                         {currentStatus ===
                                             "hold" && (
 
-                                                <span className="rounded-lg bg-yellow-100 px-5 py-2 font-medium text-yellow-700">
+                                                <span className="rounded-lg bg-yellow-100 px-5 py-2 font-medium text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300">
                                                     Flat On Hold
                                                 </span>
 
@@ -497,7 +511,7 @@ function FlatModal({
                                         {currentStatus ===
                                             "sold" && (
 
-                                                <span className="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700">
+                                                <span className="rounded-lg bg-gray-200 px-5 py-2 font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
                                                     Flat Sold
                                                 </span>
 
@@ -566,10 +580,13 @@ function FlatModal({
                                     border
                                     border-gray-200
                                     bg-gray-50
+                                    dark:border-gray-700
+                                    dark:bg-gray-950/60
                                     px-4
                                     py-3
                                     text-sm
                                     text-gray-600
+                                    dark:text-gray-300
                                 "
                             >
                                 View only access — property changes can only be made by an administrator.

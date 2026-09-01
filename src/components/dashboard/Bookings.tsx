@@ -34,7 +34,7 @@ function DocumentStatusBadge({
 }) {
   if (status === "given") {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
         Given
       </span>
     );
@@ -42,7 +42,7 @@ function DocumentStatusBadge({
 
   if (status === "completed") {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
         Completed
       </span>
     );
@@ -50,7 +50,7 @@ function DocumentStatusBadge({
 
   if (status === "not-required") {
     return (
-      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+      <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
         Not Required
       </span>
     );
@@ -58,7 +58,7 @@ function DocumentStatusBadge({
 
   if (status === "generated") {
     return (
-      <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+      <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
         Generated
       </span>
     );
@@ -66,14 +66,14 @@ function DocumentStatusBadge({
 
   if (status === "uploaded") {
     return (
-      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
         Uploaded
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+    <span className="inline-flex rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300">
       Pending
     </span>
   );
@@ -86,14 +86,14 @@ function DocumentStatusBadge({
 function RemainingModeBadge({ mode }: { mode?: "AUTO" | "MANUAL" }) {
   if (mode === "MANUAL") {
     return (
-      <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700">
+      <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-950/60 dark:text-orange-300">
         Manual
       </span>
     );
   }
 
   return (
-    <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
+    <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
       Auto
     </span>
   );
@@ -106,7 +106,7 @@ function RemainingModeBadge({ mode }: { mode?: "AUTO" | "MANUAL" }) {
 function FinanceTypeBadge({ type }: { type?: "FINANCE" | "CASH" | null }) {
   if (type === "FINANCE") {
     return (
-      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+      <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
         Finance
       </span>
     );
@@ -114,13 +114,13 @@ function FinanceTypeBadge({ type }: { type?: "FINANCE" | "CASH" | null }) {
 
   if (type === "CASH") {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+      <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
         Cash
       </span>
     );
   }
 
-  return <span className="text-sm text-gray-400">-</span>;
+  return <span className="text-sm text-gray-400 dark:text-gray-500">-</span>;
 }
 
 // ======================================================
@@ -556,8 +556,8 @@ function Bookings() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl bg-white p-6 shadow sm:p-8 lg:p-10">
-        <div className="text-center text-gray-500">Loading bookings...</div>
+      <div className="rounded-2xl bg-white p-6 shadow dark:bg-gray-900 sm:p-8 lg:p-10">
+        <div className="text-center text-gray-500 dark:text-gray-400">Loading bookings...</div>
       </div>
     );
   }
@@ -584,6 +584,7 @@ function Bookings() {
           min-w-0
           rounded-2xl
           bg-white
+          dark:bg-gray-900
           p-4
           shadow
           sm:p-5
@@ -596,16 +597,16 @@ function Bookings() {
 
         <div className="mb-4 flex min-w-0 flex-col gap-3 sm:mb-5 sm:gap-4 lg:mb-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 sm:text-2xl lg:text-3xl">
               Bookings
             </h1>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Manage residential and commercial booking records.
             </p>
 
             {!isAdmin && (
-              <p className="mt-1 text-sm font-medium text-amber-600">
+              <p className="mt-1 text-sm font-medium text-amber-600 dark:text-amber-400">
                 View only access
               </p>
             )}
@@ -622,14 +623,22 @@ function Bookings() {
     rounded-xl
     border
     border-gray-300
+    bg-white
     px-3
     py-2.5
     text-sm
+    text-gray-900
     outline-none
     transition
+    placeholder:text-gray-400
     focus:border-green-600
     focus:ring-2
     focus:ring-green-100
+    dark:border-gray-700
+    dark:bg-gray-950
+    dark:text-gray-100
+    dark:placeholder:text-gray-500
+    dark:focus:ring-green-900/50
     sm:px-4
     lg:w-[380px]
 "
@@ -649,6 +658,7 @@ function Bookings() {
     gap-1.5
     rounded-2xl
     bg-gray-100
+    dark:bg-gray-800
     p-1.5
     sm:mb-6
     sm:inline-grid
@@ -676,8 +686,8 @@ sm:text-sm
                             transition
                             ${
                               activeSection === "RESIDENTIAL"
-                                ? "bg-white text-green-700 shadow-sm"
-                                : "text-gray-500 hover:text-gray-800"
+                                ? "bg-white text-green-700 shadow-sm dark:bg-gray-900 dark:text-green-300"
+                                : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                             }
                         `}
           >
@@ -691,8 +701,8 @@ sm:text-sm
                                 text-xs
                                 ${
                                   activeSection === "RESIDENTIAL"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-200 text-gray-600"
+                                    ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
+                                    : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 }
                             `}
             >
@@ -720,8 +730,8 @@ sm:text-sm
                             transition
                             ${
                               activeSection === "COMMERCIAL"
-                                ? "bg-white text-green-700 shadow-sm"
-                                : "text-gray-500 hover:text-gray-800"
+                                ? "bg-white text-green-700 shadow-sm dark:bg-gray-900 dark:text-green-300"
+                                : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                             }
                         `}
           >
@@ -735,8 +745,8 @@ sm:text-sm
                                 text-xs
                                 ${
                                   activeSection === "COMMERCIAL"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-gray-200 text-gray-600"
+                                    ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
+                                    : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 }
                             `}
             >
@@ -750,7 +760,7 @@ sm:text-sm
                 ====================================== */}
 
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
             {error}
           </div>
         )}
@@ -771,32 +781,32 @@ sm:text-sm
             [&::-webkit-scrollbar]:hidden
           "
         >
-          <table className="w-full min-w-[1700px] border-collapse text-sm">
+          <table className="w-full min-w-[1700px] border-collapse text-sm text-gray-700 dark:text-gray-200">
             <thead className="[&_th]:whitespace-nowrap">
-              <tr className="bg-gray-100">
-                <th className="border p-3 text-left">{unitLabel}</th>
-                <th className="border p-3 text-left">Floor</th>
+              <tr className="bg-gray-100 dark:bg-gray-800">
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">{unitLabel}</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Floor</th>
 
-                <th className="border p-3 text-left">Customer</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Customer</th>
 
-                <th className="border p-3 text-left">Mobile</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Mobile</th>
 
-                <th className="border p-3 text-left">Booking Amount</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Booking Amount</th>
 
-                <th className="border p-3 text-left">Remaining Amount</th>
-                <th className="border p-3 text-left">Current Installment</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Remaining Amount</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Current Installment</th>
 
-                <th className="border p-3 text-left">Calculation</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Calculation</th>
 
-                <th className="border p-3 text-left">Finance Type</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Finance Type</th>
 
-                <th className="border p-3 text-left">Booking Date</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Booking Date</th>
 
-                <th className="border p-3 text-left">Agreement to Sell</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Agreement to Sell</th>
 
-                <th className="border p-3 text-left">Tripartite Agreement</th>
+                <th className="border border-gray-200 p-3 text-left dark:border-gray-700">Tripartite Agreement</th>
 
-                <th className="border p-3 text-center">Actions</th>
+                <th className="border border-gray-200 p-3 text-center dark:border-gray-700">Actions</th>
               </tr>
             </thead>
 
@@ -805,7 +815,7 @@ sm:text-sm
                 <tr>
                   <td
                     colSpan={13}
-                    className="p-6 text-center text-sm text-gray-500 sm:p-8 lg:p-10"
+                    className="p-6 text-center text-sm text-gray-500 dark:text-gray-400 sm:p-8 lg:p-10"
                   >
                     {emptyLabel}
                   </td>
@@ -826,43 +836,43 @@ sm:text-sm
                     booking.installmentSummary?.currentInstallment ?? null;
 
                   return (
-                    <tr key={booking.id} className="hover:bg-gray-50">
-                      <td className="border p-3 font-semibold text-gray-800">
+                    <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60">
+                      <td className="border border-gray-200 p-3 font-semibold text-gray-800 dark:border-gray-700 dark:text-gray-100">
                         {booking.flatNumber || "-"}
                       </td>
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         {booking.floor === 0
                           ? "Ground Floor"
                           : `Floor ${booking.floor ?? "-"}`}
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <div className="font-medium">
                           {booking.customerName || "-"}
                         </div>
 
-                        <div className="mt-1 text-xs text-gray-500">
+                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                           {booking.floor === 0
                             ? "Ground Floor"
                             : `Floor: ${booking.floor ?? "-"}`}
                         </div>
                       </td>
 
-                      <td className="border p-3">{booking.mobile || "-"}</td>
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">{booking.mobile || "-"}</td>
 
-                      <td className="border p-3 font-semibold">
+                      <td className="border border-gray-200 p-3 font-semibold dark:border-gray-700 dark:text-gray-100">
                         {formatAmount(booking.bookingAmount)}
                       </td>
 
-                      <td className="border p-3 font-semibold">
+                      <td className="border border-gray-200 p-3 font-semibold dark:border-gray-700 dark:text-gray-100">
                         {booking.remainingAmount
                           ? formatAmount(booking.remainingAmount)
                           : "-"}
                       </td>
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         {currentInstallment ? (
                           <div className="min-w-[180px]">
-                            <div className="font-semibold text-gray-800">
+                            <div className="font-semibold text-gray-800 dark:text-gray-100">
                               {getInstallmentDisplayName(
                                 currentInstallment.sequence,
                               )}
@@ -879,17 +889,17 @@ sm:text-sm
                                 font-semibold
                                 ${
                                   currentInstallment.status === "PAID"
-                                    ? "bg-green-100 text-green-700"
+                                    ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
                                     : currentInstallment.status === "PARTIAL"
-                                      ? "bg-amber-100 text-amber-700"
-                                      : "bg-gray-100 text-gray-600"
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+                                      : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300"
                                 }
                             `}
                               >
                                 {currentInstallment.status}
                               </span>
 
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {formatAmount(currentInstallment.paidAmount)}
                                 {" / "}
                                 {formatAmount(currentInstallment.plannedAmount)}
@@ -897,35 +907,35 @@ sm:text-sm
                             </div>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-gray-400 dark:text-gray-500">
                             No Payment
                           </span>
                         )}
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <RemainingModeBadge
                           mode={booking.remainingAmountMode}
                         />
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <FinanceTypeBadge type={booking.financeType} />
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         {booking.bookingDate || "-"}
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <DocumentStatusBadge status={agreementStatus as any} />
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <DocumentStatusBadge status={tripartiteStatus as any} />
                       </td>
 
-                      <td className="border p-3">
+                      <td className="border border-gray-200 p-3 dark:border-gray-700">
                         <div className="flex min-w-max justify-center gap-2">
                           <button
                             type="button"
@@ -978,6 +988,8 @@ sm:text-sm
             border-gray-200
             bg-white
             shadow-md
+            dark:border-gray-700
+            dark:bg-gray-900
           "
           style={{
             left: `${floatingScrollbar.left}px`,

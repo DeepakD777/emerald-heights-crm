@@ -767,7 +767,7 @@ function Properties() {
         if (
             property.isFineDine
         ) {
-            return "bg-purple-100 text-purple-700";
+            return "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300";
         }
 
         switch (
@@ -775,16 +775,16 @@ function Properties() {
         ) {
 
             case "BOOKED":
-                return "bg-red-100 text-red-700";
+                return "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300";
 
             case "HOLD":
-                return "bg-yellow-100 text-yellow-700";
+                return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300";
 
             case "SOLD":
-                return "bg-gray-200 text-gray-700";
+                return "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200";
 
             default:
-                return "bg-green-100 text-green-700";
+                return "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300";
         }
     };
 
@@ -829,10 +829,10 @@ function Properties() {
 
                     <RefreshCw
                         size={32}
-                        className="mx-auto animate-spin text-green-600"
+                        className="mx-auto animate-spin text-green-600 dark:text-green-400"
                     />
 
-                    <p className="mt-3 text-sm text-gray-500">
+                    <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
                         Loading properties...
                     </p>
 
@@ -851,17 +851,17 @@ function Properties() {
 
             {/* Header */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+            <div className="rounded-2xl bg-white p-6 shadow dark:bg-gray-900">
 
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
                     <div>
 
-                        <h1 className="text-3xl font-bold text-gray-800">
+                        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
                             Properties
                         </h1>
 
-                        <p className="mt-1 text-gray-500">
+                        <p className="mt-1 text-gray-500 dark:text-gray-400">
                             Manage residential and commercial property inventory
                         </p>
 
@@ -892,6 +892,10 @@ function Properties() {
                                 font-medium
                                 text-gray-700
                                 hover:bg-gray-50
+                                dark:border-gray-700
+                                dark:bg-gray-950
+                                dark:text-gray-300
+                                dark:hover:bg-gray-800
                             "
                         >
 
@@ -940,13 +944,13 @@ function Properties() {
             </div>
 
             {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
                     {error}
                 </div>
             )}
 
             {success && (
-                <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 dark:border-green-900 dark:bg-green-950/50 dark:text-green-300">
                     {success}
                 </div>
             )}
@@ -955,24 +959,24 @@ function Properties() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-                <div className="rounded-2xl bg-white p-6 shadow">
+                <div className="rounded-2xl bg-white p-6 shadow dark:bg-gray-900">
 
                     <div className="mb-5 flex items-center gap-4">
 
-                        <div className="rounded-xl bg-green-100 p-3">
+                        <div className="rounded-xl bg-green-100 p-3 dark:bg-green-950/60">
                             <Home
                                 size={28}
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                             />
                         </div>
 
                         <div>
 
-                            <h2 className="text-xl font-bold text-gray-800">
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                                 Residential
                             </h2>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Apartments & Flats
                             </p>
 
@@ -980,13 +984,13 @@ function Properties() {
 
                     </div>
 
-                    <div className="mb-5 rounded-xl bg-gray-50 p-4">
+                    <div className="mb-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-950/60">
 
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Total Units
                         </p>
 
-                        <p className="mt-1 text-3xl font-bold text-gray-800">
+                        <p className="mt-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
                             {residentialCount}
                         </p>
 
@@ -1006,24 +1010,24 @@ function Properties() {
 
                 </div>
 
-                <div className="rounded-2xl bg-white p-6 shadow">
+                <div className="rounded-2xl bg-white p-6 shadow dark:bg-gray-900">
 
                     <div className="mb-5 flex items-center gap-4">
 
-                        <div className="rounded-xl bg-orange-100 p-3">
+                        <div className="rounded-xl bg-orange-100 p-3 dark:bg-orange-950/60">
                             <Store
                                 size={28}
-                                className="text-orange-600"
+                                className="text-orange-600 dark:text-orange-400"
                             />
                         </div>
 
                         <div>
 
-                            <h2 className="text-xl font-bold text-gray-800">
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                                 Commercial
                             </h2>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Shops & Commercial Units
                             </p>
 
@@ -1031,13 +1035,13 @@ function Properties() {
 
                     </div>
 
-                    <div className="mb-5 rounded-xl bg-gray-50 p-4">
+                    <div className="mb-5 rounded-xl bg-gray-50 p-4 dark:bg-gray-950/60">
 
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Total Units
                         </p>
 
-                        <p className="mt-1 text-3xl font-bold text-gray-800">
+                        <p className="mt-1 text-3xl font-bold text-gray-800 dark:text-gray-100">
                             {commercialCount}
                         </p>
 
@@ -1061,22 +1065,22 @@ function Properties() {
 
             {/* Summary */}
 
-            <div className="rounded-2xl bg-white p-6 shadow">
+            <div className="rounded-2xl bg-white p-6 shadow dark:bg-gray-900">
 
                 <div className="mb-5 flex items-center gap-3">
 
                     <Building2
                         size={24}
-                        className="text-blue-600"
+                        className="text-blue-600 dark:text-blue-400"
                     />
 
                     <div>
 
-                        <h2 className="text-xl font-bold text-gray-800">
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                             Project Summary
                         </h2>
 
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Live inventory from database
                         </p>
 
@@ -1091,7 +1095,7 @@ function Properties() {
                         value={
                             properties.length
                         }
-                        className="bg-blue-50 text-blue-700"
+                        className="bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
                     />
 
                     <SummaryCard
@@ -1099,7 +1103,7 @@ function Properties() {
                         value={
                             residentialCount
                         }
-                        className="bg-green-50 text-green-700"
+                        className="bg-green-50 text-green-700 dark:bg-green-950/60 dark:text-green-300"
                     />
 
                     <SummaryCard
@@ -1107,7 +1111,7 @@ function Properties() {
                         value={
                             commercialCount
                         }
-                        className="bg-orange-50 text-orange-700"
+                        className="bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300"
                     />
 
                     <SummaryCard
@@ -1115,7 +1119,7 @@ function Properties() {
                         value={
                             availableCount
                         }
-                        className="bg-emerald-50 text-emerald-700"
+                        className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                     />
 
                     <SummaryCard
@@ -1123,7 +1127,7 @@ function Properties() {
                         value={
                             holdCount
                         }
-                        className="bg-yellow-50 text-yellow-700"
+                        className="bg-yellow-50 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300"
                     />
 
                     <SummaryCard
@@ -1131,7 +1135,7 @@ function Properties() {
                         value={
                             bookedCount
                         }
-                        className="bg-red-50 text-red-700"
+                        className="bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300"
                     />
 
                     <SummaryCard
@@ -1139,7 +1143,7 @@ function Properties() {
                         value={
                             soldCount
                         }
-                        className="bg-gray-100 text-gray-700"
+                        className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
                     />
 
                     <SummaryCard
@@ -1147,7 +1151,7 @@ function Properties() {
                         value={
                             fineDineCount
                         }
-                        className="bg-purple-50 text-purple-700"
+                        className="bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
                     />
 
                 </div>
@@ -1192,11 +1196,17 @@ function Properties() {
                                     rounded-lg
                                     border
                                     border-gray-300
+                                    bg-white
                                     py-2.5
                                     pl-10
                                     pr-3
+                                    text-gray-900
                                     outline-none
                                     focus:border-green-500
+                                    dark:border-gray-700
+                                    dark:bg-gray-950
+                                    dark:text-gray-100
+                                    dark:placeholder:text-gray-500
                                 "
                             />
 
@@ -1215,7 +1225,7 @@ function Properties() {
                                         PropertyType
                                 )
                             }
-                            className="rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
                         >
 
                             <option value="ALL">
@@ -1246,7 +1256,7 @@ function Properties() {
                                         "FINEDINE"
                                 )
                             }
-                            className="rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
                         >
 
                             <option value="ALL">
@@ -1279,11 +1289,11 @@ function Properties() {
 
                 </div>
 
-                <div className="overflow-hidden rounded-2xl bg-white shadow">
+                <div className="overflow-hidden rounded-2xl bg-white shadow dark:bg-gray-900">
 
-                    <div className="border-b px-6 py-4">
+                    <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
 
-                        <h2 className="text-xl font-bold text-gray-800">
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                             Property Inventory
                         </h2>
 
@@ -1297,9 +1307,9 @@ function Properties() {
 
                         <table className="w-full min-w-[1000px]">
 
-                            <thead className="bg-gray-50">
+                            <thead className="bg-gray-50 dark:bg-gray-950/70">
 
-                                <tr className="border-b text-left text-sm text-gray-600">
+                                <tr className="border-b border-gray-200 text-left text-sm text-gray-600 dark:border-gray-700 dark:text-gray-300">
 
                                     <th className="px-5 py-3">
                                         Code
@@ -1346,35 +1356,35 @@ function Properties() {
                                         key={
                                             property.id
                                         }
-                                        className="border-b last:border-b-0 hover:bg-gray-50"
+                                        className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/60"
                                     >
 
-                                        <td className="px-5 py-4 font-medium text-gray-800">
+                                        <td className="px-5 py-4 font-medium text-gray-800 dark:text-gray-100">
                                             {property.propertyCode}
                                         </td>
 
                                         <td className="px-5 py-4">
 
-                                            <p className="font-medium text-gray-800">
+                                            <p className="font-medium text-gray-800 dark:text-gray-100">
                                                 {property.name}
                                             </p>
 
                                             {property.phase && (
-                                                <p className="mt-1 text-xs text-gray-500">
+                                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                                     {property.phase}
                                                 </p>
                                             )}
 
                                         </td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             {property.type ===
                                             "RESIDENTIAL"
                                                 ? "Residential"
                                                 : "Commercial"}
                                         </td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             {[
                                                 property.block,
                                                 property.tower,
@@ -1384,12 +1394,12 @@ function Properties() {
                                                 "-"}
                                         </td>
 
-                                        <td className="px-5 py-4 text-sm text-gray-600">
+                                        <td className="px-5 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             {property.floor ||
                                                 "-"}
                                         </td>
 
-                                        <td className="px-5 py-4 font-medium text-gray-800">
+                                        <td className="px-5 py-4 font-medium text-gray-800 dark:text-gray-100">
                                             {property.unitNumber ||
                                                 "-"}
                                         </td>
@@ -1428,7 +1438,7 @@ function Properties() {
                                                             property
                                                         )
                                                     }
-                                                    className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-blue-600 hover:bg-blue-100"
+                                                    className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-blue-600 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
                                                 >
                                                     <Pencil
                                                         size={17}
@@ -1446,7 +1456,7 @@ function Properties() {
                                                         deletingId ===
                                                         property.id
                                                     }
-                                                    className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-100 disabled:opacity-50"
+                                                    className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-100 disabled:opacity-50 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900/60"
                                                 >
                                                     <Trash2
                                                         size={17}
@@ -1468,7 +1478,7 @@ function Properties() {
 
                                         <td
                                             colSpan={8}
-                                            className="px-6 py-12 text-center text-gray-500"
+                                            className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                                         >
                                             No properties found.
                                         </td>
@@ -1515,6 +1525,7 @@ function Properties() {
                             overflow-y-auto
                             rounded-2xl
                             bg-white
+                            dark:bg-gray-900
                             shadow-2xl
                         "
                         onClick={(
@@ -1524,11 +1535,11 @@ function Properties() {
                         }
                     >
 
-                        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-6">
+                        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
 
                             <div>
 
-                                <h2 className="text-2xl font-bold text-gray-800">
+                                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
                                     {editingProperty
                                         ? "Edit Property"
                                         : "Add Property"}
@@ -1545,7 +1556,7 @@ function Properties() {
                                 onClick={
                                     closeModal
                                 }
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                             >
                                 <X size={22} />
                             </button>
@@ -1787,7 +1798,7 @@ function Properties() {
 
                             <div>
 
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Description
                                 </label>
 
@@ -1804,7 +1815,7 @@ function Properties() {
                                         )
                                     }
                                     rows={3}
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-green-500"
+                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
                                 />
 
                             </div>
@@ -1812,7 +1823,7 @@ function Properties() {
                             {form.type ===
                                 "COMMERCIAL" && (
 
-                                <label className="flex items-center gap-3 rounded-xl border bg-gray-50 p-4">
+                                <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-950/60">
 
                                     <input
                                         type="checkbox"
@@ -1831,11 +1842,11 @@ function Properties() {
 
                                     <div>
 
-                                        <p className="font-medium text-gray-800">
+                                        <p className="font-medium text-gray-800 dark:text-gray-100">
                                             Fine Dine Reservation
                                         </p>
 
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                             Reserve this commercial unit for Fine Dine.
                                         </p>
 
@@ -1845,14 +1856,14 @@ function Properties() {
 
                             )}
 
-                            <div className="flex justify-end gap-3 border-t pt-5">
+                            <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 dark:border-gray-700">
 
                                 <button
                                     type="button"
                                     onClick={
                                         closeModal
                                     }
-                                    className="rounded-lg border border-gray-300 px-5 py-2 font-medium text-gray-700 hover:bg-gray-50"
+                                    className="rounded-lg border border-gray-300 bg-white px-5 py-2 font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:bg-gray-800"
                                 >
                                     Cancel
                                 </button>
@@ -1937,7 +1948,7 @@ function FormInput({
     return (
         <div>
 
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {label}
             </label>
 
@@ -1951,7 +1962,7 @@ function FormInput({
                         event.target.value
                     )
                 }
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-green-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
             />
 
         </div>
@@ -1978,7 +1989,7 @@ function FormSelect({
     return (
         <div>
 
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {label}
             </label>
 
@@ -1991,7 +2002,7 @@ function FormSelect({
                         event.target.value
                     )
                 }
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 outline-none focus:border-green-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
             >
 
                 {options.map(

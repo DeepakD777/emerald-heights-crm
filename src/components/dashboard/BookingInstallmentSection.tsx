@@ -1,127 +1,65 @@
-import {
-    useEffect,
-    useMemo,
-    useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-    getAuthToken,
-} from "../../services/api";
+import { getAuthToken } from "../../services/api";
 
-import {
-    useBooking,
-} from "../../context/BookingContext";
+import { useBooking } from "../../context/BookingContext";
 
 // ======================================================
 // Props
 // ======================================================
 
 interface BookingInstallmentSectionProps {
-    booking: any;
-    readOnly?: boolean;
-    isAdmin: boolean;
+  booking: any;
+  readOnly?: boolean;
+  isAdmin: boolean;
 }
 
 // ======================================================
 // Helpers
 // ======================================================
 
-const formatCurrency = (
-    value:
-        number |
-        string |
-        null |
-        undefined
-) => {
+const formatCurrency = (value: number | string | null | undefined) => {
+  const amount = Number(value ?? 0);
 
-
-
-    const amount =
-        Number(
-            value ??
-            0
-        );
-
-    return `₹${amount.toLocaleString(
-        "en-IN",
-        {
-            maximumFractionDigits:
-                2,
-        }
-    )}`;
+  return `₹${amount.toLocaleString("en-IN", {
+    maximumFractionDigits: 2,
+  })}`;
 };
 
-const formatDate = (
-    value:
-        string |
-        null |
-        undefined
-) => {
+const formatDate = (value: string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
 
-    if (
-        !value
-    ) {
+  const date = new Date(value);
 
-        return "-";
-    }
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
 
-    const date =
-        new Date(
-            value
-        );
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
 
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
+    month: "short",
 
-        return "-";
-    }
-
-    return date.toLocaleDateString(
-        "en-IN",
-        {
-            day:
-                "2-digit",
-
-            month:
-                "short",
-
-            year:
-                "numeric",
-        }
-    );
+    year: "numeric",
+  });
 };
-const getInstallmentDisplayName = (
-    sequence: number
-) => {
-    return sequence === 1
-        ? "Booking Amount"
-        : `Installment ${sequence - 1}`;
+const getInstallmentDisplayName = (sequence: number) => {
+  return sequence === 1 ? "Booking Amount" : `Installment ${sequence - 1}`;
 };
 
-const getStatusClasses = (
-    status:
-        string
-) => {
+const getStatusClasses = (status: string) => {
+  switch (status) {
+    case "PAID":
+      return "bg-green-100 text-green-700 border-green-200 dark:border-green-900 dark:bg-green-950/60 dark:text-green-300";
 
-    switch (
-    status
-    ) {
+    case "PARTIAL":
+      return "bg-amber-100 text-amber-700 border-amber-200 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-300";
 
-        case "PAID":
-
-            return "bg-green-100 text-green-700 border-green-200";
-
-        case "PARTIAL":
-
-            return "bg-amber-100 text-amber-700 border-amber-200";
-
-        default:
-
-            return "bg-gray-100 text-gray-600 border-gray-200";
-    }
+    default:
+      return "bg-gray-100 text-gray-600 border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300";
+  }
 };
 
 // ======================================================
@@ -129,1280 +67,700 @@ const getStatusClasses = (
 // ======================================================
 
 function BookingInstallmentSection({
-    booking,
-    readOnly = false,
-    isAdmin,
+  booking,
+  readOnly = false,
+  isAdmin,
 }: BookingInstallmentSectionProps) {
+  const { refreshBookings } = useBooking();
 
-    const {
-        refreshBookings,
-    } = useBooking();
+  // ==================================================
+  // Local Installment Data
+  // ==================================================
 
-    // ==================================================
-    // Local Installment Data
-    // ==================================================
+  const [installmentStages, setInstallmentStages] = useState<any[]>(
+    booking?.installmentStages ?? [],
+  );
 
-    const [
-        installmentStages,
-        setInstallmentStages,
-    ] =
-        useState<any[]>(
-            booking
-                ?.installmentStages ??
-            []
-        );
+  const [installmentSummary, setInstallmentSummary] = useState<any>(
+    booking?.installmentSummary ?? {
+      totalPlannedAmount: 0,
 
-    const [
-        installmentSummary,
-        setInstallmentSummary,
-    ] =
-        useState<any>(
-            booking
-                ?.installmentSummary ??
-            {
-                totalPlannedAmount:
-                    0,
+      totalReceivedAmount: 0,
 
-                totalReceivedAmount:
-                    0,
+      totalBalanceAmount: 0,
 
-                totalBalanceAmount:
-                    0,
+      currentInstallment: null,
+    },
+  );
 
-                currentInstallment:
-                    null,
-            }
-        );
+  // ==================================================
+  // Payment Form
+  // ==================================================
 
-    // ==================================================
-    // Payment Form
-    // ==================================================
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState("");
 
-    const [
-        selectedInstallmentId,
-        setSelectedInstallmentId,
-    ] =
-        useState(
-            ""
-        );
+  const [amount, setAmount] = useState("");
+  const [paymentAmountMode, setPaymentAmountMode] = useState<"AUTO" | "MANUAL">(
+    "AUTO",
+  );
+  const [activePaymentStageId, setActivePaymentStageId] = useState<
+    string | null
+  >(null);
 
-    const [
-        amount,
-        setAmount,
-    ] =
-        useState(
-            ""
-        );
-    const [
-        paymentAmountMode,
-        setPaymentAmountMode,
-    ] =
-        useState<
-            "AUTO" |
-            "MANUAL"
-        >(
-            "AUTO"
-        );
-    const [
-        activePaymentStageId,
-        setActivePaymentStageId,
-    ] =
-        useState<
-            string |
-            null
-        >(
-            null
-        );
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
 
-    const [
-        paymentDate,
-        setPaymentDate,
-    ] =
-        useState(
-            new Date()
-                .toISOString()
-                .split(
-                    "T"
-                )[0]
-        );
+  const [paymentMode, setPaymentMode] = useState("Cash");
 
-    const [
-        paymentMode,
-        setPaymentMode,
-    ] =
-        useState(
-            "Cash"
-        );
+  const [referenceNo, setReferenceNo] = useState("");
 
-    const [
-        referenceNo,
-        setReferenceNo,
-    ] =
-        useState(
-            ""
-        );
+  const [remarks, setRemarks] = useState("");
 
-    const [
-        remarks,
-        setRemarks,
-    ] =
-        useState(
-            ""
-        );
+  const [saving, setSaving] = useState(false);
 
-    const [
-        saving,
-        setSaving,
-    ] =
-        useState(
-            false
-        );
+  const [error, setError] = useState<string | null>(null);
 
-    const [
-        error,
-        setError,
-    ] =
-        useState<
-            string |
-            null
-        >(
-            null
-        );
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-    const [
-        successMessage,
-        setSuccessMessage,
-    ] =
-        useState<
-            string |
-            null
-        >(
-            null
-        );
+  // ==================================================
+  // Sync When Booking Changes
+  // ==================================================
 
-    // ==================================================
-    // Sync When Booking Changes
-    // ==================================================
+  useEffect(() => {
+    setInstallmentStages(booking?.installmentStages ?? []);
 
-    useEffect(
-        () => {
+    setInstallmentSummary(
+      booking?.installmentSummary ?? {
+        totalPlannedAmount: 0,
 
-            setInstallmentStages(
-                booking
-                    ?.installmentStages ??
-                []
-            );
+        totalReceivedAmount: 0,
 
-            setInstallmentSummary(
-                booking
-                    ?.installmentSummary ??
-                {
-                    totalPlannedAmount:
-                        0,
+        totalBalanceAmount: 0,
 
-                    totalReceivedAmount:
-                        0,
-
-                    totalBalanceAmount:
-                        0,
-
-                    currentInstallment:
-                        null,
-                }
-            );
-
-            setSelectedInstallmentId(
-                ""
-            );
-            setActivePaymentStageId(
-                null
-            );
-
-            setAmount(
-                ""
-            );
-
-            setError(
-                null
-            );
-
-            setSuccessMessage(
-                null
-            );
-
-        },
-        [
-            booking?.id,
-            booking
-                ?.installmentSummary
-                ?.totalReceivedAmount,
-            booking
-                ?.installmentSummary
-                ?.totalPlannedAmount,
-            booking
-                ?.installmentSummary
-                ?.totalBalanceAmount,
-        ]
+        currentInstallment: null,
+      },
     );
 
-    // ==================================================
-    // Selectable Stages
-    // PAID stages are disabled from new payment entry
-    // PARTIAL stages remain selectable
-    // ==================================================
-
-
-
-    const selectedStage =
-        useMemo(
-            () =>
-                installmentStages
-                    .find(
-                        (
-                            stage
-                        ) =>
-                            stage.id ===
-                            selectedInstallmentId
-                    ) ??
-                null,
-            [
-                installmentStages,
-                selectedInstallmentId,
-            ]
-        );
-
-    // ==================================================
-    // Add Installment Payment
-    // ==================================================
-
-    const handleAddPayment =
-        async () => {
-
-            if (
-                !isAdmin ||
-                readOnly
-            ) {
-
-                return;
-            }
-
-            setError(
-                null
-            );
-
-            setSuccessMessage(
-                null
-            );
-
-            if (
-                !selectedInstallmentId
-            ) {
-
-                setError(
-                    "Please select an installment stage."
-                );
-
-                return;
-            }
-
-            const parsedAmount =
-                Number(
-                    amount
-                );
-
-            if (
-                !Number.isFinite(
-                    parsedAmount
-                ) ||
-                parsedAmount <=
-                0
-            ) {
-
-                setError(
-                    "Please enter a valid received amount."
-                );
-
-                return;
-            }
-
-            if (
-                selectedStage &&
-                parsedAmount >
-                Number(
-                    selectedStage
-                        .balanceAmount ??
-                    0
-                )
-            ) {
-
-                setError(
-                    `Amount cannot exceed stage balance ${formatCurrency(
-                        selectedStage
-                            .balanceAmount
-                    )}.`
-                );
-
-                return;
-            }
-
-            const token =
-                getAuthToken();
-
-            if (
-                !token
-            ) {
-
-                setError(
-                    "Login session expired. Please login again."
-                );
-
-                return;
-            }
-
-            try {
-
-                setSaving(
-                    true
-                );
-
-                const response =
-                    await fetch(
-                        `http://localhost:5000/api/bookings/${booking.id}/installment-payments`,
-                        {
-                            method:
-                                "POST",
-
-                            headers: {
-
-                                "Content-Type":
-                                    "application/json",
-
-                                Authorization:
-                                    `Bearer ${token}`,
-                            },
-
-                            body:
-                                JSON.stringify(
-                                    {
-                                        installmentId:
-                                            selectedInstallmentId,
-
-                                        amount:
-                                            parsedAmount,
-
-                                        paymentDate:
-                                            paymentDate ||
-                                            undefined,
-
-                                        paymentMode:
-                                            paymentMode ||
-                                            undefined,
-
-                                        referenceNo:
-                                            referenceNo
-                                                .trim() ||
-                                            undefined,
-
-                                        remarks:
-                                            remarks
-                                                .trim() ||
-                                            undefined,
-                                    }
-                                ),
-                        }
-                    );
-
-                const result =
-                    await response
-                        .json();
-
-                if (
-                    !response.ok ||
-                    !result.success
-                ) {
-
-                    throw new Error(
-                        result.message ||
-                        "Failed to add installment payment"
-                    );
-                }
-
-                // ------------------------------------------
-                // Update modal immediately
-                // ------------------------------------------
-
-                setInstallmentStages(
-                    Array.isArray(
-                        result
-                            .data
-                            ?.installmentStages
-                    )
-                        ? result
-                            .data
-                            .installmentStages
-                        : []
-                );
-
-                setInstallmentSummary(
-                    result
-                        .data
-                        ?.installmentSummary ??
-                    {
-                        totalPlannedAmount:
-                            0,
-
-                        totalReceivedAmount:
-                            0,
-
-                        totalBalanceAmount:
-                            0,
-
-                        currentInstallment:
-                            null,
-                    }
-                );
-
-                // ------------------------------------------
-                // Refresh BookingContext
-                // Booking table will receive fresh data
-                // ------------------------------------------
-
-                await refreshBookings();
-
-                // ------------------------------------------
-                // Reset Form
-                // ------------------------------------------
-
-                setSelectedInstallmentId(
-                    ""
-                );
-
-                setActivePaymentStageId(
-                    null
-                );
-
-                setPaymentAmountMode(
-                    "AUTO"
-                );
-
-                setAmount(
-                    ""
-                );
-
-                setReferenceNo(
-                    ""
-                );
-
-                setRemarks(
-                    ""
-                );
-
-                setSuccessMessage(
-                    "Installment payment added successfully."
-                );
-
-            } catch (
-            error
-            ) {
-
-                console.error(
-                    "Add installment payment error:",
-                    error
-                );
-
-                // Refresh latest backend booking data automatically.
-                // This prevents stale installment balances from requiring
-                // a manual browser refresh.
-                await refreshBookings();
-
-                setError(
-                    error instanceof
-                        Error
-                        ? error.message
-                        : "Failed to add installment payment"
-                );
-
-            } finally {
-
-                setSaving(
-                    false
-                );
-            }
-        };
-
-    // ==================================================
-    // No Installment Data
-    // ==================================================
-
-    if (
-        installmentStages
-            .length ===
-        0
-    ) {
-
-        return (
-
-            <div>
-
-                <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
-                    Installment & Payment Tracking
-                </h3>
-
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-                    No installment plan is available for this booking.
-                </div>
-
-            </div>
-        );
+    setSelectedInstallmentId("");
+    setActivePaymentStageId(null);
+
+    setAmount("");
+
+    setError(null);
+
+    setSuccessMessage(null);
+  }, [
+    booking?.id,
+    booking?.installmentSummary?.totalReceivedAmount,
+    booking?.installmentSummary?.totalPlannedAmount,
+    booking?.installmentSummary?.totalBalanceAmount,
+  ]);
+
+  // ==================================================
+  // Selectable Stages
+  // PAID stages are disabled from new payment entry
+  // PARTIAL stages remain selectable
+  // ==================================================
+
+  const selectedStage = useMemo(
+    () =>
+      installmentStages.find((stage) => stage.id === selectedInstallmentId) ??
+      null,
+    [installmentStages, selectedInstallmentId],
+  );
+
+  // ==================================================
+  // Add Installment Payment
+  // ==================================================
+
+  const handleAddPayment = async () => {
+    if (!isAdmin || readOnly) {
+      return;
     }
 
-    // ==================================================
-    // UI
-    // ==================================================
+    setError(null);
 
+    setSuccessMessage(null);
+
+    if (!selectedInstallmentId) {
+      setError("Please select an installment stage.");
+
+      return;
+    }
+
+    const parsedAmount = Number(amount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setError("Please enter a valid received amount.");
+
+      return;
+    }
+
+    if (
+      selectedStage &&
+      parsedAmount > Number(selectedStage.balanceAmount ?? 0)
+    ) {
+      setError(
+        `Amount cannot exceed stage balance ${formatCurrency(
+          selectedStage.balanceAmount,
+        )}.`,
+      );
+
+      return;
+    }
+
+    const token = getAuthToken();
+
+    if (!token) {
+      setError("Login session expired. Please login again.");
+
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const response = await fetch(
+        `http://localhost:5000/api/bookings/${booking.id}/installment-payments`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+
+            Authorization: `Bearer ${token}`,
+          },
+
+          body: JSON.stringify({
+            installmentId: selectedInstallmentId,
+
+            amount: parsedAmount,
+
+            paymentDate: paymentDate || undefined,
+
+            paymentMode: paymentMode || undefined,
+
+            referenceNo: referenceNo.trim() || undefined,
+
+            remarks: remarks.trim() || undefined,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to add installment payment");
+      }
+
+      // ------------------------------------------
+      // Update modal immediately
+      // ------------------------------------------
+
+      setInstallmentStages(
+        Array.isArray(result.data?.installmentStages)
+          ? result.data.installmentStages
+          : [],
+      );
+
+      setInstallmentSummary(
+        result.data?.installmentSummary ?? {
+          totalPlannedAmount: 0,
+
+          totalReceivedAmount: 0,
+
+          totalBalanceAmount: 0,
+
+          currentInstallment: null,
+        },
+      );
+
+      // ------------------------------------------
+      // Refresh BookingContext
+      // Booking table will receive fresh data
+      // ------------------------------------------
+
+      await refreshBookings();
+
+      // ------------------------------------------
+      // Reset Form
+      // ------------------------------------------
+
+      setSelectedInstallmentId("");
+
+      setActivePaymentStageId(null);
+
+      setPaymentAmountMode("AUTO");
+
+      setAmount("");
+
+      setReferenceNo("");
+
+      setRemarks("");
+
+      setSuccessMessage("Installment payment added successfully.");
+    } catch (error) {
+      console.error("Add installment payment error:", error);
+
+      // Refresh latest backend booking data automatically.
+      // This prevents stale installment balances from requiring
+      // a manual browser refresh.
+      await refreshBookings();
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to add installment payment",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ==================================================
+  // No Installment Data
+  // ==================================================
+
+  if (installmentStages.length === 0) {
     return (
+      <div>
+        <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
+          Installment & Payment Tracking
+        </h3>
 
-        <div>
+        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300">
+          No installment plan is available for this booking.
+        </div>
+      </div>
+    );
+  }
 
-            <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
-                Installment & Payment Tracking
-            </h3>
+  // ==================================================
+  // UI
+  // ==================================================
 
-            <div className="space-y-5">
+  return (
+    <div>
+      <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
+        Installment & Payment Tracking
+      </h3>
 
-                {/* ==========================================
+      <div className="space-y-5">
+        {/* ==========================================
                     Summary Cards
                 ========================================== */}
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-950/60">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Planned Amount
+            </p>
 
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <p className="mt-1 text-lg font-bold text-gray-800 dark:text-gray-100">
+              {formatCurrency(installmentSummary?.totalPlannedAmount)}
+            </p>
+          </div>
 
-                        <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Planned Amount
-                        </p>
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-green-700 dark:text-green-300">
+              Total Received
+            </p>
 
-                        <p className="mt-1 text-lg font-bold text-gray-800">
-                            {
-                                formatCurrency(
-                                    installmentSummary
-                                        ?.totalPlannedAmount
-                                )
-                            }
-                        </p>
+            <p className="mt-1 text-lg font-bold text-green-700 dark:text-green-300">
+              {formatCurrency(installmentSummary?.totalReceivedAmount)}
+            </p>
+          </div>
 
-                    </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/40">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Remaining
+            </p>
 
-                    <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+            <p className="mt-1 text-lg font-bold text-amber-700 dark:text-amber-300">
+              {formatCurrency(installmentSummary?.totalBalanceAmount)}
+            </p>
+          </div>
+        </div>
 
-                        <p className="text-xs font-medium uppercase tracking-wide text-green-700">
-                            Total Received
-                        </p>
-
-                        <p className="mt-1 text-lg font-bold text-green-700">
-                            {
-                                formatCurrency(
-                                    installmentSummary
-                                        ?.totalReceivedAmount
-                                )
-                            }
-                        </p>
-
-                    </div>
-
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-
-                        <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
-                            Remaining
-                        </p>
-
-                        <p className="mt-1 text-lg font-bold text-amber-700">
-                            {
-                                formatCurrency(
-                                    installmentSummary
-                                        ?.totalBalanceAmount
-                                )
-                            }
-                        </p>
-
-                    </div>
-
-                </div>
-
-                {/* ==========================================
+        {/* ==========================================
                     Current Installment
                 ========================================== */}
 
-                <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+          <p className="text-xs font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
+            Current / Latest Installment
+          </p>
 
-                    <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
-                        Current / Latest Installment
-                    </p>
+          {installmentSummary?.currentInstallment ? (
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-bold text-gray-800 dark:text-gray-100">
+                  {getInstallmentDisplayName(
+                    installmentSummary.currentInstallment.sequence,
+                  )}
+                </p>
 
-                    {
-                        installmentSummary
-                            ?.currentInstallment
-                            ? (
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  Paid{" "}
+                  {formatCurrency(
+                    installmentSummary.currentInstallment.paidAmount,
+                  )}{" "}
+                  of{" "}
+                  {formatCurrency(
+                    installmentSummary.currentInstallment.plannedAmount,
+                  )}
+                </p>
+              </div>
 
-                                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span
+                className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                  installmentSummary.currentInstallment.status,
+                )}`}
+              >
+                {installmentSummary.currentInstallment.status}
+              </span>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              No installment payment has been received yet.
+            </p>
+          )}
+        </div>
 
-                                    <div>
-
-                                        <p className="font-bold text-gray-800">
-                                            {
-                                                getInstallmentDisplayName(
-                                                    installmentSummary
-                                                        .currentInstallment
-                                                        .sequence
-                                                )
-                                            }
-                                        </p>
-
-                                        <p className="mt-1 text-sm text-gray-600">
-                                            Paid{" "}
-                                            {
-                                                formatCurrency(
-                                                    installmentSummary
-                                                        .currentInstallment
-                                                        .paidAmount
-                                                )
-                                            }
-                                            {" "}of{" "}
-                                            {
-                                                formatCurrency(
-                                                    installmentSummary
-                                                        .currentInstallment
-                                                        .plannedAmount
-                                                )
-                                            }
-                                        </p>
-
-                                    </div>
-
-                                    <span
-                                        className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
-                                            installmentSummary
-                                                .currentInstallment
-                                                .status
-                                        )}`}
-                                    >
-                                        {
-                                            installmentSummary
-                                                .currentInstallment
-                                                .status
-                                        }
-                                    </span>
-
-                                </div>
-                            )
-                            : (
-
-                                <p className="mt-2 text-sm text-gray-600">
-                                    No installment payment has been received yet.
-                                </p>
-                            )
-                    }
-
-                </div>
-
-                {/* ==========================================
+        {/* ==========================================
                     Admin Payment Entry
                 ========================================== */}
 
-
-                {/* ==========================================
+        {/* ==========================================
                     Employee / Read Only Notice
                 ========================================== */}
 
-                {
-                    (
-                        !isAdmin ||
-                        readOnly
-                    ) && (
+        {(!isAdmin || readOnly) && (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300">
+            Installment information is view only.
+          </div>
+        )}
 
-                        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-                            Installment information is view only.
-                        </div>
-                    )
-                }
-
-                {/* ==========================================
+        {/* ==========================================
                     Installment Stage List
                 ========================================== */}
 
-                <div className="space-y-3">
-
-                    {
-                        installmentStages
-                            .map(
-                                (
-                                    stage
-                                ) => (
-
-                                    <div
-                                        key={
-                                            stage.id
-                                        }
-                                        className="rounded-xl border border-gray-200 bg-white p-4"
-                                    >
-
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-
-                                            <div className="min-w-0">
-
-                                                <div className="flex flex-wrap items-center gap-2">
-
-                                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700">
-                                                        {
-                                                            stage.sequence
-                                                        }
-                                                    </span>
-
-                                                    <p className="font-semibold text-gray-800">
-                                                        {
-                                                            getInstallmentDisplayName(
-                                                                stage.sequence
-                                                            )
-                                                        }
-                                                    </p>
-
-                                                </div>
-
-                                                <p className="mt-2 text-sm text-gray-500">
-                                                    {
-                                                        stage.percentage
-                                                    }
-                                                    % of sale value
-                                                </p>
-
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
-                                                        stage.status
-                                                    )}`}
-                                                >
-                                                    {
-                                                        stage.status
-                                                    }
-                                                </span>
-
-                                                {
-                                                    isAdmin &&
-                                                    !readOnly &&
-                                                    stage.status !== "PAID" && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const isAlreadyOpen =
-                                                                    activePaymentStageId ===
-                                                                    stage.id;
-
-                                                                if (isAlreadyOpen) {
-                                                                    setActivePaymentStageId(
-                                                                        null
-                                                                    );
-
-                                                                    setSelectedInstallmentId(
-                                                                        ""
-                                                                    );
-
-                                                                    setAmount(
-                                                                        ""
-                                                                    );
-
-                                                                    setError(
-                                                                        null
-                                                                    );
-
-                                                                    return;
-                                                                }
-
-                                                                setActivePaymentStageId(
-                                                                    stage.id
-                                                                );
-
-                                                                setSelectedInstallmentId(
-                                                                    stage.id
-                                                                );
-
-                                                                if (
-                                                                    paymentAmountMode ===
-                                                                    "AUTO"
-                                                                ) {
-                                                                    setAmount(
-                                                                        String(
-                                                                            stage.balanceAmount ??
-                                                                            ""
-                                                                        )
-                                                                    );
-                                                                } else {
-                                                                    setAmount(
-                                                                        ""
-                                                                    );
-                                                                }
-
-                                                                setError(
-                                                                    null
-                                                                );
-                                                            }}
-                                                            className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
-                                                        >
-                                                            {
-                                                                activePaymentStageId ===
-                                                                    stage.id
-                                                                    ? "Close"
-                                                                    : "Add Payment"
-                                                            }
-                                                        </button>
-                                                    )
-                                                }
-                                            </div>
-
-                                        </div>
-
-                                        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-
-                                            <div>
-
-                                                <p className="text-xs text-gray-500">
-                                                    Planned
-                                                </p>
-
-                                                <p className="font-semibold text-gray-800">
-                                                    {
-                                                        formatCurrency(
-                                                            stage
-                                                                .plannedAmount
-                                                        )
-                                                    }
-                                                </p>
-
-                                            </div>
-
-                                            <div>
-
-                                                <p className="text-xs text-gray-500">
-                                                    Paid
-                                                </p>
-
-                                                <p className="font-semibold text-green-700">
-                                                    {
-                                                        formatCurrency(
-                                                            stage
-                                                                .paidAmount
-                                                        )
-                                                    }
-                                                </p>
-
-                                            </div>
-
-                                            <div>
-
-                                                <p className="text-xs text-gray-500">
-                                                    Balance
-                                                </p>
-
-                                                <p className="font-semibold text-amber-700">
-                                                    {
-                                                        formatCurrency(
-                                                            stage
-                                                                .balanceAmount
-                                                        )
-                                                    }
-                                                </p>
-
-                                            </div>
-
-                                        </div>
-                                        {
-                                            isAdmin &&
-                                            !readOnly &&
-                                            stage.status !== "PAID" &&
-                                            activePaymentStageId ===
-                                            stage.id && (
-
-                                                <div className="mt-4 rounded-xl border border-green-200 bg-green-50/40 p-4">
-
-                                                    <div className="mb-4 flex items-center justify-between">
-                                                        <div>
-                                                            <h5 className="font-semibold text-gray-800">
-                                                                Add Payment -{" "}
-                                                                {
-                                                                    getInstallmentDisplayName(
-                                                                        stage.sequence
-                                                                    )
-                                                                }
-                                                            </h5>
-
-                                                            <p className="mt-1 text-xs text-gray-500">
-                                                                Enter payment details for this installment.
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-                                                        <div className="sm:col-span-2">
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Amount Calculation
-                                                            </label>
-
-                                                            <select
-                                                                value={
-                                                                    paymentAmountMode
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) => {
-                                                                        const nextMode =
-                                                                            event.target.value as
-                                                                            | "AUTO"
-                                                                            | "MANUAL";
-
-                                                                        setPaymentAmountMode(
-                                                                            nextMode
-                                                                        );
-
-                                                                        if (
-                                                                            nextMode ===
-                                                                            "AUTO"
-                                                                        ) {
-                                                                            setAmount(
-                                                                                String(
-                                                                                    stage.balanceAmount ??
-                                                                                    ""
-                                                                                )
-                                                                            );
-                                                                        } else {
-                                                                            setAmount(
-                                                                                ""
-                                                                            );
-                                                                        }
-
-                                                                        setError(
-                                                                            null
-                                                                        );
-                                                                    }
-                                                                }
-                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
-                                                            >
-                                                                <option value="AUTO">
-                                                                    Auto Calculation
-                                                                </option>
-
-                                                                <option value="MANUAL">
-                                                                    Manual
-                                                                </option>
-                                                            </select>
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Amount Received
-                                                            </label>
-
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                step="0.01"
-                                                                value={
-                                                                    amount
-                                                                }
-                                                                readOnly={
-                                                                    paymentAmountMode ===
-                                                                    "AUTO"
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) => {
-                                                                        setAmount(
-                                                                            event.target.value
-                                                                        );
-
-                                                                        setError(
-                                                                            null
-                                                                        );
-
-                                                                        setSuccessMessage(
-                                                                            null
-                                                                        );
-                                                                    }
-                                                                }
-                                                                placeholder="Enter received amount"
-                                                                className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-green-500 ${paymentAmountMode ===
-                                                                    "AUTO"
-                                                                    ? "bg-gray-100 text-gray-700"
-                                                                    : "bg-white"
-                                                                    }`}
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Payment Date
-                                                            </label>
-
-                                                            <input
-                                                                type="date"
-                                                                value={
-                                                                    paymentDate
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) =>
-                                                                        setPaymentDate(
-                                                                            event.target.value
-                                                                        )
-                                                                }
-                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
-                                                            />
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Payment Mode
-                                                            </label>
-
-                                                            <select
-                                                                value={
-                                                                    paymentMode
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) =>
-                                                                        setPaymentMode(
-                                                                            event.target.value
-                                                                        )
-                                                                }
-                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
-                                                            >
-                                                                <option value="Cash">
-                                                                    Cash
-                                                                </option>
-
-                                                                <option value="Cheque">
-                                                                    Cheque
-                                                                </option>
-
-                                                                <option value="Bank Transfer">
-                                                                    Bank Transfer
-                                                                </option>
-
-                                                                <option value="UPI">
-                                                                    UPI
-                                                                </option>
-
-                                                                <option value="Finance">
-                                                                    Finance
-                                                                </option>
-
-                                                                <option value="Other">
-                                                                    Other
-                                                                </option>
-                                                            </select>
-                                                        </div>
-
-                                                        <div>
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Reference No.
-                                                            </label>
-
-                                                            <input
-                                                                type="text"
-                                                                value={
-                                                                    referenceNo
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) =>
-                                                                        setReferenceNo(
-                                                                            event.target.value
-                                                                        )
-                                                                }
-                                                                placeholder="Optional"
-                                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
-                                                            />
-                                                        </div>
-
-                                                        <div className="sm:col-span-2">
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                                Remarks
-                                                            </label>
-
-                                                            <textarea
-                                                                rows={
-                                                                    2
-                                                                }
-                                                                value={
-                                                                    remarks
-                                                                }
-                                                                onChange={
-                                                                    (
-                                                                        event
-                                                                    ) =>
-                                                                        setRemarks(
-                                                                            event.target.value
-                                                                        )
-                                                                }
-                                                                placeholder="Optional payment remarks"
-                                                                className="w-full resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-green-500"
-                                                            />
-                                                        </div>
-
-                                                    </div>
-
-                                                    {
-                                                        error && (
-                                                            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                                                                {
-                                                                    error
-                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-
-                                                    {
-                                                        successMessage && (
-                                                            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-                                                                {
-                                                                    successMessage
-                                                                }
-                                                            </div>
-                                                        )
-                                                    }
-
-                                                    <div className="mt-4 flex justify-end">
-                                                        <button
-                                                            type="button"
-                                                            disabled={
-                                                                saving ||
-                                                                !amount
-                                                            }
-                                                            onClick={
-                                                                handleAddPayment
-                                                            }
-                                                            className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        >
-                                                            {
-                                                                saving
-                                                                    ? "Saving..."
-                                                                    : "Save Payment"
-                                                            }
-                                                        </button>
-                                                    </div>
-
-                                                </div>
-                                            )
-                                        }
-
-                                        {/* ==================================
+        <div className="space-y-3">
+          {installmentStages.map((stage) => (
+            <div
+              key={stage.id}
+              className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-950/30"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-700 dark:bg-green-950/60 dark:text-green-300">
+                      {stage.sequence}
+                    </span>
+
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">
+                      {getInstallmentDisplayName(stage.sequence)}
+                    </p>
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    {stage.percentage}% of sale value
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                      stage.status,
+                    )}`}
+                  >
+                    {stage.status}
+                  </span>
+
+                  {isAdmin && !readOnly && stage.status !== "PAID" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const isAlreadyOpen = activePaymentStageId === stage.id;
+
+                        if (isAlreadyOpen) {
+                          setActivePaymentStageId(null);
+
+                          setSelectedInstallmentId("");
+
+                          setAmount("");
+
+                          setError(null);
+
+                          return;
+                        }
+
+                        setActivePaymentStageId(stage.id);
+
+                        setSelectedInstallmentId(stage.id);
+
+                        if (paymentAmountMode === "AUTO") {
+                          setAmount(String(stage.balanceAmount ?? ""));
+                        } else {
+                          setAmount("");
+                        }
+
+                        setError(null);
+                      }}
+                      className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700"
+                    >
+                      {activePaymentStageId === stage.id
+                        ? "Close"
+                        : "Add Payment"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Planned</p>
+
+                  <p className="font-semibold text-gray-800 dark:text-gray-100">
+                    {formatCurrency(stage.plannedAmount)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Paid</p>
+
+                  <p className="font-semibold text-green-700 dark:text-green-300">
+                    {formatCurrency(stage.paidAmount)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Balance</p>
+
+                  <p className="font-semibold text-amber-700 dark:text-amber-300">
+                    {formatCurrency(stage.balanceAmount)}
+                  </p>
+                </div>
+              </div>
+              {isAdmin &&
+                !readOnly &&
+                stage.status !== "PAID" &&
+                activePaymentStageId === stage.id && (
+                  <div className="mt-4 rounded-xl border border-green-200 bg-green-50/40 p-4 dark:border-green-900 dark:bg-green-950/20">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <h5 className="font-semibold text-gray-800 dark:text-gray-100">
+                          Add Payment -{" "}
+                          {getInstallmentDisplayName(stage.sequence)}
+                        </h5>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          Enter payment details for this installment.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Amount Calculation
+                        </label>
+
+                        <select
+                          value={paymentAmountMode}
+                          onChange={(event) => {
+                            const nextMode = event.target.value as
+                              | "AUTO"
+                              | "MANUAL";
+
+                            setPaymentAmountMode(nextMode);
+
+                            if (nextMode === "AUTO") {
+                              setAmount(String(stage.balanceAmount ?? ""));
+                            } else {
+                              setAmount("");
+                            }
+
+                            setError(null);
+                          }}
+                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+                        >
+                          <option value="AUTO">Auto Calculation</option>
+
+                          <option value="MANUAL">Manual</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Amount Received
+                        </label>
+
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={amount}
+                          readOnly={paymentAmountMode === "AUTO"}
+                          onChange={(event) => {
+                            setAmount(event.target.value);
+
+                            setError(null);
+
+                            setSuccessMessage(null);
+                          }}
+                          placeholder="Enter received amount"
+                          className={`w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:text-gray-100 ${
+                            paymentAmountMode === "AUTO"
+                              ? "bg-gray-100 text-gray-700"
+                              : "bg-white"
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Payment Date
+                        </label>
+
+                        <input
+                          type="date"
+                          value={paymentDate}
+                          onChange={(event) =>
+                            setPaymentDate(event.target.value)
+                          }
+                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Payment Mode
+                        </label>
+
+                        <select
+                          value={paymentMode}
+                          onChange={(event) =>
+                            setPaymentMode(event.target.value)
+                          }
+                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+                        >
+                          <option value="Cash">Cash</option>
+
+                          <option value="Cheque">Cheque</option>
+
+                          <option value="Bank Transfer">Bank Transfer</option>
+
+                          <option value="UPI">UPI</option>
+
+                          <option value="Finance">Finance</option>
+
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Reference No.
+                        </label>
+
+                        <input
+                          type="text"
+                          value={referenceNo}
+                          onChange={(event) =>
+                            setReferenceNo(event.target.value)
+                          }
+                          placeholder="Optional"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Remarks
+                        </label>
+
+                        <textarea
+                          rows={2}
+                          value={remarks}
+                          onChange={(event) => setRemarks(event.target.value)}
+                          placeholder="Optional payment remarks"
+                          className="w-full resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-green-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500"
+                        />
+                      </div>
+                    </div>
+
+                    {error && (
+                      <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+                        {error}
+                      </div>
+                    )}
+
+                    {successMessage && (
+                      <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/50 dark:text-green-300">
+                        {successMessage}
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={saving || !amount}
+                        onClick={handleAddPayment}
+                        className="rounded-lg bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {saving ? "Saving..." : "Save Payment"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              {/* ==================================
                                             Payment History
                                         ================================== */}
 
-                                        {
-                                            Array.isArray(
-                                                stage.payments
-                                            ) &&
-                                            stage
-                                                .payments
-                                                .length >
-                                            0 && (
+              {Array.isArray(stage.payments) && stage.payments.length > 0 && (
+                <div className="mt-4 border-t border-gray-100 pt-3 dark:border-gray-800">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Payment History
+                  </p>
 
-                                                <div className="mt-4 border-t border-gray-100 pt-3">
+                  <div className="space-y-2">
+                    {stage.payments.map((payment: any) => (
+                      <div
+                        key={payment.id}
+                        className="flex flex-col gap-1 rounded-lg bg-gray-50 px-3 py-2 text-sm dark:bg-gray-950/60 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold text-gray-800 dark:text-gray-100">
+                            {formatCurrency(payment.amount)}
+                          </p>
 
-                                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                        Payment History
-                                                    </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(payment.paymentDate)}
+                            {payment.paymentMode
+                              ? ` • ${payment.paymentMode}`
+                              : ""}
+                          </p>
+                        </div>
 
-                                                    <div className="space-y-2">
-
-                                                        {
-                                                            stage
-                                                                .payments
-                                                                .map(
-                                                                    (
-                                                                        payment:
-                                                                            any
-                                                                    ) => (
-
-                                                                        <div
-                                                                            key={
-                                                                                payment.id
-                                                                            }
-                                                                            className="flex flex-col gap-1 rounded-lg bg-gray-50 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
-                                                                        >
-
-                                                                            <div>
-
-                                                                                <p className="font-semibold text-gray-800">
-                                                                                    {
-                                                                                        formatCurrency(
-                                                                                            payment
-                                                                                                .amount
-                                                                                        )
-                                                                                    }
-                                                                                </p>
-
-                                                                                <p className="text-xs text-gray-500">
-                                                                                    {
-                                                                                        formatDate(
-                                                                                            payment
-                                                                                                .paymentDate
-                                                                                        )
-                                                                                    }
-                                                                                    {
-                                                                                        payment
-                                                                                            .paymentMode
-                                                                                            ? ` • ${payment.paymentMode}`
-                                                                                            : ""
-                                                                                    }
-                                                                                </p>
-
-                                                                            </div>
-
-                                                                            {
-                                                                                payment
-                                                                                    .referenceNo && (
-
-                                                                                    <p className="text-xs text-gray-500">
-                                                                                        Ref:{" "}
-                                                                                        {
-                                                                                            payment
-                                                                                                .referenceNo
-                                                                                        }
-                                                                                    </p>
-                                                                                )
-                                                                            }
-
-                                                                        </div>
-                                                                    )
-                                                                )
-                                                        }
-
-                                                    </div>
-
-                                                </div>
-                                            )
-                                        }
-
-                                    </div>
-                                )
-                            )
-                    }
-
+                        {payment.referenceNo && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Ref: {payment.referenceNo}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-
+              )}
             </div>
-
+          ))}
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default BookingInstallmentSection;

@@ -34,23 +34,23 @@ const getStatusClasses = (
 
         case "approved":
             return (
-                "bg-green-100 text-green-700"
+                "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
             );
 
         case "rejected":
             return (
-                "bg-red-100 text-red-700"
+                "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300"
             );
 
         case "in process":
             return (
-                "bg-blue-100 text-blue-700"
+                "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
             );
 
         case "pending":
         default:
             return (
-                "bg-yellow-100 text-yellow-700"
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300"
             );
     }
 };
@@ -105,7 +105,7 @@ function NocNotificationsPanel() {
 
     return (
 
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
+        <div className="rounded-2xl bg-white p-6 shadow-sm dark:bg-gray-900">
 
             {/* ==============================================
                 Header
@@ -115,17 +115,17 @@ function NocNotificationsPanel() {
 
                 <div>
 
-                    <h2 className="text-xl font-bold text-gray-800">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                         NOC Notifications
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         NOC requests that currently require administrative attention.
                     </p>
 
                 </div>
 
-                <span className="w-fit rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
+                <span className="w-fit rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-950/60 dark:text-red-300">
                     {nocNotifications.length} Pending
                 </span>
 
@@ -137,7 +137,7 @@ function NocNotificationsPanel() {
 
             {loading ? (
 
-                <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-6 py-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-400">
                     Loading NOC notifications...
                 </div>
 
@@ -148,22 +148,22 @@ function NocNotificationsPanel() {
                     Empty
                 ========================================== */
 
-                <div className="rounded-xl border border-green-200 bg-green-50 px-6 py-10 text-center">
+                <div className="rounded-xl border border-green-200 bg-green-50 px-6 py-10 text-center dark:border-green-900 dark:bg-green-950/40">
 
-                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/60">
 
                         <Bell
                             size={24}
-                            className="text-green-600"
+                            className="text-green-600 dark:text-green-400"
                         />
 
                     </div>
 
-                    <h3 className="font-semibold text-green-800">
+                    <h3 className="font-semibold text-green-800 dark:text-green-300">
                         No pending NOC alerts
                     </h3>
 
-                    <p className="mt-1 text-sm text-green-700">
+                    <p className="mt-1 text-sm text-green-700 dark:text-green-400">
                         There are currently no NOC requests requiring attention.
                     </p>
 
@@ -175,11 +175,11 @@ function NocNotificationsPanel() {
                     List
                 ========================================== */
 
-                <div className="overflow-hidden rounded-xl border border-gray-200">
+                <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
 
                     {/* Desktop Header */}
 
-                    <div className="hidden grid-cols-6 gap-4 border-b bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-600 md:grid">
+                    <div className="hidden grid-cols-6 gap-4 border-b border-gray-200 bg-gray-50 px-5 py-3 text-sm font-semibold text-gray-600 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-300 md:grid">
 
                         <div>
                             Customer
@@ -218,18 +218,18 @@ function NocNotificationsPanel() {
                                 key={
                                     notification.id
                                 }
-                                className="grid grid-cols-1 gap-4 border-b p-5 last:border-b-0 md:grid-cols-6 md:items-center"
+                                className="grid grid-cols-1 gap-4 border-b border-gray-200 p-5 last:border-b-0 dark:border-gray-800 dark:hover:bg-gray-800/40 md:grid-cols-6 md:items-center"
                             >
 
                                 {/* Customer */}
 
                                 <div>
 
-                                    <p className="text-xs text-gray-500 md:hidden">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                         Customer
                                     </p>
 
-                                    <p className="font-semibold text-gray-800">
+                                    <p className="font-semibold text-gray-800 dark:text-gray-100">
                                         {
                                             notification.customerName
                                         }
@@ -241,11 +241,11 @@ function NocNotificationsPanel() {
 
                                 <div>
 
-                                    <p className="text-xs text-gray-500 md:hidden">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                         Unit
                                     </p>
 
-                                    <span className="inline-block rounded-md bg-green-100 px-2 py-1 text-sm font-medium text-green-700">
+                                    <span className="inline-block rounded-md bg-green-100 px-2 py-1 text-sm font-medium text-green-700 dark:bg-green-950/60 dark:text-green-300">
                                         {
                                             notification.flatNumber
                                         }
@@ -257,15 +257,15 @@ function NocNotificationsPanel() {
 
                                 <div>
 
-                                    <p className="text-xs text-gray-500 md:hidden">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                         Type
                                     </p>
 
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
 
                                         <AlertTriangle
                                             size={15}
-                                            className="text-orange-600"
+                                            className="text-orange-600 dark:text-orange-400"
                                         />
 
                                         NOC
@@ -278,7 +278,7 @@ function NocNotificationsPanel() {
 
                                 <div>
 
-                                    <p className="text-xs text-gray-500 md:hidden">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                         Status
                                     </p>
 
@@ -298,11 +298,11 @@ function NocNotificationsPanel() {
 
                                 <div className="min-w-0">
 
-                                    <p className="text-xs text-gray-500 md:hidden">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
                                         Alert
                                     </p>
 
-                                    <p className="line-clamp-2 text-sm text-gray-600">
+                                    <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
                                         {
                                             notification.message
                                         }
@@ -324,7 +324,7 @@ function NocNotificationsPanel() {
                                                 notification.bookingId
                                             )
                                         }
-                                        className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                                        className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
                                     >
 
                                         <Eye

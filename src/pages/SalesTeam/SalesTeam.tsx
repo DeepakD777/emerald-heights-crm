@@ -762,9 +762,9 @@ function SalesTeam() {
 
       <div className="flex min-w-0 flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Sales Team</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Sales Team</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {isAdmin
               ? "Manage your sales team and track their performance"
               : "View sales team and performance information"}
@@ -788,7 +788,7 @@ function SalesTeam() {
             ========================================== */}
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
           {error}
         </div>
       )}
@@ -800,17 +800,17 @@ function SalesTeam() {
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         {/* Total */}
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total Members</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Members</p>
 
-              <p className="mt-2 text-2xl font-bold text-gray-800 sm:text-3xl">
+              <p className="mt-2 text-2xl font-bold text-gray-800 dark:text-gray-100 sm:text-3xl">
                 {totalMembers}
               </p>
             </div>
 
-            <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+            <div className="rounded-xl bg-blue-50 p-3 text-blue-600 dark:bg-blue-950/60 dark:text-blue-300">
               <Users size={24} />
             </div>
           </div>
@@ -818,17 +818,17 @@ function SalesTeam() {
 
         {/* Active */}
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Active Members</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Active Members</p>
 
-              <p className="mt-2 text-2xl font-bold text-green-600 sm:text-3xl">
+              <p className="mt-2 text-2xl font-bold text-green-600 dark:text-green-400 sm:text-3xl">
                 {activeMembers}
               </p>
             </div>
 
-            <div className="rounded-xl bg-green-50 p-3 text-green-600">
+            <div className="rounded-xl bg-green-50 p-3 text-green-600 dark:bg-green-950/60 dark:text-green-300">
               <UserCheck size={24} />
             </div>
           </div>
@@ -836,17 +836,17 @@ function SalesTeam() {
 
         {/* Inactive */}
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Inactive Members</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Inactive Members</p>
 
-              <p className="mt-2 text-2xl font-bold text-red-500 sm:text-3xl">
+              <p className="mt-2 text-2xl font-bold text-red-500 dark:text-red-400 sm:text-3xl">
                 {inactiveMembers}
               </p>
             </div>
 
-            <div className="rounded-xl bg-red-50 p-3 text-red-500">
+            <div className="rounded-xl bg-red-50 p-3 text-red-500 dark:bg-red-950/60 dark:text-red-300">
               <UserX size={24} />
             </div>
           </div>
@@ -854,17 +854,17 @@ function SalesTeam() {
 
         {/* Bookings */}
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total Bookings</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Bookings</p>
 
-              <p className="mt-2 text-2xl font-bold text-purple-600 sm:text-3xl">
+              <p className="mt-2 text-2xl font-bold text-purple-600 dark:text-purple-400 sm:text-3xl">
                 {totalBookings}
               </p>
             </div>
 
-            <div className="rounded-xl bg-purple-50 p-3 text-purple-600">
+            <div className="rounded-xl bg-purple-50 p-3 text-purple-600 dark:bg-purple-950/60 dark:text-purple-300">
               <Users size={24} />
             </div>
           </div>
@@ -875,21 +875,21 @@ function SalesTeam() {
                 Team Members
             ========================================== */}
 
-      <div className="min-w-0 rounded-2xl bg-white shadow-sm">
-        <div className="border-b px-5 py-5 sm:px-6">
-          <h2 className="text-lg font-bold text-gray-800">Team Members</h2>
+      <div className="min-w-0 rounded-2xl bg-white shadow-sm dark:bg-gray-900">
+        <div className="border-b border-gray-200 px-5 py-5 dark:border-gray-700 sm:px-6">
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">Team Members</h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Sales executives and their current status
           </p>
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-gray-500">
+          <div className="p-10 text-center text-gray-500 dark:text-gray-400">
             Loading sales team...
           </div>
         ) : salesTeam.length === 0 ? (
-          <div className="p-10 text-center text-gray-500">
+          <div className="p-10 text-center text-gray-500 dark:text-gray-400">
             No sales members found.
           </div>
         ) : (
@@ -899,9 +899,9 @@ function SalesTeam() {
                         ============================== */}
 
             <div className="hidden w-full min-w-0 overflow-x-auto overscroll-x-contain md:block">
-              <table className="w-full min-w-[760px]">
+              <table className="w-full min-w-[760px] text-gray-700 dark:text-gray-200">
                 <thead>
-                  <tr className="border-b bg-gray-50 text-left text-sm text-gray-500">
+                  <tr className="border-b border-gray-200 bg-gray-50 text-left text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-300">
                     <th className="px-6 py-4 font-medium">Member</th>
 
                     <th className="px-6 py-4 font-medium">Contact</th>
@@ -922,20 +922,20 @@ function SalesTeam() {
                   {salesTeam.map((member) => (
                     <tr
                       key={member.id}
-                      className="border-b last:border-b-0 hover:bg-gray-50"
+                      className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
                             {member.name.charAt(0).toUpperCase()}
                           </div>
 
                           <div>
-                            <p className="break-words font-semibold text-gray-800">
+                            <p className="break-words font-semibold text-gray-800 dark:text-gray-100">
                               {member.name}
                             </p>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               {member.role}
                             </p>
                           </div>
@@ -943,7 +943,7 @@ function SalesTeam() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <div className="space-y-1 text-sm text-gray-600">
+                        <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                           <div className="flex items-center gap-2">
                             <Phone size={14} />
 
@@ -958,7 +958,7 @@ function SalesTeam() {
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 font-semibold text-gray-800">
+                      <td className="px-6 py-4 font-semibold text-gray-800 dark:text-gray-100">
                         {member.bookings}
                       </td>
 
@@ -966,8 +966,8 @@ function SalesTeam() {
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                             member.status === "active"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
+                              : "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300"
                           }`}
                         >
                           {member.status === "active" ? "Active" : "Inactive"}
@@ -983,18 +983,18 @@ function SalesTeam() {
                                 openMenuId === member.id ? null : member.id,
                               )
                             }
-                            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                             aria-label="Member actions"
                           >
                             <MoreVertical size={18} />
                           </button>
 
                           {openMenuId === member.id && (
-                            <div className="absolute right-6 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white text-left shadow-lg">
+                            <div className="absolute right-6 top-14 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-lg dark:border-gray-700 dark:bg-gray-900">
                               <button
                                 type="button"
                                 onClick={() => handleEditMember(member)}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                               >
                                 <Pencil size={16} />
                                 Edit Member
@@ -1003,7 +1003,7 @@ function SalesTeam() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleStatus(member.id)}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                               >
                                 <Power size={16} />
 
@@ -1015,7 +1015,7 @@ function SalesTeam() {
                               <button
                                 type="button"
                                 onClick={() => handleDeleteMember(member.id)}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
                               >
                                 <Trash2 size={16} />
                                 Delete Member
@@ -1038,20 +1038,20 @@ function SalesTeam() {
               {salesTeam.map((member) => (
                 <div
                   key={member.id}
-                  className="relative min-w-0 rounded-xl border p-4"
+                  className="relative min-w-0 rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/40"
                 >
                   <div className="flex min-w-0 items-start justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
                         {member.name.charAt(0).toUpperCase()}
                       </div>
 
                       <div className="min-w-0">
-                        <p className="break-words font-semibold text-gray-800">
+                        <p className="break-words font-semibold text-gray-800 dark:text-gray-100">
                           {member.name}
                         </p>
 
-                        <p className="text-sm text-gray-500">{member.role}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
                       </div>
                     </div>
 
@@ -1063,7 +1063,7 @@ function SalesTeam() {
                             openMenuId === member.id ? null : member.id,
                           )
                         }
-                        className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                        className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                         aria-label="Member actions"
                       >
                         <MoreVertical size={18} />
@@ -1072,11 +1072,11 @@ function SalesTeam() {
                   </div>
 
                   {isAdmin && openMenuId === member.id && (
-                    <div className="absolute right-4 top-14 z-20 w-48 overflow-hidden rounded-xl border bg-white shadow-lg">
+                    <div className="absolute right-4 top-14 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
                       <button
                         type="button"
                         onClick={() => handleEditMember(member)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                       >
                         <Pencil size={16} />
                         Edit Member
@@ -1085,7 +1085,7 @@ function SalesTeam() {
                       <button
                         type="button"
                         onClick={() => handleToggleStatus(member.id)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
                       >
                         <Power size={16} />
 
@@ -1095,7 +1095,7 @@ function SalesTeam() {
                       <button
                         type="button"
                         onClick={() => handleDeleteMember(member.id)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50"
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"
                       >
                         <Trash2 size={16} />
                         Delete Member
@@ -1103,7 +1103,7 @@ function SalesTeam() {
                     </div>
                   )}
 
-                  <div className="mt-4 space-y-2 text-sm text-gray-600">
+                  <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex items-center gap-2">
                       <Phone size={15} />
 
@@ -1117,11 +1117,11 @@ function SalesTeam() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t pt-3">
+                  <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
                     <div>
-                      <p className="text-xs text-gray-500">Bookings</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Bookings</p>
 
-                      <p className="font-semibold text-gray-800">
+                      <p className="font-semibold text-gray-800 dark:text-gray-100">
                         {member.bookings}
                       </p>
                     </div>
@@ -1129,8 +1129,8 @@ function SalesTeam() {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         member.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
+                          : "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300"
                       }`}
                     >
                       {member.status === "active" ? "Active" : "Inactive"}
@@ -1157,18 +1157,18 @@ function SalesTeam() {
             }
           }}
         >
-          <div className="max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl sm:max-h-[90vh]">
+          <div className="max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-gray-900 sm:max-h-[90vh]">
             {/* Modal Header */}
 
-            <div className="flex min-w-0 items-center justify-between gap-3 border-b px-4 py-4 sm:px-6">
+            <div className="flex min-w-0 items-center justify-between gap-3 border-b border-gray-200 px-4 py-4 dark:border-gray-700 sm:px-6">
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-gray-800">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                   {editingMemberId !== null
                     ? "Edit Sales Member"
                     : "Add Sales Member"}
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {editingMemberId !== null
                     ? "Update sales member details"
                     : "Create a sales member with login access"}
@@ -1178,7 +1178,7 @@ function SalesTeam() {
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                className="shrink-0 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                 aria-label="Close"
               >
                 <X size={20} />
@@ -1191,7 +1191,7 @@ function SalesTeam() {
               {/* Name */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Full Name
                 </label>
 
@@ -1202,7 +1202,7 @@ function SalesTeam() {
                     handleInputChange("name", event.target.value)
                   }
                   placeholder="Enter full name"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-green-900/50"
                   required
                 />
               </div>
@@ -1210,7 +1210,7 @@ function SalesTeam() {
               {/* Role */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Role
                 </label>
 
@@ -1219,7 +1219,7 @@ function SalesTeam() {
                   onChange={(event) =>
                     handleInputChange("role", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-green-900/50"
                 >
                   <option value="Sales Executive">Sales Executive</option>
 
@@ -1232,7 +1232,7 @@ function SalesTeam() {
               {/* Phone */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Phone Number
                 </label>
 
@@ -1243,7 +1243,7 @@ function SalesTeam() {
                     handleInputChange("phone", event.target.value)
                   }
                   placeholder="Enter phone number"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-green-900/50"
                   required
                 />
               </div>
@@ -1251,7 +1251,7 @@ function SalesTeam() {
               {/* Email */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Email Address
                 </label>
 
@@ -1262,7 +1262,7 @@ function SalesTeam() {
                     handleInputChange("email", event.target.value)
                   }
                   placeholder="employee@example.com"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-green-900/50"
                   required
                 />
               </div>
@@ -1270,7 +1270,7 @@ function SalesTeam() {
               {/* Password */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {editingMemberId !== null ? "New Password" : "Password"}
                 </label>
 
@@ -1286,14 +1286,14 @@ function SalesTeam() {
                         ? "Leave blank to keep current password"
                         : "Minimum 8 characters"
                     }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-11 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-green-900/50"
                     required={editingMemberId === null}
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword((previous) => !previous)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
@@ -1312,7 +1312,7 @@ function SalesTeam() {
               {/* Confirm Password */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {editingMemberId !== null
                     ? "Confirm New Password"
                     : "Confirm Password"}
@@ -1330,7 +1330,7 @@ function SalesTeam() {
                         ? "Confirm new password"
                         : "Re-enter password"
                     }
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 pr-11 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pr-11 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:ring-green-900/50"
                     required={editingMemberId === null}
                   />
 
@@ -1339,7 +1339,7 @@ function SalesTeam() {
                     onClick={() =>
                       setShowConfirmPassword((previous) => !previous)
                     }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                     aria-label={
                       showConfirmPassword
                         ? "Hide confirm password"
@@ -1358,7 +1358,7 @@ function SalesTeam() {
               {/* Status */}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Status
                 </label>
 
@@ -1370,7 +1370,7 @@ function SalesTeam() {
                       event.target.value as "active" | "inactive",
                     )
                   }
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-green-900/50"
                 >
                   <option value="active">Active</option>
 
@@ -1380,11 +1380,11 @@ function SalesTeam() {
 
               {/* Buttons */}
 
-              <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
+              <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 dark:border-gray-700 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   Cancel
                 </button>

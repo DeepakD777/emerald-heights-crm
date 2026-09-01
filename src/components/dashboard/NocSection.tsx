@@ -192,28 +192,28 @@ const getStatusClasses = (
 
         case "IN_PROCESS":
             return (
-                "bg-blue-100 text-blue-700"
+                "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
             );
 
         case "APPROVED":
             return (
-                "bg-green-100 text-green-700"
+                "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
             );
 
         case "REJECTED":
             return (
-                "bg-red-100 text-red-700"
+                "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300"
             );
 
         case "ISSUED":
             return (
-                "bg-emerald-100 text-emerald-700"
+                "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
             );
 
         case "PENDING":
         default:
             return (
-                "bg-yellow-100 text-yellow-700"
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300"
             );
     }
 };
@@ -1161,11 +1161,11 @@ function NocSection({
 
             <div>
 
-                <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+                <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
                     NOC
                 </h3>
 
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-400">
                     Loading NOC details...
                 </div>
 
@@ -1181,13 +1181,13 @@ function NocSection({
 
         <div>
 
-            <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+            <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
                 NOC
             </h3>
 
             {error && (
 
-                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
                     {error}
                 </div>
 
@@ -1197,17 +1197,17 @@ function NocSection({
                 !noc.isRequired
                 ? (
 
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-950/60">
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                             <div>
 
-                                <p className="font-semibold text-gray-800">
+                                <p className="font-semibold text-gray-800 dark:text-gray-100">
                                     NOC Status
                                 </p>
 
-                                <span className="mt-2 inline-flex rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
+                                <span className="mt-2 inline-flex rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                     Not Required
                                 </span>
 
@@ -1241,7 +1241,7 @@ function NocSection({
                 )
                 : (
 
-                    <div className="space-y-4 rounded-xl border border-gray-200 p-4">
+                    <div className="space-y-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/30">
 
                         {/* ======================================
                             Main Status
@@ -1253,13 +1253,13 @@ function NocSection({
 
                                 <div className="flex flex-wrap items-center gap-2">
 
-                                    <p className="font-bold text-gray-800">
+                                    <p className="font-bold text-gray-800 dark:text-gray-100">
                                         {
                                             noc.nocCode
                                         }
                                     </p>
 
-                                    <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                                    <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                                         Required
                                     </span>
 
@@ -1277,7 +1277,7 @@ function NocSection({
 
                                 </div>
 
-                                <p className="mt-2 text-xs text-gray-500">
+                                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                     Requested:{" "}
                                     {
                                         formatDateTime(
@@ -1298,7 +1298,7 @@ function NocSection({
                                     onClick={
                                         handleSetNotRequired
                                     }
-                                    className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                                 >
                                     Set Not Required
                                 </button>
@@ -1315,7 +1315,7 @@ function NocSection({
 
                             <div>
 
-                                <label className="mb-1 block text-sm font-medium text-gray-700">
+                                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     NOC Workflow Status
                                 </label>
 
@@ -1338,7 +1338,7 @@ function NocSection({
                                                 NocStatus
                                             )
                                     }
-                                    className="w-full rounded-lg border border-gray-300 p-2 disabled:bg-gray-100 disabled:text-gray-500"
+                                    className="w-full rounded-lg border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
                                 >
 
                                     <option value="PENDING">
@@ -1369,11 +1369,11 @@ function NocSection({
 
                                 <div>
 
-                                    <p className="text-gray-500">
+                                    <p className="text-gray-500 dark:text-gray-400">
                                         Approved At
                                     </p>
 
-                                    <p className="font-medium text-gray-800">
+                                    <p className="font-medium text-gray-800 dark:text-gray-100">
                                         {
                                             formatDateTime(
                                                 noc.approvedAt
@@ -1385,11 +1385,11 @@ function NocSection({
 
                                 <div>
 
-                                    <p className="text-gray-500">
+                                    <p className="text-gray-500 dark:text-gray-400">
                                         Issued At
                                     </p>
 
-                                    <p className="font-medium text-gray-800">
+                                    <p className="font-medium text-gray-800 dark:text-gray-100">
                                         {
                                             formatDateTime(
                                                 noc.issuedAt
@@ -1403,11 +1403,11 @@ function NocSection({
 
                                     <div className="col-span-2">
 
-                                        <p className="text-gray-500">
+                                        <p className="text-gray-500 dark:text-gray-400">
                                             Rejected At
                                         </p>
 
-                                        <p className="font-medium text-red-700">
+                                        <p className="font-medium text-red-700 dark:text-red-300">
                                             {
                                                 formatDateTime(
                                                     noc.rejectedAt
@@ -1429,7 +1429,7 @@ function NocSection({
 
                         <div>
 
-                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 NOC Remarks
                             </label>
 
@@ -1455,7 +1455,7 @@ function NocSection({
                                     3
                                 }
                                 placeholder="Enter NOC remarks..."
-                                className="w-full rounded-lg border border-gray-300 p-3 disabled:bg-gray-100 disabled:text-gray-500"
+                                className="w-full rounded-lg border border-gray-300 bg-white p-3 text-gray-900 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
                             />
 
                             {canModify && (
@@ -1481,9 +1481,9 @@ function NocSection({
                             NOC Document
                         ====================================== */}
 
-                        <div className="rounded-lg bg-gray-50 p-4">
+                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
 
-                            <p className="font-semibold text-gray-800">
+                            <p className="font-semibold text-gray-800 dark:text-gray-100">
                                 NOC Document
                             </p>
 
@@ -1491,7 +1491,7 @@ function NocSection({
                                 noc.fileName
                                     ? (
 
-                                        <p className="mt-1 break-all text-sm text-gray-600">
+                                        <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-300">
                                             {
                                                 noc.fileName
                                             }
@@ -1500,7 +1500,7 @@ function NocSection({
                                     )
                                     : (
 
-                                        <p className="mt-1 text-sm text-gray-500">
+                                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                             No NOC document uploaded
                                         </p>
 
@@ -1566,7 +1566,7 @@ function NocSection({
 
                             {canModify && (
 
-                                <p className="mt-2 text-xs text-gray-500">
+                                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                     Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
                                 </p>
 

@@ -189,17 +189,17 @@ function ProjectExcelExportModal({
 
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
 
-            <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white text-gray-900 shadow-2xl dark:bg-gray-900 dark:text-gray-100">
 
                 {/* ==================================================
                     Header
                 ================================================== */}
 
-                <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 sm:px-6">
+                <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6">
 
                     <div className="flex items-center gap-3">
 
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300">
 
                             <FileSpreadsheet
                                 size={
@@ -211,11 +211,11 @@ function ProjectExcelExportModal({
 
                         <div>
 
-                            <h2 className="text-lg font-bold text-gray-800">
+                            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                                 Export Project Excel
                             </h2>
 
-                            <p className="mt-0.5 text-sm text-gray-500">
+                            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                 Select project type and booking date range
                             </p>
 
@@ -231,7 +231,7 @@ function ProjectExcelExportModal({
                         disabled={
                             isExporting
                         }
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                         aria-label="Close export options"
                     >
 
@@ -257,7 +257,7 @@ function ProjectExcelExportModal({
 
                     <div>
 
-                        <label className="mb-3 block text-sm font-semibold text-gray-700">
+                        <label className="mb-3 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Project Type
                         </label>
 
@@ -352,10 +352,10 @@ function ProjectExcelExportModal({
                                 size={
                                     18
                                 }
-                                className="text-gray-500"
+                                className="text-gray-500 dark:text-gray-400"
                             />
 
-                            <label className="text-sm font-semibold text-gray-700">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Booking Date
                             </label>
 
@@ -390,7 +390,7 @@ function ProjectExcelExportModal({
                                     All Dates
                                 </p>
 
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     Export all booking dates
                                 </p>
 
@@ -423,7 +423,7 @@ function ProjectExcelExportModal({
                                     Date Range
                                 </p>
 
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     Export selected booking period
                                 </p>
 
@@ -443,7 +443,7 @@ function ProjectExcelExportModal({
 
                                     <div>
 
-                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             From Date
                                         </label>
 
@@ -467,14 +467,14 @@ function ProjectExcelExportModal({
                                                 toDate ||
                                                 undefined
                                             }
-                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-green-950 dark:disabled:bg-gray-800"
                                         />
 
                                     </div>
 
                                     <div>
 
-                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             To Date
                                         </label>
 
@@ -498,7 +498,7 @@ function ProjectExcelExportModal({
                                                 fromDate ||
                                                 undefined
                                             }
-                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-green-950 dark:disabled:bg-gray-800"
                                         />
 
                                     </div>
@@ -514,13 +514,13 @@ function ProjectExcelExportModal({
                         Selection Preview
                     ================================================== */}
 
-                    <div className="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3">
+                    <div className="rounded-xl border border-green-100 bg-green-50/60 px-4 py-3 dark:border-green-900 dark:bg-green-950/30">
 
-                        <p className="text-xs font-semibold uppercase tracking-wide text-green-700">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-green-700 dark:text-green-300">
                             Export Selection
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-700">
+                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
 
                             {
                                 propertyType ===
@@ -551,7 +551,7 @@ function ProjectExcelExportModal({
                     Footer
                 ================================================== */}
 
-                <div className="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                <div className="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 dark:border-gray-700 dark:bg-gray-950/60 sm:flex-row sm:justify-end sm:px-6">
 
                     <button
                         type="button"
@@ -561,7 +561,7 @@ function ProjectExcelExportModal({
                         disabled={
                             isExporting
                         }
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
                     >
                         Cancel
                     </button>

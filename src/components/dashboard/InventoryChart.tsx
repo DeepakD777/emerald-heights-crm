@@ -55,19 +55,19 @@ function InventoryChart({
     ];
 
     return (
-       <div className="min-w-0 rounded-2xl bg-white p-4 shadow sm:p-5 lg:p-6">
+        <div className="min-w-0 rounded-2xl bg-white p-4 text-gray-600 shadow transition-colors dark:bg-gray-900 dark:text-gray-300 sm:p-5 lg:p-6">
 
-           <div className="mb-4 sm:mb-5 lg:mb-6">
-                <h2 className="text-lg font-bold text-gray-800 sm:text-xl">
+            <div className="mb-4 sm:mb-5 lg:mb-6">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 sm:text-xl">
                     Inventory Overview
                 </h2>
 
-                <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                     Live property inventory status
                 </p>
             </div>
 
-           <div className="h-64 min-w-0 sm:h-72 lg:h-80">
+            <div className="h-64 min-w-0 sm:h-72 lg:h-80">
 
                 <ResponsiveContainer
                     width="100%"
@@ -86,17 +86,97 @@ function InventoryChart({
 
                         <CartesianGrid
                             strokeDasharray="3 3"
+                            stroke="currentColor"
+                            opacity={0.18}
                         />
 
                         <XAxis
                             dataKey="category"
+                            axisLine={{
+                                stroke:
+                                    "currentColor",
+                            }}
+                            tickLine={{
+                                stroke:
+                                    "currentColor",
+                            }}
+                            tick={{
+                                fill:
+                                    "currentColor",
+                            }}
                         />
 
-                        <YAxis />
+                        <YAxis
+                            axisLine={{
+                                stroke:
+                                    "currentColor",
+                            }}
+                            tickLine={{
+                                stroke:
+                                    "currentColor",
+                            }}
+                            tick={{
+                                fill:
+                                    "currentColor",
+                            }}
+                        />
 
-                        <Tooltip />
+                        <Tooltip
+                            cursor={{
+                                fill:
+                                    "transparent",
+                            }}
+                            content={({
+                                active,
+                                payload,
+                                label,
+                            }) => {
+                                if (
+                                    !active ||
+                                    !payload ||
+                                    payload.length ===
+                                        0
+                                ) {
+                                    return null;
+                                }
 
-                        <Legend />
+                                return (
+                                    <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-lg dark:border-gray-700 dark:bg-gray-950">
+                                        <p className="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-100">
+                                            {label}
+                                        </p>
+
+                                        <div className="space-y-1">
+                                            {payload.map(
+                                                (
+                                                    entry
+                                                ) => (
+                                                    <p
+                                                        key={String(
+                                                            entry.dataKey
+                                                        )}
+                                                        className="text-xs text-gray-600 dark:text-gray-300"
+                                                    >
+                                                        {entry.name}
+                                                        :{" "}
+                                                        <span className="font-semibold">
+                                                            {entry.value}
+                                                        </span>
+                                                    </p>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }}
+                        />
+
+                        <Legend
+                            wrapperStyle={{
+                                color:
+                                    "currentColor",
+                            }}
+                        />
 
                         <Bar
                             dataKey="available"

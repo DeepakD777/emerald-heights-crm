@@ -135,6 +135,11 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                     text-indigo-700
                     hover:bg-indigo-100
                     hover:border-indigo-600
+                    dark:bg-indigo-950/60
+                    dark:border-indigo-700
+                    dark:text-indigo-300
+                    dark:hover:bg-indigo-900/70
+                    dark:hover:border-indigo-600
                 `;
 
       case "booked":
@@ -144,6 +149,11 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                     text-rose-700
                     hover:bg-rose-100
                     hover:border-rose-600
+                    dark:bg-rose-950/60
+                    dark:border-rose-700
+                    dark:text-rose-300
+                    dark:hover:bg-rose-900/70
+                    dark:hover:border-rose-600
                 `;
 
       case "hold":
@@ -153,6 +163,11 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                     text-orange-700
                     hover:bg-orange-100
                     hover:border-orange-600
+                    dark:bg-orange-950/60
+                    dark:border-orange-700
+                    dark:text-orange-300
+                    dark:hover:bg-orange-900/70
+                    dark:hover:border-orange-600
                 `;
 
       case "sold":
@@ -162,6 +177,11 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                     text-slate-700
                     hover:bg-slate-200
                     hover:border-slate-600
+                    dark:bg-slate-800
+                    dark:border-slate-600
+                    dark:text-slate-200
+                    dark:hover:bg-slate-700
+                    dark:hover:border-slate-500
                 `;
 
       default:
@@ -171,6 +191,11 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                     text-teal-700
                     hover:bg-teal-100
                     hover:border-teal-600
+                    dark:bg-teal-950/60
+                    dark:border-teal-700
+                    dark:text-teal-300
+                    dark:hover:bg-teal-900/70
+                    dark:hover:border-teal-600
                 `;
     }
   }
@@ -187,6 +212,10 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                 bg-red-50
                 text-red-700
                 hover:bg-red-100
+                dark:bg-red-950/60
+                dark:border-red-700
+                dark:text-red-300
+                dark:hover:bg-red-900/70
             `;
 
     case "hold":
@@ -195,6 +224,10 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                 bg-yellow-50
                 text-yellow-700
                 hover:bg-yellow-100
+                dark:bg-yellow-950/60
+                dark:border-yellow-700
+                dark:text-yellow-300
+                dark:hover:bg-yellow-900/70
             `;
 
     case "sold":
@@ -203,6 +236,10 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                 bg-gray-100
                 text-gray-700
                 hover:bg-gray-200
+                dark:bg-gray-800
+                dark:border-gray-600
+                dark:text-gray-200
+                dark:hover:bg-gray-700
             `;
 
     case "finedine":
@@ -211,6 +248,10 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                 bg-purple-50
                 text-purple-700
                 hover:bg-purple-100
+                dark:bg-purple-950/60
+                dark:border-purple-700
+                dark:text-purple-300
+                dark:hover:bg-purple-900/70
             `;
 
     default:
@@ -219,6 +260,10 @@ function getUnitColor(property: Property, section?: CommercialSection) {
                 bg-green-50
                 text-green-700
                 hover:bg-green-100
+                dark:bg-green-950/60
+                dark:border-green-700
+                dark:text-green-300
+                dark:hover:bg-green-900/70
             `;
   }
 }
@@ -811,6 +856,7 @@ function DashboardQuickInventory({
                     focus:outline-none
                     focus:ring-2
                     focus:ring-offset-2
+                    dark:focus:ring-offset-gray-950
 
                     ${section === "Commercial 1"
             ? "focus:ring-teal-400"
@@ -940,6 +986,7 @@ sm:text-base
                                         bg-white
                                         text-gray-700
                                         hover:bg-green-50
+                                        dark:hover:bg-green-950/60
                                       `
               }
                         `}
@@ -978,6 +1025,7 @@ sm:text-base
                                         bg-white
                                         text-gray-700
                                         hover:bg-blue-50
+                                        dark:hover:bg-blue-950/60
                                       `
               }
                         `}
@@ -1035,6 +1083,8 @@ sm:w-auto
                                                                     bg-white
                                                                     text-gray-700
                                                                     hover:bg-green-50
+                                                        dark:hover:bg-green-950/60
+                                        dark:hover:bg-green-950/60
                                                                   `
                       }
                                                     `}
@@ -1216,6 +1266,8 @@ sm:w-auto
                                                         text-gray-700
                                                         hover:border-green-500
                                                         hover:bg-green-50
+                                                        dark:hover:bg-green-950/60
+                                        dark:hover:bg-green-950/60
                                                       `
                     }
                                         `}
@@ -1255,6 +1307,7 @@ sm:w-auto
                                                         text-gray-700
                                                         hover:border-teal-500
                                                         hover:bg-teal-50
+                                                        dark:hover:bg-teal-950/60
                                                       `
                     }
                                         `}
@@ -1353,6 +1406,8 @@ lg:py-8
               ? `
                                     border-teal-200
                                     bg-teal-50/40
+                                    dark:border-teal-900
+                                    dark:bg-teal-950/20
                                   `
               : `
                                     border-gray-200
@@ -1380,13 +1435,13 @@ lg:py-8
 
                     {/* LIFT */}
 
-                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50">
+                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/50">
                       <div className="text-center">
-                        <p className="text-sm font-bold tracking-wide text-blue-700">
+                        <p className="text-sm font-bold tracking-wide text-blue-700 dark:text-blue-300">
                           LIFT
                         </p>
 
-                        <p className="mt-1 text-xs text-blue-500">
+                        <p className="mt-1 text-xs text-blue-500 dark:text-blue-400">
                           Common Area
                         </p>
                       </div>
@@ -1414,13 +1469,13 @@ lg:py-8
 
                     {/* STAIRS */}
 
-                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100">
+                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70">
                       <div className="text-center">
-                        <p className="text-sm font-bold tracking-wide text-slate-700">
+                        <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300">
                           STAIRS
                         </p>
 
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                           Common Area
                         </p>
                       </div>
@@ -1498,13 +1553,13 @@ lg:py-8
 
                     {/* LIFT */}
 
-                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50">
+                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/50">
                       <div className="text-center">
-                        <p className="text-sm font-bold tracking-wide text-blue-700">
+                        <p className="text-sm font-bold tracking-wide text-blue-700 dark:text-blue-300">
                           LIFT
                         </p>
 
-                        <p className="mt-1 text-xs text-blue-500">
+                        <p className="mt-1 text-xs text-blue-500 dark:text-blue-400">
                           Common Area
                         </p>
                       </div>
@@ -1532,13 +1587,13 @@ lg:py-8
 
                     {/* STAIRS */}
 
-                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100">
+                    <div className="flex h-[110px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70">
                       <div className="text-center">
-                        <p className="text-sm font-bold tracking-wide text-slate-700">
+                        <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300">
                           STAIRS
                         </p>
 
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                           Common Area
                         </p>
                       </div>
@@ -1580,7 +1635,7 @@ lg:py-8
 
         {inventoryType === "commercial" &&
           commercialSection === "Commercial 1" ? (
-          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t pt-4 text-xs sm:mt-5 sm:gap-6 sm:text-sm">
+          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-gray-200 pt-4 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300 sm:mt-5 sm:gap-6 sm:text-sm">
             <span className="flex items-center gap-2">
               <span className="h-3 w-3 rounded bg-teal-500" />
               Available
@@ -1607,7 +1662,7 @@ lg:py-8
             </span>
           </div>
         ) : (
-          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t pt-4 text-xs sm:mt-5 sm:gap-6 sm:text-sm">
+          <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-gray-200 pt-4 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300 sm:mt-5 sm:gap-6 sm:text-sm">
             <span className="flex items-center gap-2">
               <span className="h-3 w-3 rounded bg-green-500" />
               Available

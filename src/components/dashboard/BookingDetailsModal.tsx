@@ -175,25 +175,25 @@ function BookingDetailsModal({
       case "completed":
 
         return (
-          "bg-green-100 text-green-700"
+          "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300"
         );
 
       case "generated":
 
         return (
-          "bg-blue-100 text-blue-700"
+          "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
         );
 
       case "uploaded":
 
         return (
-          "bg-purple-100 text-purple-700"
+          "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
         );
 
       default:
 
         return (
-          "bg-yellow-100 text-yellow-700"
+          "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/60 dark:text-yellow-300"
         );
     }
   };
@@ -1049,7 +1049,7 @@ function BookingDetailsModal({
       title="Booking Details"
     >
 
-      <div className="space-y-6">
+      <div className="space-y-6 text-gray-800 dark:text-gray-100">
 
         {/* ==================================================
             Employee View Only Notice
@@ -1057,7 +1057,7 @@ function BookingDetailsModal({
 
         {!isAdmin && (
 
-          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300">
             View only access — booking and document changes can only be made by an administrator.
           </div>
         )}
@@ -1068,7 +1068,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Flat Information
           </h3>
 
@@ -1076,7 +1076,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Flat Number
               </p>
 
@@ -1090,7 +1090,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Tower
               </p>
 
@@ -1105,7 +1105,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Floor
               </p>
 
@@ -1120,11 +1120,11 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="mb-1 text-sm text-gray-500">
+              <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
                 Status
               </p>
 
-              <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-sm font-semibold capitalize text-red-700">
+              <span className="inline-block rounded-full bg-red-100 px-3 py-1 text-sm font-semibold capitalize text-red-700 dark:bg-red-950/60 dark:text-red-300">
                 {
                   booking.status ||
                   "Booked"
@@ -1143,7 +1143,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Customer Information
           </h3>
 
@@ -1151,7 +1151,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Customer Name
               </p>
 
@@ -1166,7 +1166,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Mobile Number
               </p>
 
@@ -1181,7 +1181,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Email ID
               </p>
 
@@ -1196,7 +1196,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Profile
               </p>
 
@@ -1211,7 +1211,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 DOB
               </p>
 
@@ -1226,7 +1226,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 DOA
               </p>
 
@@ -1241,7 +1241,7 @@ function BookingDetailsModal({
 
             <div className="sm:col-span-2">
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Address
               </p>
 
@@ -1264,7 +1264,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Customer KYC
           </h3>
 
@@ -1272,7 +1272,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Aadhar Number
               </p>
 
@@ -1287,7 +1287,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 PAN Number
               </p>
 
@@ -1310,7 +1310,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Booking & Financial Details
           </h3>
 
@@ -1318,7 +1318,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Booking No.
               </p>
 
@@ -1333,7 +1333,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Booking Date
               </p>
 
@@ -1349,11 +1349,11 @@ function BookingDetailsModal({
 
               <div>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Cancelled At
                 </p>
 
-                <p className="font-semibold text-red-700">
+                <p className="font-semibold text-red-700 dark:text-red-300">
                   {
                     formatDateTime(
                       booking.cancelledAt
@@ -1367,11 +1367,11 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Total Amount
               </p>
 
-              <p className="font-semibold text-green-700">
+              <p className="font-semibold text-green-700 dark:text-green-300">
                 ₹{" "}
                 {
                   Number(
@@ -1387,7 +1387,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Discount
               </p>
 
@@ -1407,11 +1407,11 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 After Discount Amount
               </p>
 
-              <p className="font-semibold text-green-700">
+              <p className="font-semibold text-green-700 dark:text-green-300">
                 ₹{" "}
                 {
                   Number(
@@ -1427,11 +1427,11 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Booking Amount
               </p>
 
-              <p className="font-semibold text-green-700">
+              <p className="font-semibold text-green-700 dark:text-green-300">
                 ₹{" "}
                 {
                   Number(
@@ -1447,7 +1447,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Plan
               </p>
 
@@ -1462,7 +1462,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Payment Mode
               </p>
 
@@ -1477,7 +1477,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Cheque No.
               </p>
 
@@ -1492,7 +1492,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Bank Name
               </p>
 
@@ -1523,7 +1523,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Finance & Customer Requirement
           </h3>
 
@@ -1531,7 +1531,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Finance
               </p>
 
@@ -1546,7 +1546,7 @@ function BookingDetailsModal({
 
             <div>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Customer Need
               </p>
 
@@ -1569,11 +1569,11 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Relationship Manager
           </h3>
 
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-950/60">
 
             {
               booking
@@ -1583,7 +1583,7 @@ function BookingDetailsModal({
 
                   <div>
 
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">
                       {
                         booking
                           .assignedEmployee
@@ -1591,7 +1591,7 @@ function BookingDetailsModal({
                       }
                     </p>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {
                         booking
                           .assignedEmployee
@@ -1609,7 +1609,7 @@ function BookingDetailsModal({
                         .assignedEmployee
                         .phone && (
 
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                           {
                             booking
                               .assignedEmployee
@@ -1625,7 +1625,7 @@ function BookingDetailsModal({
                 )
                 : (
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Unassigned
                   </p>
 
@@ -1642,7 +1642,7 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Agreement Documents
           </h3>
 
@@ -1652,7 +1652,7 @@ function BookingDetailsModal({
                 Requisition Letter
             ============================================== */}
 
-            <div className="rounded-xl border border-gray-200 p-4">
+            <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/30">
 
               <div className="flex flex-col gap-4">
 
@@ -1662,11 +1662,11 @@ function BookingDetailsModal({
 
                     <div className="flex flex-wrap items-center gap-2">
 
-                      <h4 className="font-bold text-gray-800">
+                      <h4 className="font-bold text-gray-800 dark:text-gray-100">
                         Requisition Letter
                       </h4>
 
-                      <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                      <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600 dark:bg-red-950/50 dark:text-red-300">
                         Mandatory
                       </span>
 
@@ -1674,7 +1674,7 @@ function BookingDetailsModal({
 
                     <div className="mt-2 flex flex-wrap items-center gap-2">
 
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         Status:
                       </span>
 
@@ -1729,13 +1729,13 @@ function BookingDetailsModal({
 
                 {requisition.fileName && (
 
-                  <div className="rounded-lg bg-green-50 p-3">
+                  <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950/40">
 
-                    <p className="text-sm font-medium text-green-800">
+                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
                       Uploaded Document
                     </p>
 
-                    <p className="mt-1 truncate text-sm text-gray-600">
+                    <p className="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
                       {
                         requisition.fileName
                       }
@@ -1799,7 +1799,7 @@ function BookingDetailsModal({
 
                 {isAdmin && !readOnly && (
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
                   </p>
                 )}
@@ -1812,7 +1812,7 @@ function BookingDetailsModal({
                 Agreement To Sell
             ============================================== */}
 
-            <div className="rounded-xl border border-gray-200 p-4">
+            <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/30">
 
               <div className="flex flex-col gap-4">
 
@@ -1822,11 +1822,11 @@ function BookingDetailsModal({
 
                     <div className="flex flex-wrap items-center gap-2">
 
-                      <h4 className="font-bold text-gray-800">
+                      <h4 className="font-bold text-gray-800 dark:text-gray-100">
                         Agreement to Sell
                       </h4>
 
-                      <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                      <span className="rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-600 dark:bg-red-950/50 dark:text-red-300">
                         Mandatory
                       </span>
 
@@ -1834,7 +1834,7 @@ function BookingDetailsModal({
 
                     <div className="mt-2 flex flex-wrap items-center gap-2">
 
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         Status:
                       </span>
 
@@ -1900,13 +1900,13 @@ function BookingDetailsModal({
 
                 {agreement.fileName && (
 
-                  <div className="rounded-lg bg-green-50 p-3">
+                  <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950/40">
 
-                    <p className="text-sm font-medium text-green-800">
+                    <p className="text-sm font-medium text-green-800 dark:text-green-300">
                       Uploaded Document
                     </p>
 
-                    <p className="mt-1 truncate text-sm text-gray-600">
+                    <p className="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
                       {
                         agreement.fileName
                       }
@@ -1970,7 +1970,7 @@ function BookingDetailsModal({
 
                 {isAdmin && !readOnly && (
 
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
                   </p>
                 )}
@@ -1983,7 +1983,7 @@ function BookingDetailsModal({
                 Tripartite Agreement
             ============================================== */}
 
-            <div className="rounded-xl border border-gray-200 p-4">
+            <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/30">
 
               <div className="flex flex-col gap-4">
 
@@ -1993,13 +1993,13 @@ function BookingDetailsModal({
 
                     <div className="flex flex-wrap items-center gap-2">
 
-                      <h4 className="font-bold text-gray-800">
+                      <h4 className="font-bold text-gray-800 dark:text-gray-100">
                         Tripartite Agreement
                       </h4>
 
                       <span
                         className={`rounded-full px-2 py-1 text-xs font-semibold ${tripartite.required
-                          ? "bg-blue-100 text-blue-700"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
                           : "bg-gray-100 text-gray-600"
                           }`}
                       >
@@ -2016,7 +2016,7 @@ function BookingDetailsModal({
 
                       <div className="mt-2 flex flex-wrap items-center gap-2">
 
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           Status:
                         </span>
 
@@ -2102,13 +2102,13 @@ function BookingDetailsModal({
                     {tripartite.document
                       ?.fileName && (
 
-                        <div className="rounded-lg bg-green-50 p-3">
+                        <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950/40">
 
-                          <p className="text-sm font-medium text-green-800">
+                          <p className="text-sm font-medium text-green-800 dark:text-green-300">
                             Uploaded Document
                           </p>
 
-                          <p className="mt-1 truncate text-sm text-gray-600">
+                          <p className="mt-1 truncate text-sm text-gray-600 dark:text-gray-300">
                             {
                               tripartite.document
                                 .fileName
@@ -2177,7 +2177,7 @@ function BookingDetailsModal({
 
                     {isAdmin && !readOnly && (
 
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Supported formats: PDF, JPG, PNG. Maximum file size: 10 MB.
                       </p>
                     )}
@@ -2212,13 +2212,13 @@ function BookingDetailsModal({
 
         <div>
 
-          <h3 className="mb-4 border-b pb-2 text-lg font-semibold text-green-700">
+          <h3 className="mb-4 border-b border-gray-200 pb-2 text-lg font-semibold text-green-700 dark:border-gray-700 dark:text-green-300">
             Remarks
           </h3>
 
-          <div className="rounded-lg bg-gray-50 p-4">
+          <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-950/60">
 
-            <p className="text-gray-700">
+            <p className="text-gray-700 dark:text-gray-300">
               {
                 booking.remarks ||
                 "No Remarks"
@@ -2233,7 +2233,7 @@ function BookingDetailsModal({
             Footer
         ================================================== */}
 
-        <div className="flex justify-end border-t pt-5">
+        <div className="flex justify-end border-t border-gray-200 pt-5 dark:border-gray-700">
 
           <button
             type="button"

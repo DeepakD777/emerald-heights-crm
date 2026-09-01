@@ -98,19 +98,19 @@ function ShopModal({
         switch (status) {
 
             case "finedine":
-                return "bg-purple-100 text-purple-700 border-purple-200";
+                return "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800";
 
             case "booked":
-                return "bg-red-100 text-red-700 border-red-200";
+                return "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800";
 
             case "hold":
-                return "bg-yellow-100 text-yellow-700 border-yellow-200";
+                return "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950/60 dark:text-yellow-300 dark:border-yellow-800";
 
             case "sold":
-                return "bg-gray-200 text-gray-700 border-gray-300";
+                return "bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600";
 
             default:
-                return "bg-green-100 text-green-700 border-green-200";
+                return "bg-green-100 text-green-700 border-green-200 dark:bg-green-950/60 dark:text-green-300 dark:border-green-800";
         }
     };
 
@@ -196,6 +196,7 @@ function ShopModal({
                     max-w-lg
                     rounded-2xl
                     bg-white
+                    dark:bg-gray-900
                     shadow-2xl
                 "
                 onClick={(
@@ -207,7 +208,7 @@ function ShopModal({
 
                 {/* Header */}
 
-                <div className="flex items-center justify-between border-b p-6">
+                <div className="flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-700">
 
                     <div className="flex items-center gap-3">
 
@@ -220,23 +221,24 @@ function ShopModal({
                                 justify-center
                                 rounded-xl
                                 bg-green-100
+                                dark:bg-green-950/60
                             "
                         >
 
                             <Store
                                 size={26}
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                             />
 
                         </div>
 
                         <div>
 
-                            <h2 className="text-xl font-bold text-gray-800">
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                                 Shop {shop.number}
                             </h2>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 Commercial Property
                             </p>
 
@@ -249,7 +251,7 @@ function ShopModal({
                         onClick={
                             onClose
                         }
-                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                        className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                     >
                         <X
                             size={22}
@@ -264,7 +266,7 @@ function ShopModal({
 
                     {/* Status */}
 
-                    <div className="rounded-xl border bg-gray-50 p-4">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-950/60">
 
                         <div className="flex items-center justify-between">
 
@@ -272,10 +274,10 @@ function ShopModal({
 
                                 <Tag
                                     size={20}
-                                    className="text-gray-600"
+                                    className="text-gray-600 dark:text-gray-300"
                                 />
 
-                                <span className="font-medium text-gray-700">
+                                <span className="font-medium text-gray-700 dark:text-gray-300">
                                     Status
                                 </span>
 
@@ -328,7 +330,7 @@ function ShopModal({
                                             currentStatus ===
                                             "available"
                                                 ? "bg-green-600 text-white"
-                                                : "border border-green-300 bg-white text-green-700 hover:bg-green-50"
+                                                : "border border-green-300 bg-white text-green-700 hover:bg-green-50 dark:border-green-800 dark:bg-gray-900 dark:text-green-300 dark:hover:bg-green-950/60"
                                         }
                                     `}
                                 >
@@ -355,7 +357,7 @@ function ShopModal({
                                             currentStatus ===
                                             "hold"
                                                 ? "bg-yellow-500 text-white"
-                                                : "border border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50"
+                                                : "border border-yellow-300 bg-white text-yellow-700 hover:bg-yellow-50 dark:border-yellow-800 dark:bg-gray-900 dark:text-yellow-300 dark:hover:bg-yellow-950/60"
                                         }
                                     `}
                                 >
@@ -382,7 +384,7 @@ function ShopModal({
                                             currentStatus ===
                                             "booked"
                                                 ? "bg-red-600 text-white"
-                                                : "border border-red-300 bg-white text-red-700 hover:bg-red-50"
+                                                : "border border-red-300 bg-white text-red-700 hover:bg-red-50 dark:border-red-800 dark:bg-gray-900 dark:text-red-300 dark:hover:bg-red-950/60"
                                         }
                                     `}
                                 >
@@ -409,7 +411,7 @@ function ShopModal({
                                             currentStatus ===
                                             "sold"
                                                 ? "bg-gray-700 text-white"
-                                                : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                                                : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                                         }
                                     `}
                                 >
@@ -436,7 +438,7 @@ function ShopModal({
                                             currentStatus ===
                                             "finedine"
                                                 ? "bg-purple-600 text-white"
-                                                : "border border-purple-300 bg-white text-purple-700 hover:bg-purple-50"
+                                                : "border border-purple-300 bg-white text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:bg-gray-900 dark:text-purple-300 dark:hover:bg-purple-950/60"
                                         }
                                     `}
                                 >
@@ -458,10 +460,13 @@ function ShopModal({
                                     border
                                     border-gray-200
                                     bg-white
+                                    dark:border-gray-700
+                                    dark:bg-gray-900
                                     px-3
                                     py-2
                                     text-xs
                                     text-gray-500
+                                    dark:text-gray-400
                                 "
                             >
                                 View only access
@@ -473,22 +478,22 @@ function ShopModal({
 
                     {/* Floor */}
 
-                    <div className="flex items-center justify-between rounded-xl border p-4">
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/40">
 
                         <div className="flex items-center gap-3">
 
                             <MapPin
                                 size={20}
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                             />
 
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                                 Floor
                             </span>
 
                         </div>
 
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {getFloorLabel()}
                         </span>
 
@@ -496,22 +501,22 @@ function ShopModal({
 
                     {/* Area */}
 
-                    <div className="flex items-center justify-between rounded-xl border p-4">
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/40">
 
                         <div className="flex items-center gap-3">
 
                             <Ruler
                                 size={20}
-                                className="text-blue-600"
+                                className="text-blue-600 dark:text-blue-400"
                             />
 
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                                 Area
                             </span>
 
                         </div>
 
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {shop.area}
                         </span>
 
@@ -519,22 +524,22 @@ function ShopModal({
 
                     {/* Shop Number */}
 
-                    <div className="flex items-center justify-between rounded-xl border p-4">
+                    <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-950/40">
 
                         <div className="flex items-center gap-3">
 
                             <Store
                                 size={20}
-                                className="text-orange-500"
+                                className="text-orange-500 dark:text-orange-400"
                             />
 
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
                                 Shop Number
                             </span>
 
                         </div>
 
-                        <span className="font-semibold text-gray-800">
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {shop.number}
                         </span>
 
@@ -544,7 +549,7 @@ function ShopModal({
 
                 {/* Footer */}
 
-                <div className="flex justify-end gap-3 border-t bg-gray-50 p-5">
+                <div className="flex justify-end gap-3 border-t border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-gray-950/60">
 
                     <button
                         type="button"
@@ -556,11 +561,15 @@ function ShopModal({
                             border
                             border-gray-300
                             bg-white
+                            dark:border-gray-700
+                            dark:bg-gray-900
                             px-5
                             py-2
                             font-medium
                             text-gray-700
                             hover:bg-gray-100
+                            dark:text-gray-300
+                            dark:hover:bg-gray-800
                         "
                     >
                         Close

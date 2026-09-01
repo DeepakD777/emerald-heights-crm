@@ -187,17 +187,17 @@ function InstallmentExcelExportModal({
 
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
 
-            <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white text-gray-900 shadow-2xl dark:bg-gray-900 dark:text-gray-100">
 
                 {/* ==================================================
                     Header
                 ================================================== */}
 
-                <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 sm:px-6">
+                <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-700 sm:px-6">
 
                     <div className="flex items-center gap-3">
 
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
 
                             <FileSpreadsheet
                                 size={
@@ -209,11 +209,11 @@ function InstallmentExcelExportModal({
 
                         <div>
 
-                            <h2 className="text-lg font-bold text-gray-800">
+                            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                                 Export Installment Report
                             </h2>
 
-                            <p className="mt-0.5 text-sm text-gray-500">
+                            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                                 Select project type and payment date range
                             </p>
 
@@ -229,7 +229,7 @@ function InstallmentExcelExportModal({
                         disabled={
                             isExporting
                         }
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close installment export options"
                     >
 
@@ -255,7 +255,7 @@ function InstallmentExcelExportModal({
 
                     <div>
 
-                        <label className="mb-3 block text-sm font-semibold text-gray-700">
+                        <label className="mb-3 block text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Project Type
                         </label>
 
@@ -319,8 +319,8 @@ function InstallmentExcelExportModal({
                                             }
                                             className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
                                                 selected
-                                                    ? "border-blue-700 bg-blue-50 text-blue-800 ring-1 ring-blue-700"
-                                                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50/40"
+                                                    ? "border-blue-700 bg-blue-50 text-blue-800 ring-1 ring-blue-700 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-700"
+                                                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
                                             } disabled:cursor-not-allowed disabled:opacity-60`}
                                         >
 
@@ -350,10 +350,10 @@ function InstallmentExcelExportModal({
                                 size={
                                     18
                                 }
-                                className="text-gray-500"
+                                className="text-gray-500 dark:text-gray-400"
                             />
 
-                            <label className="text-sm font-semibold text-gray-700">
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                 Payment Date
                             </label>
 
@@ -374,21 +374,21 @@ function InstallmentExcelExportModal({
                                 className={`rounded-xl border px-4 py-3 text-left transition ${
                                     dateMode ===
                                     "ALL"
-                                        ? "border-blue-700 bg-blue-50 ring-1 ring-blue-700"
-                                        : "border-gray-200 bg-white hover:border-blue-300"
+                                        ? "border-blue-700 bg-blue-50 ring-1 ring-blue-700 dark:border-blue-700 dark:bg-blue-950/50 dark:ring-blue-700"
+                                        : "border-gray-200 bg-white hover:border-blue-300 dark:border-gray-700 dark:bg-gray-950 dark:hover:border-blue-700"
                                 } disabled:cursor-not-allowed disabled:opacity-60`}
                             >
 
                                 <p className={`text-sm font-semibold ${
                                     dateMode ===
                                     "ALL"
-                                        ? "text-blue-800"
-                                        : "text-gray-700"
+                                        ? "text-blue-800 dark:text-blue-300"
+                                        : "text-gray-700 dark:text-gray-300"
                                 }`}>
                                     All Dates
                                 </p>
 
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     Export complete installment payment history
                                 </p>
 
@@ -407,21 +407,21 @@ function InstallmentExcelExportModal({
                                 className={`rounded-xl border px-4 py-3 text-left transition ${
                                     dateMode ===
                                     "RANGE"
-                                        ? "border-blue-700 bg-blue-50 ring-1 ring-blue-700"
-                                        : "border-gray-200 bg-white hover:border-blue-300"
+                                        ? "border-blue-700 bg-blue-50 ring-1 ring-blue-700 dark:border-blue-700 dark:bg-blue-950/50 dark:ring-blue-700"
+                                        : "border-gray-200 bg-white hover:border-blue-300 dark:border-gray-700 dark:bg-gray-950 dark:hover:border-blue-700"
                                 } disabled:cursor-not-allowed disabled:opacity-60`}
                             >
 
                                 <p className={`text-sm font-semibold ${
                                     dateMode ===
                                     "RANGE"
-                                        ? "text-blue-800"
-                                        : "text-gray-700"
+                                        ? "text-blue-800 dark:text-blue-300"
+                                        : "text-gray-700 dark:text-gray-300"
                                 }`}>
                                     Date Range
                                 </p>
 
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     Filter by actual payment date
                                 </p>
 
@@ -441,7 +441,7 @@ function InstallmentExcelExportModal({
 
                                     <div>
 
-                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             From Date
                                         </label>
 
@@ -465,14 +465,14 @@ function InstallmentExcelExportModal({
                                                 toDate ||
                                                 undefined
                                             }
-                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-blue-950 dark:disabled:bg-gray-800"
                                         />
 
                                     </div>
 
                                     <div>
 
-                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             To Date
                                         </label>
 
@@ -496,7 +496,7 @@ function InstallmentExcelExportModal({
                                                 fromDate ||
                                                 undefined
                                             }
-                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+                                            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-blue-950 dark:disabled:bg-gray-800"
                                         />
 
                                     </div>
@@ -512,13 +512,13 @@ function InstallmentExcelExportModal({
                         Export Contents
                     ================================================== */}
 
-                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-950/60">
 
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                             Report Contents
                         </p>
 
-                        <p className="mt-2 text-sm text-gray-700">
+                        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
                             Installment Summary • Installment Breakdown • Payment History
                         </p>
 
@@ -528,13 +528,13 @@ function InstallmentExcelExportModal({
                         Selection Preview
                     ================================================== */}
 
-                    <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 dark:border-blue-900 dark:bg-blue-950/30">
 
-                        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
                             Export Selection
                         </p>
 
-                        <p className="mt-1 text-sm text-gray-700">
+                        <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
 
                             {
                                 propertyType ===
@@ -565,7 +565,7 @@ function InstallmentExcelExportModal({
                     Footer
                 ================================================== */}
 
-                <div className="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                <div className="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 dark:border-gray-700 dark:bg-gray-950/60 sm:flex-row sm:justify-end sm:px-6">
 
                     <button
                         type="button"
@@ -575,7 +575,7 @@ function InstallmentExcelExportModal({
                         disabled={
                             isExporting
                         }
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>

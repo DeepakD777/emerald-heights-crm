@@ -80,6 +80,11 @@ const getStatusColor = (status: string) => {
                 text-red-700
                 hover:bg-red-100
                 hover:border-red-500
+                dark:bg-red-950/60
+                dark:border-red-700
+                dark:text-red-300
+                dark:hover:bg-red-900/70
+                dark:hover:border-red-600
             `;
 
     case "hold":
@@ -89,6 +94,11 @@ const getStatusColor = (status: string) => {
                 text-yellow-700
                 hover:bg-yellow-100
                 hover:border-yellow-500
+                dark:bg-yellow-950/60
+                dark:border-yellow-700
+                dark:text-yellow-300
+                dark:hover:bg-yellow-900/70
+                dark:hover:border-yellow-600
             `;
 
     case "sold":
@@ -97,6 +107,10 @@ const getStatusColor = (status: string) => {
                 border-gray-500
                 text-gray-700
                 hover:bg-gray-200
+                dark:bg-gray-800
+                dark:border-gray-600
+                dark:text-gray-200
+                dark:hover:bg-gray-700
             `;
 
     default:
@@ -106,6 +120,11 @@ const getStatusColor = (status: string) => {
                 text-green-700
                 hover:bg-green-100
                 hover:border-green-500
+                dark:bg-green-950/60
+                dark:border-green-700
+                dark:text-green-300
+                dark:hover:bg-green-900/70
+                dark:hover:border-green-600
             `;
   }
 };
@@ -262,6 +281,7 @@ function FlatCard({ property, onClick, className = "", style }: FlatCardProps) {
                 focus:ring-2
                 focus:ring-green-400
                 focus:ring-offset-2
+                dark:focus:ring-offset-gray-950
 
                 ${getStatusColor(status)}
 
@@ -841,6 +861,8 @@ sm:py-3
                                                 text-gray-700
                                                 hover:border-green-500
                                                 hover:bg-green-50
+                                                dark:hover:border-green-500
+                                                dark:hover:bg-green-950/60
                                               `
                 }
                                     `}
@@ -999,6 +1021,8 @@ sm:w-auto
                                                 text-gray-700
                                                 hover:border-blue-400
                                                 hover:bg-blue-50
+                                                dark:hover:border-blue-500
+                                                dark:hover:bg-blue-950/60
                                               `
                 }
                                     `}
@@ -1020,24 +1044,24 @@ sm:w-auto
           <p className="mt-1 text-2xl font-bold text-gray-800 sm:text-3xl">{totalFlats}</p>
         </div>
 
-        <div className="rounded-2xl bg-green-50 p-4 sm:p-5">
-          <p className="text-sm text-green-700">Available</p>
+        <div className="rounded-2xl bg-green-50 p-4 dark:bg-green-950/60 sm:p-5">
+          <p className="text-sm text-green-700 dark:text-green-300">Available</p>
 
-          <p className="mt-1 text-2xl font-bold text-green-700 sm:text-3xl">
+          <p className="mt-1 text-2xl font-bold text-green-700 dark:text-green-300 sm:text-3xl">
             {availableFlats}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-red-50 p-4 sm:p-5">
-          <p className="text-sm text-red-700">Booked</p>
+        <div className="rounded-2xl bg-red-50 p-4 dark:bg-red-950/60 sm:p-5">
+          <p className="text-sm text-red-700 dark:text-red-300">Booked</p>
 
-          <p className="mt-1 text-2xl font-bold text-red-700 sm:text-3xl">{bookedFlats}</p>
+          <p className="mt-1 text-2xl font-bold text-red-700 dark:text-red-300 sm:text-3xl">{bookedFlats}</p>
         </div>
 
-        <div className="rounded-2xl bg-yellow-50 p-4 sm:p-5">
-          <p className="text-sm text-yellow-700">Hold</p>
+        <div className="rounded-2xl bg-yellow-50 p-4 dark:bg-yellow-950/60 sm:p-5">
+          <p className="text-sm text-yellow-700 dark:text-yellow-300">Hold</p>
 
-          <p className="mt-1 text-2xl font-bold text-yellow-700 sm:text-3xl">{holdFlats}</p>
+          <p className="mt-1 text-2xl font-bold text-yellow-700 dark:text-yellow-300 sm:text-3xl">{holdFlats}</p>
         </div>
 
         <div className="rounded-2xl bg-gray-100 p-4 sm:p-5">
@@ -1088,6 +1112,7 @@ sm:w-auto
 
                     focus-within:border-green-500
                     focus-within:bg-white
+                    dark:focus-within:bg-gray-800
                     focus-within:ring-2
                     focus-within:ring-green-100
                 "
@@ -1139,6 +1164,7 @@ sm:w-auto
 
                     focus:border-green-500
                     focus:bg-white
+                    dark:focus:bg-gray-800
                     focus:ring-2
                     focus:ring-green-100
                 "
@@ -1182,6 +1208,7 @@ sm:w-auto
 
                     focus:border-green-500
                     focus:bg-white
+                    dark:focus:bg-gray-800
                     focus:ring-2
                     focus:ring-green-100
                 "
@@ -1225,6 +1252,7 @@ sm:w-auto
 
                     focus:border-green-500
                     focus:bg-white
+                    dark:focus:bg-gray-800
                     focus:ring-2
                     focus:ring-green-100
                 "
@@ -1339,13 +1367,13 @@ sm:w-auto
 
                   {/* LIFT */}
 
-                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50">
+                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/50">
                     <div className="text-center">
-                      <p className="text-sm font-bold tracking-wide text-blue-700">
+                      <p className="text-sm font-bold tracking-wide text-blue-700 dark:text-blue-300">
                         LIFT
                       </p>
 
-                      <p className="mt-1 text-xs text-blue-500">Common Area</p>
+                      <p className="mt-1 text-xs text-blue-500 dark:text-blue-400">Common Area</p>
                     </div>
                   </div>
 
@@ -1371,13 +1399,13 @@ sm:w-auto
 
                   {/* STAIRS */}
 
-                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100">
+                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="text-center">
-                      <p className="text-sm font-bold tracking-wide text-slate-700">
+                      <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300">
                         STAIRS
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">Common Area</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Common Area</p>
                     </div>
                   </div>
 
@@ -1488,14 +1516,16 @@ sm:w-auto
         border-dashed
         border-blue-300
         bg-blue-50
+        dark:border-blue-700
+        dark:bg-blue-950/50
     "
                   >
                     <div className="text-center">
-                      <p className="text-sm font-bold tracking-wide text-blue-700">
+                      <p className="text-sm font-bold tracking-wide text-blue-700 dark:text-blue-300">
                         LIFT
                       </p>
 
-                      <p className="mt-1 text-xs text-blue-500">Common Area</p>
+                      <p className="mt-1 text-xs text-blue-500 dark:text-blue-400">Common Area</p>
                     </div>
                   </div>
 
@@ -1545,14 +1575,16 @@ sm:w-auto
         border-dashed
         border-slate-300
         bg-slate-100
+        dark:border-slate-700
+        dark:bg-slate-900/70
     "
                   >
                     <div className="text-center">
-                      <p className="text-sm font-bold tracking-wide text-slate-700">
+                      <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300">
                         STAIRS
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">Common Area</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Common Area</p>
                     </div>
                   </div>
 
@@ -1567,7 +1599,7 @@ sm:w-auto
                     Legend
                 ================================================== */}
 
-        <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t pt-4 text-xs sm:mt-6 sm:gap-6 sm:pt-5 sm:text-sm">
+        <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 border-t border-gray-200 pt-4 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300 sm:mt-6 sm:gap-6 sm:pt-5 sm:text-sm">
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 rounded bg-green-500" />
             Available

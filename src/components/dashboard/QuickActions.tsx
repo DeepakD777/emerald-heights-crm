@@ -74,6 +74,8 @@ function QuickActions() {
                     border
                     border-gray-200
                     bg-white
+                    dark:border-gray-700
+                    dark:bg-gray-900
                     p-4
                     shadow-sm
                     sm:p-5
@@ -131,6 +133,8 @@ function QuickActions() {
                                 border
                                 border-gray-200
                                 bg-gray-50
+                                dark:border-gray-700
+                                dark:bg-gray-800
                                 px-2.5
                                 py-1
                                 text-[11px]
@@ -174,11 +178,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-green-50
+                                dark:bg-green-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-green-100
+                                dark:hover:bg-green-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -186,7 +192,7 @@ function QuickActions() {
                             "
                         >
                             <PlusCircle
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                                 size={36}
                             />
 
@@ -220,11 +226,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-orange-50
+                                dark:bg-orange-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-orange-100
+                                dark:hover:bg-orange-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -232,7 +240,7 @@ function QuickActions() {
                             "
                         >
                             <Building2
-                                className="text-orange-600"
+                                className="text-orange-600 dark:text-orange-400"
                                 size={36}
                             />
 
@@ -266,11 +274,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-blue-50
+                                dark:bg-blue-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-blue-100
+                                dark:hover:bg-blue-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -278,7 +288,7 @@ function QuickActions() {
                             "
                         >
                             <UserPlus
-                                className="text-blue-600"
+                                className="text-blue-600 dark:text-blue-400"
                                 size={36}
                             />
 
@@ -310,11 +320,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-purple-50
+                                dark:bg-purple-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-purple-100
+                                dark:hover:bg-purple-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -322,7 +334,7 @@ function QuickActions() {
                             "
                         >
                             <BarChart3
-                                className="text-purple-600"
+                                className="text-purple-600 dark:text-purple-400"
                                 size={36}
                             />
 
@@ -369,11 +381,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-green-50
+                                dark:bg-green-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-green-100
+                                dark:hover:bg-green-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -381,7 +395,7 @@ function QuickActions() {
                             "
                         >
                             <Home
-                                className="text-green-600"
+                                className="text-green-600 dark:text-green-400"
                                 size={36}
                             />
 
@@ -413,11 +427,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-orange-50
+                                dark:bg-orange-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-orange-100
+                                dark:hover:bg-orange-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -425,7 +441,7 @@ function QuickActions() {
                             "
                         >
                             <Store
-                                className="text-orange-600"
+                                className="text-orange-600 dark:text-orange-400"
                                 size={36}
                             />
 
@@ -457,11 +473,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-blue-50
+                                dark:bg-blue-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-blue-100
+                                dark:hover:bg-blue-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -469,7 +487,7 @@ function QuickActions() {
                             "
                         >
                             <BookOpen
-                                className="text-blue-600"
+                                className="text-blue-600 dark:text-blue-400"
                                 size={36}
                             />
 
@@ -501,11 +519,13 @@ function QuickActions() {
                                 gap-2
                                 rounded-xl
                                 bg-purple-50
+                                dark:bg-purple-950/60
                                 p-3
                                 text-center
                                 transition
                                 hover:-translate-y-1
                                 hover:bg-purple-100
+                                dark:hover:bg-purple-900/70
                                 hover:shadow-md
                                 sm:min-h-28
                                 sm:gap-3
@@ -513,7 +533,7 @@ function QuickActions() {
                             "
                         >
                             <BarChart3
-                                className="text-purple-600"
+                                className="text-purple-600 dark:text-purple-400"
                                 size={36}
                             />
 
@@ -570,6 +590,7 @@ function QuickActions() {
                                 overflow-y-auto
                                 rounded-2xl
                                 bg-white
+                                dark:bg-gray-900
                                 shadow-2xl
                             "
                         >
@@ -582,6 +603,8 @@ function QuickActions() {
                                     justify-between
                                     gap-3
                                     border-b
+                                    border-gray-200
+                                    dark:border-gray-700
                                     px-4
                                     py-4
                                     sm:px-6
@@ -665,12 +688,16 @@ function QuickActions() {
                                         border
                                         border-green-200
                                         bg-green-50
+                                        dark:border-green-900
+                                        dark:bg-green-950/60
                                         p-4
                                         text-center
                                         transition
                                         hover:-translate-y-1
                                         hover:border-green-300
                                         hover:bg-green-100
+                                        dark:hover:border-green-700
+                                        dark:hover:bg-green-900/70
                                         hover:shadow-md
                                         sm:min-h-40
                                         sm:gap-4
@@ -681,8 +708,10 @@ function QuickActions() {
                                         className="
                                             rounded-2xl
                                             bg-white
+                                            dark:bg-gray-800
                                             p-3
                                             text-green-600
+                                            dark:text-green-400
                                             shadow-sm
                                             sm:p-4
                                         "
@@ -720,12 +749,16 @@ function QuickActions() {
                                         border
                                         border-orange-200
                                         bg-orange-50
+                                        dark:border-orange-900
+                                        dark:bg-orange-950/60
                                         p-4
                                         text-center
                                         transition
                                         hover:-translate-y-1
                                         hover:border-orange-300
                                         hover:bg-orange-100
+                                        dark:hover:border-orange-700
+                                        dark:hover:bg-orange-900/70
                                         hover:shadow-md
                                         sm:min-h-40
                                         sm:gap-4
@@ -736,8 +769,10 @@ function QuickActions() {
                                         className="
                                             rounded-2xl
                                             bg-white
+                                            dark:bg-gray-800
                                             p-3
                                             text-orange-600
+                                            dark:text-orange-400
                                             shadow-sm
                                             sm:p-4
                                         "
