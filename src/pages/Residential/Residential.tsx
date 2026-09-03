@@ -290,13 +290,26 @@ function FlatCard({ property, onClick, className = "", style }: FlatCardProps) {
     >
       <span className="text-lg font-bold">{property.unitNumber}</span>
 
-      <span className="mt-2 text-xs">
-        {property.area ? `${property.area} sqft` : "Area not set"}
-      </span>
+      <div className="mt-2 w-full space-y-1 rounded-lg border border-current/15 bg-white/45 px-2.5 py-2 text-[10px] leading-tight dark:bg-black/10 sm:text-[11px]">
+        <div className="flex items-center justify-between gap-2">
+          <span className="opacity-75">Carpet</span>
+          <span className="font-semibold">1065.76 sqft</span>
+        </div>
 
-      <span className="mt-1 text-xs">Residential</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="opacity-75">Built-up</span>
+          <span className="font-semibold">1132.88 sqft</span>
+        </div>
 
-      <span className="mt-3 text-xs font-bold tracking-wide">
+        <div className="flex items-center justify-between gap-2">
+          <span className="opacity-75">With Balcony</span>
+          <span className="font-semibold">1271 sqft</span>
+        </div>
+      </div>
+
+      <span className="mt-2 text-[10px] opacity-80 sm:text-xs">Residential</span>
+
+      <span className="mt-2 text-xs font-bold tracking-wide">
         {getStatusText(status)}
       </span>
     </button>
@@ -730,7 +743,7 @@ function Residential() {
     const property = aBlockFlatMap.get(suffix);
 
     if (!property) {
-      return <div key={`a-empty-${suffix}`} className="h-[130px]" />;
+      return <div key={`a-empty-${suffix}`} className="h-[170px]" />;
     }
 
     return (
@@ -738,7 +751,7 @@ function Residential() {
         key={property.id}
         property={property}
         onClick={() => openFlat(property)}
-        className="h-[130px] w-full"
+        className="h-[170px] w-full"
       />
     );
   };
@@ -755,7 +768,7 @@ function Residential() {
     });
 
     if (!property) {
-      return <div key={`c1-empty-${suffix}`} className="h-[130px]" />;
+      return <div key={`c1-empty-${suffix}`} className="h-[170px]" />;
     }
 
     return (
@@ -763,7 +776,7 @@ function Residential() {
         key={property.id}
         property={property}
         onClick={() => openFlat(property)}
-        className="h-[130px] w-full"
+        className="h-[170px] w-full"
       />
     );
   };
@@ -1367,7 +1380,7 @@ sm:w-auto
 
                   {/* LIFT */}
 
-                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/50">
+                  <div className="flex h-[170px] items-center justify-center rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/50">
                     <div className="text-center">
                       <p className="text-sm font-bold tracking-wide text-blue-700 dark:text-blue-300">
                         LIFT
@@ -1399,7 +1412,7 @@ sm:w-auto
 
                   {/* STAIRS */}
 
-                  <div className="flex h-[130px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70">
+                  <div className="flex h-[170px] items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="text-center">
                       <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300">
                         STAIRS
@@ -1437,7 +1450,7 @@ sm:w-auto
                         key={property.id}
                         property={property}
                         onClick={() => openFlat(property)}
-                        className="h-[130px] w-full"
+                        className="h-[170px] w-full"
                       />
                     ))}
                 </div>
@@ -1487,7 +1500,7 @@ sm:w-auto
                         key={property.id}
                         property={property}
                         onClick={() => openFlat(property)}
-                        className="h-[130px] w-full"
+                        className="h-[170px] w-full"
                       />
                     ))}
                 </div>
@@ -1508,7 +1521,7 @@ sm:w-auto
                   <div
                     className="
         flex
-        h-[130px]
+        h-[170px]
         items-center
         justify-center
         rounded-xl
@@ -1567,7 +1580,7 @@ sm:w-auto
                   <div
                     className="
         flex
-        h-[130px]
+        h-[170px]
         items-center
         justify-center
         rounded-xl

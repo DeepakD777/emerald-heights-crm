@@ -25,6 +25,7 @@ interface BookingModalProps {
     tower: string;
     floor: number | string;
     status?: string;
+    type?: string;
   } | null;
 }
 
@@ -583,6 +584,46 @@ function BookingModal({
             </div>
           </div>
         </div>
+
+        {flat.type?.toLowerCase() === "residential" && (
+          <div className="rounded-xl border border-green-200 bg-green-50/60 p-4 dark:border-green-900 dark:bg-green-950/25">
+            <h3 className="mb-3 text-sm font-semibold text-green-800 dark:text-green-300">
+              Residential Area Details
+            </h3>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-green-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-950/60">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Carpet Area
+                </p>
+
+                <p className="mt-1 font-semibold text-gray-800 dark:text-gray-100">
+                  1065.76 Sq Ft
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-green-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-950/60">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Actual Built-up Area as per Proposed
+                </p>
+
+                <p className="mt-1 font-semibold text-gray-800 dark:text-gray-100">
+                  1132.88 Sq Ft
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-green-100 bg-white p-3 dark:border-gray-700 dark:bg-gray-950/60">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Area With Balcony
+                </p>
+
+                <p className="mt-1 font-semibold text-gray-800 dark:text-gray-100">
+                  1271 Sq Ft
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ======================================
                     Relationship Manager

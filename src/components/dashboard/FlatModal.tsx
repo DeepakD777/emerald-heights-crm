@@ -625,6 +625,9 @@ function FlatModal({
 
                         status:
                             currentStatus,
+
+                        type:
+                            flat.type,
                     }}
                     onConfirm={
                         handleBookingConfirm
