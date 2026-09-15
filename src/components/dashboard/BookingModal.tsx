@@ -230,12 +230,32 @@ const calculateAfterDiscountAmount = (
 const calculateRemainingAmount = (
   afterDiscountAmount: string | number | null | undefined,
   bookingAmount: string | number | null | undefined,
+  installmentSummary?: {
+    totalReceivedAmount?: string | number | null;
+  } | null,
 ) => {
   const finalAmount = toSafeNumber(afterDiscountAmount);
 
-  const paidBookingAmount = toSafeNumber(bookingAmount);
+  const bookingReceived = toSafeNumber(bookingAmount);
 
-  return String(Math.max(finalAmount - paidBookingAmount, 0));
+  const installmentReceived = toSafeNumber(
+    installmentSummary?.totalReceivedAmount,
+  );
+
+  // Existing booking:
+  // installmentSummary.totalReceivedAmount already represents
+  // the total amount received through the installment/payment tracking.
+  //
+  // New booking:
+  // no installment summary exists, so booking amount is the received amount.
+  const totalReceived =
+    installmentSummary &&
+      installmentSummary.totalReceivedAmount !== null &&
+      installmentSummary.totalReceivedAmount !== undefined
+      ? installmentReceived
+      : bookingReceived;
+
+  return String(Math.max(finalAmount - totalReceived, 0));
 };
 
 // ======================================================
@@ -278,8 +298,8 @@ function BookingModal({
         const response = await fetch(EMPLOYEES_API, {
           headers: token
             ? {
-                Authorization: `Bearer ${token}`,
-              }
+              Authorization: `Bearer ${token}`,
+            }
             : {},
         });
 
@@ -340,16 +360,13 @@ function BookingModal({
       const savedAfterDiscountAmount = booking.afterDiscountAmount ?? "";
 
       const savedBookingAmount = booking.bookingAmount ?? "";
-
       const normalizedRemainingAmount =
         savedMode === "AUTO"
-          ? booking.remainingAmount !== null &&
-            booking.remainingAmount !== undefined
-            ? String(booking.remainingAmount)
-            : calculateRemainingAmount(
-                savedAfterDiscountAmount,
-                savedBookingAmount,
-              )
+          ? calculateRemainingAmount(
+            savedAfterDiscountAmount,
+            savedBookingAmount,
+            booking.installmentSummary,
+          )
           : String(booking.remainingAmount ?? "");
 
       const savedFinanceType: FinanceType =
@@ -468,6 +485,7 @@ function BookingModal({
           nextData.remainingAmount = calculateRemainingAmount(
             nextData.afterDiscountAmount,
             nextData.bookingAmount,
+            booking?.installmentSummary,
           );
         }
       }
@@ -494,9 +512,10 @@ function BookingModal({
     const finalRemainingAmount =
       formData.remainingAmountMode === "AUTO"
         ? calculateRemainingAmount(
-            formData.afterDiscountAmount,
-            formData.bookingAmount,
-          )
+          formData.afterDiscountAmount,
+          formData.bookingAmount,
+          booking?.installmentSummary,
+        )
         : formData.remainingAmount;
 
     onConfirm({
@@ -936,11 +955,10 @@ function BookingModal({
                                     rounded-lg
                                     border
                                     p-2
-                                    ${
-                                      formData.remainingAmountMode === "AUTO"
-                                        ? "bg-gray-100 text-gray-700"
-                                        : "bg-white"
-                                    }
+                                    ${formData.remainingAmountMode === "AUTO"
+                    ? "bg-gray-100 text-gray-700"
+                    : "bg-white"
+                  }
                                 `}
               />
 
