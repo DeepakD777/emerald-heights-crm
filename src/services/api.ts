@@ -1,4 +1,8 @@
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL =
+    window.location.hostname === "emeraldheightbzu.com" ||
+    window.location.hostname === "www.emeraldheightbzu.com"
+        ? "https://api.emeraldheightbzu.com/api"
+        : "http://localhost:5000/api";
 
 type ApiOptions = RequestInit & {
     token?: string;
