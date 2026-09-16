@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { getAuthToken } from "../../services/api";
+import { API_BASE_URL, getAuthToken } from "../../services/api";
 
 import { useBooking } from "../../context/BookingContext";
 
@@ -222,7 +222,7 @@ function BookingInstallmentSection({
       setSaving(true);
 
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${booking.id}/installment-payments`,
+        `${API_BASE_URL}/bookings/${booking.id}/installment-payments`,
         {
           method: "POST",
 
@@ -764,3 +764,4 @@ function BookingInstallmentSection({
 }
 
 export default BookingInstallmentSection;
+

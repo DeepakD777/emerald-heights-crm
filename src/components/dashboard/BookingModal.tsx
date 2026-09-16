@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import BookingInstallmentSection from "./BookingInstallmentSection";
 
-import { getAuthToken } from "../../services/api";
+import { API_BASE_URL, getAuthToken } from "../../services/api";
 
 // ======================================================
 // Types
@@ -45,7 +45,7 @@ type FinanceType = "" | "FINANCE" | "CASH";
 // API
 // ======================================================
 
-const EMPLOYEES_API = "http://localhost:5000/api/employees";
+const EMPLOYEES_API = `${API_BASE_URL}/employees`;
 
 // ======================================================
 // Empty Form
@@ -1194,3 +1194,4 @@ function BookingModal({
 }
 
 export default BookingModal;
+

@@ -19,7 +19,7 @@ import {
 
 import { useAuth } from "../../context/AuthContext";
 
-import { getAuthToken } from "../../services/api";
+import { API_BASE_URL, getAuthToken } from "../../services/api";
 
 // ======================================================
 // Types
@@ -81,7 +81,7 @@ const emptyForm: MemberForm = {
 // API
 // ======================================================
 
-const EMPLOYEES_API = "http://localhost:5000/api/employees";
+const EMPLOYEES_API = `${API_BASE_URL}/employees`;
 
 // ======================================================
 // Auth Headers
@@ -1405,3 +1405,4 @@ function SalesTeam() {
 }
 
 export default SalesTeam;
+

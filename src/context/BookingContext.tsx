@@ -10,6 +10,7 @@ import type {
 } from "react";
 
 import {
+    API_BASE_URL,
     getAuthToken,
 } from "../services/api";
 
@@ -304,7 +305,7 @@ interface BookingContextType {
 // ======================================================
 
 const API_URL =
-    "http://localhost:5000/api/bookings";
+    `${API_BASE_URL}/bookings`;
 
 // ======================================================
 // Auth Headers

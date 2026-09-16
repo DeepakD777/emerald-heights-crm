@@ -9,6 +9,7 @@ import {
 } from "../../context/AuthContext";
 
 import {
+    API_BASE_URL,
     getAuthToken,
 } from "../../services/api";
 
@@ -54,7 +55,7 @@ interface NocSectionProps {
 // ======================================================
 
 const NOC_API =
-    "http://localhost:5000/api/nocs";
+    `${API_BASE_URL}/nocs`;
 
 // ======================================================
 // Auth Headers
