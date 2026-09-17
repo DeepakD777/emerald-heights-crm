@@ -990,7 +990,7 @@ function SalesTeam() {
                           </button>
 
                           {openMenuId === member.id && (
-                            <div className="absolute right-6 top-14 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                            <div className="absolute bottom-14 right-6 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white text-left shadow-lg dark:border-gray-700 dark:bg-gray-900">
                               <button
                                 type="button"
                                 onClick={() => handleEditMember(member)}
@@ -1072,7 +1072,7 @@ function SalesTeam() {
                   </div>
 
                   {isAdmin && openMenuId === member.id && (
-                    <div className="absolute right-4 top-14 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                    <div className="absolute bottom-14 right-4 z-20 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
                       <button
                         type="button"
                         onClick={() => handleEditMember(member)}
@@ -1405,5 +1405,6 @@ function SalesTeam() {
 }
 
 export default SalesTeam;
+
 
 
