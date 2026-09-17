@@ -898,7 +898,7 @@ function SalesTeam() {
                             Desktop Table
                         ============================== */}
 
-            <div className="hidden w-full min-w-0 overflow-x-auto overscroll-x-contain md:block">
+            <div className="hidden w-full min-w-0 overflow-x-auto overscroll-x-contain md:block xl:overflow-visible">
               <table className="w-full min-w-[760px] text-gray-700 dark:text-gray-200">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50 text-left text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-300">
@@ -1405,6 +1405,7 @@ function SalesTeam() {
 }
 
 export default SalesTeam;
+
 
 
 
