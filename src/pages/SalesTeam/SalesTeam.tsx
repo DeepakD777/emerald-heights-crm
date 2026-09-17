@@ -1157,10 +1157,10 @@ function SalesTeam() {
             }
           }}
         >
-          <div className="max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-gray-900 sm:max-h-[90vh]">
+          <div className="flex max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900 sm:max-h-[90vh]">
             {/* Modal Header */}
 
-            <div className="flex min-w-0 items-center justify-between gap-3 border-b border-gray-200 px-4 py-4 dark:border-gray-700 sm:px-6">
+            <div className="shrink-0 flex min-w-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-4 dark:border-gray-700 dark:bg-gray-900 sm:px-6">
               <div className="min-w-0">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
                   {editingMemberId !== null
@@ -1187,7 +1187,7 @@ function SalesTeam() {
 
             {/* Form */}
 
-            <form onSubmit={handleSaveMember} className="space-y-4 p-4 sm:space-y-5 sm:p-6">
+            <form onSubmit={handleSaveMember} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:space-y-5 sm:p-6">
               {/* Name */}
 
               <div>
@@ -1380,7 +1380,7 @@ function SalesTeam() {
 
               {/* Buttons */}
 
-              <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 dark:border-gray-700 sm:flex-row sm:justify-end">
+              <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-col-reverse gap-3 border-t border-gray-200 bg-white px-4 pb-4 pt-4 dark:border-gray-700 dark:bg-gray-900 sm:-mx-6 sm:-mb-6 sm:flex-row sm:justify-end sm:px-6 sm:pb-6">
                 <button
                   type="button"
                   onClick={handleCloseModal}
@@ -1405,4 +1405,5 @@ function SalesTeam() {
 }
 
 export default SalesTeam;
+
 

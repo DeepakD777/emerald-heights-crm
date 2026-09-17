@@ -9,7 +9,7 @@ type ApiOptions = RequestInit & {
 };
 
 function getStoredToken() {
-    return localStorage.getItem("authToken");
+    return sessionStorage.getItem("authToken");
 }
 
 export async function apiRequest<T>(
@@ -78,14 +78,14 @@ export async function apiRequest<T>(
 export function setAuthToken(
     token: string
 ) {
-    localStorage.setItem(
+    sessionStorage.setItem(
         "authToken",
         token
     );
 }
 
 export function clearAuthToken() {
-    localStorage.removeItem(
+    sessionStorage.removeItem(
         "authToken"
     );
 }
