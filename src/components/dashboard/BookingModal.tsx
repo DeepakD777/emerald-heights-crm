@@ -757,7 +757,7 @@ function BookingModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">DOB</label>
+              <label className="mb-1 block text-sm font-medium">DOB (Date of Birth)</label>
 
               <input
                 type="date"
@@ -769,7 +769,7 @@ function BookingModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium">DOA</label>
+              <label className="mb-1 block text-sm font-medium">DOM (Date of Marriage)</label>
 
               <input
                 type="date"
