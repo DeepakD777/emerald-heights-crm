@@ -3336,13 +3336,50 @@ export const updateBooking = async (
                 )
             );
 
+        const existingInitialBookingPayment =
+            await prisma.bookingInstallmentPayment.findFirst({
+                where: {
+                    bookingId,
+
+                    OR: [
+                        {
+                            remarks:
+                                "Initial booking payment",
+                        },
+                        {
+                            remarks:
+                                "Backfilled from existing booking amount",
+                        },
+                    ],
+                },
+
+                select: {
+                    amount: true,
+                },
+            });
+
+        const existingInitialBookingAmount =
+            roundMoney(
+                Number(
+                    existingInitialBookingPayment
+                        ?.amount ??
+                    0
+                )
+            );
+
         const effectiveReceivedAmount =
             roundMoney(
-                totalInstallmentReceived >
-                    0
-                    ? totalInstallmentReceived
-                    : nextBookingAmount ??
-                    0
+                bookingAmount !== undefined
+                    ? Math.max(
+                        totalInstallmentReceived -
+                        existingInitialBookingAmount +
+                        (nextBookingAmount ?? 0),
+                        0
+                    )
+                    : totalInstallmentReceived > 0
+                        ? totalInstallmentReceived
+                        : nextBookingAmount ??
+                        0
             );
 
         // ==================================================
@@ -3599,6 +3636,131 @@ export const updateBooking = async (
                             },
                         });
 
+                    // ======================================
+                    // Sync Initial Booking Payment
+                    // ======================================
+
+                    if (
+                        bookingAmount !==
+                        undefined
+                    ) {
+                        const firstInstallmentStage =
+                            await tx
+                                .bookingInstallmentStage
+                                .findFirst({
+                                    where: {
+                                        bookingId,
+                                        sequence:
+                                            1,
+                                    },
+
+                                    select: {
+                                        id:
+                                            true,
+                                    },
+                                });
+
+                        if (
+                            firstInstallmentStage
+                        ) {
+                            const initialBookingPayment =
+                                await tx
+                                    .bookingInstallmentPayment
+                                    .findFirst({
+                                        where: {
+                                            bookingId,
+
+                                            OR: [
+                                                {
+                                                    remarks:
+                                                        "Initial booking payment",
+                                                },
+                                                {
+                                                    remarks:
+                                                        "Backfilled from existing booking amount",
+                                                },
+                                            ],
+                                        },
+
+                                        orderBy: {
+                                            createdAt:
+                                                "asc",
+                                        },
+                                    });
+
+                            if (
+                                nextBookingAmount !=
+                                null &&
+                                nextBookingAmount >
+                                0
+                            ) {
+                                if (
+                                    initialBookingPayment
+                                ) {
+                                    await tx
+                                        .bookingInstallmentPayment
+                                        .update({
+                                            where: {
+                                                id:
+                                                    initialBookingPayment.id,
+                                            },
+
+                                            data: {
+                                                installmentId:
+                                                    firstInstallmentStage.id,
+
+                                                amount:
+                                                    nextBookingAmount,
+
+                                                remarks:
+                                                    "Initial booking payment",
+                                            },
+                                        });
+                                } else {
+                                    await tx
+                                        .bookingInstallmentPayment
+                                        .create({
+                                            data: {
+                                                bookingId,
+
+                                                installmentId:
+                                                    firstInstallmentStage.id,
+
+                                                amount:
+                                                    nextBookingAmount,
+
+                                                paymentDate:
+                                                    bookingDate
+                                                        ? new Date(
+                                                            bookingDate
+                                                        )
+                                                        : existingBooking
+                                                            .bookingDate ??
+                                                        new Date(),
+
+                                                paymentMode:
+                                                    paymentMode ??
+                                                    "Cash",
+
+                                                remarks:
+                                                    "Initial booking payment",
+                                            },
+                                        });
+                                }
+                            } else if (
+                                initialBookingPayment
+                            ) {
+                                await tx
+                                    .bookingInstallmentPayment
+                                    .delete({
+                                        where: {
+                                            id:
+                                                initialBookingPayment.id,
+                                        },
+                                    });
+                            }
+                        }
+                    }
                     // ======================================
                     // Re-plan Installment Snapshot
                     // Keeps payment history untouched

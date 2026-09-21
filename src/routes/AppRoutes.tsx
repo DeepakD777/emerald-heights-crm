@@ -9,6 +9,10 @@ import {
     AuthProvider,
 } from "../context/AuthContext";
 
+import {
+    BookingProvider,
+} from "../context/BookingContext";
+
 import ProtectedRoute from "./ProtectedRoute";
 
 import MainLayout from "../layouts/MainLayout";
@@ -70,7 +74,9 @@ function AppRoutes() {
                         <Route
                             path="/"
                             element={
-                                <MainLayout />
+                                <BookingProvider>
+                                    <MainLayout />
+                                </BookingProvider>
                             }
                         >
 
